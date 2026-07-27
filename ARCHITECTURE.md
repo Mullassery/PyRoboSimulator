@@ -71,12 +71,43 @@ AI-Native World Simulation Engine combining storytelling, world-building, roboti
   - Cinematic mode (photorealistic rendering, story-driven)
 - **World templating** (pre-built patterns + variation)
 
-#### 7. Simulation Orchestration
+#### 7. Movie-Scale Hyperrealistic Rendering Pipeline
+- **Real-time Rendering Engine** (OpenUSD + NVIDIA RTX)
+  - Physically-based rendering (PBR)
+  - Ray tracing for photorealism
+  - Real-time 30–120 fps at 1080p+
+  - DXR/OptiX acceleration
+- **Multi-Fidelity LOD System** (same world, 3 quality levels)
+  - Level 0: Scientific (boxes/primitives, accurate physics only)
+  - Level 1: Robotics (medium-poly geometry, realistic materials)
+  - Level 2: Cinematic (high-poly, photorealistic assets, advanced lighting)
+  - Seamless runtime switching (no re-simulation)
+- **Neural Enhancement Layer** (Runway-quality upsampling)
+  - Optional video diffusion models (real-time inference)
+  - Super-resolution (4K from 1080p)
+  - Style transfer (narrative-driven cinematics)
+  - Temporal coherence across frames
+- **Cinematic Intelligence**
+  - Automated camera planning (shot composition, depth of field, motion)
+  - Dynamic lighting (volumetric, shadow mapping, GI)
+  - Depth-of-field and motion blur (cinematography)
+  - Color grading and post-processing (mood/narrative)
+- **Output Formats**
+  - Real-time video streams (H.264/H.265 encoding)
+  - High-quality offline rendering (ProRes, DNxHD for post-production)
+  - Image sequences (EXR with passes for compositing)
+  - RGB + depth maps (for PyRoboReplay sensor simulation)
+- **Integration with PyRoboReplay**
+  - Render RGB + depth + thermal + segmentation in parallel
+  - Sensor-specific distortion/noise injection
+  - Multi-view rendering (omnidirectional, panoramic, drone perspectives)
+
+#### 8. Simulation Orchestration
 - **Multi-physics backend support** (MuJoCo primary, plugins for ODE/Bullet/PhysX)
-- **Rendering abstraction** (OpenUSD scene graph with LOD system)
 - **Gazebo/Isaac Sim bridge** (coordinate simulation across platforms)
 - **Real-time factor management** (speed up/slow down simulation)
 - **Distributed simulation** (multi-machine, cloud coordination)
+- **Rendering & Physics Decoupling** (separate threads/GPUs for rendering and physics)
 
 ## Technology Stack
 
@@ -99,7 +130,21 @@ AI-Native World Simulation Engine combining storytelling, world-building, roboti
 
 **Scene Graph & Rendering:**
 - `openusd-sys` — OpenUSD bindings (scene representation)
-- Multi-backend rendering (scientific/robotics/cinematic)
+- `openusd-rs` — OpenUSD Rust bindings for LOD management
+- `nvapi-rs` — NVIDIA RTX DXR/OptiX acceleration
+- Multi-fidelity LOD system (scientific/robotics/cinematic modes)
+
+**Real-Time Rendering:**
+- NVIDIA OptiX (ray tracing, photorealism)
+- OpenGL/Vulkan fallback
+- Multi-threaded rendering pipeline (decoupled from physics)
+- Video encoding: `ffmpeg-sys-next` (H.264/H.265, ProRes, DNxHD)
+- Image I/O: `image` crate (PNG, EXR, OpenEXR for compositing)
+
+**Neural Enhancement (Optional, Phase 2+):**
+- ONNX Runtime for real-time inference
+- Video diffusion model integration (Runway-style upsampling)
+- Model quantization for edge deployment
 
 **ROS 2:**
 - `rclrust` — ROS 2 client library (Rust native)
@@ -108,6 +153,7 @@ AI-Native World Simulation Engine combining storytelling, world-building, roboti
 **Integration:**
 - `tonic` — gRPC for distributed sim coordination
 - `tokio-kafka` — Kafka event streams
+- `serde_usd` — Custom serde for OpenUSD serialization
 
 ### Python Layer
 
@@ -124,6 +170,106 @@ AI-Native World Simulation Engine combining storytelling, world-building, roboti
 
 **Optional:**
 - `rclpy` — ROS 2 Python client (if needed alongside Rust bridge)
+
+## Rendering Pipeline Architecture
+
+### Multi-Fidelity System (Core Differentiator)
+
+The same world generates three rendering variants **without re-simulation**:
+
+```
+World State (Physics Simulation)
+    ↓
+    ├─→ LOD-0 (Scientific Mode)
+    │   ├─ Box primitives
+    │   ├─ Physics-only visualization
+    │   └─ Use: RL training, rapid iteration
+    │       Output: Real-time streams to PyRoboReplay
+    │
+    ├─→ LOD-1 (Robotics Mode)
+    │   ├─ Medium-poly geometry
+    │   ├─ Realistic materials/textures
+    │   ├─ Camera simulation (RGB, depth, Lidar)
+    │   └─ Use: Nav2, MoveIt, SLAM testing
+    │       Output: Sensor feeds to ROS 2 topics
+    │
+    └─→ LOD-2 (Cinematic Mode)
+        ├─ High-poly/hero assets
+        ├─ Photorealistic rendering (RTX)
+        ├─ Advanced lighting (volumetric, GI)
+        ├─ Cinematic camera control
+        ├─ Optional: Neural upsampling (Runway-quality)
+        └─ Use: Films, marketing, documentaries
+            Output: H.265 video (UHD), EXR sequences
+```
+
+**Key Property:** Physics simulation runs once; rendering runs at 3 quality levels in parallel.
+
+### Rendering Data Flow
+
+```
+Physics Engine (MuJoCo)
+    ↓ Transform Updates (TF trees)
+    ↓
+OpenUSD Scene Graph
+    ├─ Spatial hierarchy
+    ├─ Material properties
+    ├─ LOD variants (same geometry at 3 poly counts)
+    └─ Shaders (PBR for robotics/cinematic)
+    ↓
+Multi-Backend Renderer
+    ├─ Backend 1: OpenGL (fallback, fast)
+    ├─ Backend 2: Vulkan (portable, high-performance)
+    └─ Backend 3: OptiX (NVIDIA GPUs, photorealistic)
+    ↓
+Rendering Passes (Parallel)
+    ├─ Geometry pass (LOD selection)
+    ├─ Lighting pass (shadows, GI)
+    ├─ Post-processing (DoF, motion blur, color grade)
+    └─ Composition (multiple layers for editing)
+    ↓
+Output Encoders (Simultaneous)
+    ├─ Real-time streams (H.264, network optimized)
+    ├─ Offline rendering (ProRes, archival quality)
+    ├─ Sensor simulation (RGB/depth for PyRoboReplay)
+    └─ Analysis passes (segmentation, normals, etc.)
+```
+
+### Cinematic Intelligence Module
+
+Runs in parallel with simulation, generates:
+
+```
+Causality Chain (from world events)
+    ↓
+Narrative Analyzer
+    ├─ Identify key moments (conflicts, resolutions, discoveries)
+    ├─ Extract emotional beats (tension, relief, climax)
+    └─ Classify scene type (action, dialogue, exploration, mystery)
+    ↓
+Camera Planner
+    ├─ Shot composition (rule-of-thirds, leading lines)
+    ├─ Camera movement (push-in, pan, orbital)
+    ├─ Depth-of-field targets (focus on protagonist)
+    └─ Timing & pacing (frame rate, shot duration)
+    ↓
+Lighting Designer
+    ├─ Key/fill/back light ratios
+    ├─ Color temperature (warm/cool by mood)
+    ├─ Shadow direction (narrative relevance)
+    └─ Volumetric effects (fog, dust, atmosphere)
+    ↓
+Cuts & Transitions
+    ├─ Scene boundaries (when to cut)
+    ├─ Transition types (cut, fade, dissolve)
+    └─ Music sync points (beat matching)
+    ↓
+Output
+    ├─ Camera rig (automated trajectory)
+    ├─ Lighting rig (dynamic light parameters)
+    ├─ Post-processing stack (color grade, effects)
+    └─ Editing decisions (cuts, pacing)
+```
 
 ## Data Model
 
@@ -225,9 +371,27 @@ Scene {
 
 ## Success Metrics
 
+### Core Functionality
 - [ ] User can describe world in English → get playable ROS 2 environment
 - [ ] Same world renders at 3+ fidelity levels without code changes
 - [ ] Agent simulation with 100+ entities at real-time factor > 1.0
 - [ ] Mission generation produces 10+ unique variants per world
 - [ ] Story arcs automatically emerge from 5+ simultaneous agent interactions
 - [ ] ROS 2 navigation/manipulation tasks executable within 5 min of world generation
+
+### Rendering & Cinematics (Phase 2+)
+- [ ] Cinematic mode outputs 1080p at 30fps+ with photorealistic quality
+- [ ] Same scene renders as: scientific (boxes) → robotics (medium) → cinematic (hero)
+- [ ] Automated camera planning (shot composition, motion, pacing)
+- [ ] Lighting design (key/fill/back, volumetric effects, color grading)
+- [ ] Video output: H.265 UHD + ProRes offline + EXR for compositing
+- [ ] Neural enhancement (optional): Runway-quality upsampling from 1080p
+- [ ] Cinematic output quality competitive with production-grade tools (Runway, Synthesia)
+- [ ] Multi-modal rendering: RGB + depth + thermal + segmentation in parallel
+- [ ] Render farm coordination for distributed cinematic rendering
+
+### Integration
+- [ ] PyTerrainMap: Procedural terrain → world LOD variants
+- [ ] PyRoboReplay: Sensor feeds from cinematic rendering
+- [ ] PyRoboFrames: Export training datasets (RGB, depth, trajectories)
+- [ ] PyRoboVision: Perception feedback loops in cinematic mode
