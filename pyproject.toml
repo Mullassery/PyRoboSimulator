@@ -1,0 +1,40 @@
+[build-system]
+requires = ["maturin>=1.0,<2.0"]
+build-backend = "maturin"
+
+[project]
+name = "pyrobosimulator"
+version = "0.1.0"
+description = "AI-native world simulation engine: narratives, robotics, agents, ROS 2"
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+authors = [{name = "Georgi Mullassery", email = "mullassery@gmail.com"}]
+keywords = ["robotics", "simulation", "ros2", "agents", "narrative"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Scientific/Engineering :: Physics",
+]
+
+dependencies = [
+    "pyterrainmap>=1.0.0",
+    "pyroboreplay>=2.0.0",
+    "pyroboframes>=1.2.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=7.0", "pytest-cov", "maturin>=1.0"]
+ros2 = ["rclpy>=0.17.0"]
+
+[tool.maturin]
+module-name = "pyrobosimulator._core"
+python-source = "python"
+features = ["pyo3/abi3"]
