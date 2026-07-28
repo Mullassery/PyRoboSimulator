@@ -1,0 +1,81 @@
+---
+# Ingress for external access
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: pyrobosim-ingress
+  namespace: pyrobosim
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/rate-limit: "100"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - api.example.com
+      secretName: pyrobosim-tls
+  rules:
+    - host: api.example.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: pyrobosim-backend
+                port:
+                  number: 8000
+
+---
+# ServiceMonitor for Prometheus
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: pyrobosim-backend
+  namespace: pyrobosim
+  labels:
+    release: prometheus
+spec:
+  selector:
+    matchLabels:
+      app: pyrobosim-backend
+  endpoints:
+    - port: metrics
+      interval: 30s
+      path: /metrics
+
+---
+# PrometheusRule for alerting
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: pyrobosim-alerts
+  namespace: pyrobosim
+  labels:
+    prometheus: kube-prometheus
+spec:
+  groups:
+    - name: pyrobosim.rules
+      interval: 30s
+      rules:
+        - alert: PyRoboSimHighLatency
+          expr: histogram_quantile(0.99, api_request_duration_seconds) > 0.5
+          for: 5m
+          annotations:
+            summary: "PyRoboSim API latency is high"
+            description: "P99 latency > 500ms for 5 minutes"
+
+        - alert: PyRoboSimHighErrorRate
+          expr: rate(api_requests_total{status=~"5.."}[5m]) > 0.01
+          for: 5m
+          annotations:
+            summary: "PyRoboSim error rate is high"
+            description: "Error rate > 1% for 5 minutes"
+
+        - alert: PyRoboSimCacheLowHitRate
+          expr: rate(cache_hits_total[5m]) / (rate(cache_hits_total[5m]) + rate(cache_misses_total[5m])) < 0.8
+          for: 10m
+          annotations:
+            summary: "PyRoboSim cache hit rate is low"
+            description: "Cache hit rate < 80% for 10 minutes"

@@ -1,0 +1,64 @@
+---
+# Kustomization for PyRoboSimulator deployment
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: pyrobosim
+
+# Common labels
+commonLabels:
+  app: pyrobosim
+  version: v0.1.0
+
+# Common annotations
+commonAnnotations:
+  deployment: kubernetes
+  team: platform
+  environment: production
+
+# Resources to include
+resources:
+  - deployment.yaml
+  - postgres.yaml
+  - redis.yaml
+  - ingress.yaml
+
+# Replicas override
+replicas:
+  - name: pyrobosim-backend
+    count: 3
+  - name: postgres
+    count: 3
+  - name: redis
+    count: 3
+
+# ConfigMap generation
+configMapGenerator:
+  - name: pyrobosim-config
+    behavior: create
+    literals:
+      - ENVIRONMENT=production
+      - DEBUG=false
+      - LOG_LEVEL=INFO
+
+# Secret generation (requires external configuration)
+secretGenerator:
+  - name: pyrobosim-secrets
+    behavior: create
+    envs:
+      - secrets.env
+
+# Image updates
+images:
+  - name: gcr.io/your-project/pyrobosim
+    newTag: v0.1.0
+
+# Patches for different environments
+patchesStrategicMerge:
+  - |-
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      name: pyrobosim-backend
+    spec:
+      replicas: 3
