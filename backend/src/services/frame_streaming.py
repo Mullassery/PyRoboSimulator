@@ -31,16 +31,20 @@ class AgentFrame:
     rotation: Vector3
     velocity: Vector3
     state: str  # "idle", "moving", "goal_reached", "collision"
+    trajectory: Optional[List[List[float]]] = None  # List of [x, y] positions
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for serialization."""
-        return {
+        result = {
             "id": self.id,
             "pos": self.position.to_list(),
             "rot": self.rotation.to_list(),
             "vel": self.velocity.to_list(),
             "state": self.state,
         }
+        if self.trajectory:
+            result["traj"] = self.trajectory
+        return result
 
 
 @dataclass

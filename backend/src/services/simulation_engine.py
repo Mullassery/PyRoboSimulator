@@ -64,6 +64,7 @@ class Agent:
     def __post_init__(self):
         """Initialize agent after dataclass creation."""
         self._rgb_frame_count = 0
+        self.trajectory: list = []  # List of (x, y) positions over time
 
     def generate_lidar_cloud(self) -> list:
         """Generate synthetic lidar point cloud.
@@ -389,6 +390,8 @@ class SimulationEngine:
             else:
                 agent.state = "idle"
 
+            agent.trajectory.append((agent.position.x, agent.position.y))
+
     def step(self) -> list[Event]:
         """Execute one simulation step.
 
@@ -610,3 +613,32 @@ class SimulationEngine:
             List of obstacle dictionaries
         """
         return self.obstacles
+
+    def get_agent_trajectory(self, agent_id: int, max_points: int = 500) -> list:
+        """Get trajectory for an agent (limited to max_points most recent).
+
+        Args:
+            agent_id: Agent ID
+            max_points: Maximum trajectory points to return
+
+        Returns:
+            List of [x, y] positions or empty list if agent not found
+        """
+        if agent_id not in self.agents:
+            return []
+        agent = self.agents[agent_id]
+        return agent.trajectory[-max_points:] if agent.trajectory else []
+
+    def get_all_agent_trajectories(self, max_points: int = 500) -> dict[int, list]:
+        """Get trajectories for all agents.
+
+        Args:
+            max_points: Maximum trajectory points per agent
+
+        Returns:
+            Dictionary mapping agent_id to trajectory (list of [x, y])
+        """
+        trajectories = {}
+        for agent_id, agent in self.agents.items():
+            trajectories[agent_id] = agent.trajectory[-max_points:] if agent.trajectory else []
+        return trajectories

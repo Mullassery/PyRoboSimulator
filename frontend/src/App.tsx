@@ -12,6 +12,7 @@ interface Agent {
   rot: [number, number, number]
   vel: [number, number, number]
   state: string
+  traj?: Array<[number, number]>
 }
 
 interface Event {
@@ -52,7 +53,9 @@ function App() {
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null)
   const agentMeshesRef = useRef<Map<number, THREE.Mesh>>(new Map())
   const obstaclesMeshesRef = useRef<Map<number, THREE.Mesh>>(new Map())
+  const trajectoryLinesRef = useRef<Map<number, THREE.LineSegments>>(new Map())
   const obstaclesInitializedRef = useRef(false)
+  const [showTrajectories, setShowTrajectories] = useState(true)
 
   const simulationId = new URLSearchParams(window.location.search).get('id') || '1'
   const { frame, isConnected, sendCommand } = useWebSocket(simulationId)
@@ -150,7 +153,7 @@ function App() {
       obstaclesInitializedRef.current = true
     }
 
-    // Update agents
+    // Update agents and trajectories
     frameData.agents.forEach((agent: Agent) => {
       let mesh = agentMeshesRef.current.get(agent.id)
 
@@ -169,6 +172,36 @@ function App() {
       // Update position and color
       mesh.position.set(agent.pos[0], agent.pos[1], agent.pos[2])
       ;(mesh.material as THREE.MeshPhongMaterial).color.set(getAgentColor(agent.state))
+
+      // Update trajectory if available and enabled
+      if (showTrajectories && agent.traj && agent.traj.length > 1) {
+        let line = trajectoryLinesRef.current.get(agent.id)
+
+        if (!line) {
+          const geometry = new THREE.BufferGeometry()
+          const material = new THREE.LineBasicMaterial({
+            color: getAgentColor(agent.state),
+            linewidth: 1,
+            transparent: true,
+            opacity: 0.6,
+          })
+          line = new THREE.LineSegments(geometry, material)
+          sceneRef.current!.add(line)
+          trajectoryLinesRef.current.set(agent.id, line)
+        }
+
+        const positions = new Float32Array(agent.traj.length * 3)
+        for (let i = 0; i < agent.traj.length; i++) {
+          positions[i * 3] = agent.traj[i][0]
+          positions[i * 3 + 1] = agent.traj[i][1]
+          positions[i * 3 + 2] = 0.1
+        }
+
+        ;(line.geometry as THREE.BufferGeometry).dispose()
+        line.geometry = new THREE.BufferGeometry()
+        line.geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3))
+        ;(line.material as THREE.LineBasicMaterial).color.set(getAgentColor(agent.state))
+      }
     })
 
     // Add new events
@@ -180,6 +213,15 @@ function App() {
       if (!currentAgentIds.has(agentId)) {
         sceneRef.current?.remove(mesh)
         agentMeshesRef.current.delete(agentId)
+
+        // Also remove trajectory
+        const line = trajectoryLinesRef.current.get(agentId)
+        if (line) {
+          sceneRef.current?.remove(line)
+          line.geometry.dispose()
+          ;(line.material as THREE.LineBasicMaterial).dispose()
+          trajectoryLinesRef.current.delete(agentId)
+        }
       }
     })
   }, [frame])
@@ -227,9 +269,11 @@ function App() {
           playing={playing}
           speed={speed}
           cameraMode={cameraMode}
+          showTrajectories={showTrajectories}
           onPlayPause={handlePlayPause}
           onSpeedChange={handleSpeedChange}
           onCameraChange={handleCameraChange}
+          onTrajectoryToggle={setShowTrajectories}
         />
 
         <div className="bottom-panel">

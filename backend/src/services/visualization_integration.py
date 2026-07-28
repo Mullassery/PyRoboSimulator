@@ -70,8 +70,10 @@ class VisualizationStreamer:
         Returns:
             WorldFrame with agent positions, events, and sensor data
         """
-        # Capture agent states
+        # Capture agent states and trajectories
         agent_frames = []
+        trajectories = self.engine.get_all_agent_trajectories(max_points=100)
+
         for agent in self.engine.agents.values():
             agent_frame = AgentFrame(
                 id=agent.id,
@@ -79,18 +81,21 @@ class VisualizationStreamer:
                 rotation=Vector3(0.0, 0.0, 0.0),
                 velocity=Vector3(agent.velocity.x, agent.velocity.y, 0.0),
                 state=agent.state,
+                trajectory=trajectories.get(agent.id),
             )
             agent_frames.append(agent_frame)
 
         # Capture recent events
         event_frames = []
-        for event in self.engine.events[-10:]:  # Last 10 events only
+        for i, event in enumerate(self.engine.events[-10:]):  # Last 10 events only
+            agent_id = event.agent_ids[0] if event.agent_ids else -1
+            event_pos_data = event.data.get("position", {"x": 0, "y": 0})
             event_frame = EventFrame(
-                id=event["id"],
-                type=event["type"],
-                agent_id=event["agent_id"],
-                position=Vector3(event["position"]["x"], event["position"]["y"], 0.0),
-                data=event.get("data"),
+                id=i,
+                type=event.event_type,
+                agent_id=agent_id,
+                position=Vector3(event_pos_data.get("x", 0), event_pos_data.get("y", 0), 0.0),
+                data=event.data,
             )
             event_frames.append(event_frame)
 

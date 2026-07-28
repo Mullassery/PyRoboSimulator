@@ -5,18 +5,22 @@ interface ControlsProps {
   playing: boolean
   speed: number
   cameraMode: 'free' | 'topdown' | 'follow'
+  showTrajectories: boolean
   onPlayPause: () => void
   onSpeedChange: (speed: number) => void
   onCameraChange: (mode: 'free' | 'topdown' | 'follow') => void
+  onTrajectoryToggle: (show: boolean) => void
 }
 
 export default function Controls({
   playing,
   speed,
   cameraMode,
+  showTrajectories,
   onPlayPause,
   onSpeedChange,
   onCameraChange,
+  onTrajectoryToggle,
 }: ControlsProps) {
   return (
     <div className="controls">
@@ -91,19 +95,15 @@ export default function Controls({
       </div>
 
       <div className="control-section">
-        <label>Settings</label>
+        <label>Visualization</label>
         <div className="settings">
           <label>
-            <input type="checkbox" />
-            Show Sensor Data
-          </label>
-          <label>
-            <input type="checkbox" />
-            Show Lidar
-          </label>
-          <label>
-            <input type="checkbox" />
-            Show Collisions
+            <input
+              type="checkbox"
+              checked={showTrajectories}
+              onChange={(e) => onTrajectoryToggle(e.target.checked)}
+            />
+            Show Trajectories
           </label>
         </div>
       </div>
