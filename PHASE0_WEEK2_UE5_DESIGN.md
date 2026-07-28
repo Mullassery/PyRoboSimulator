@@ -12,7 +12,7 @@
 
 ## Phase 0 Week 2 Deliverables
 
-### 1. UE5 Project Structure ✅ (Plan)
+### 1. UE5 Project Structure  [PLAN]
 
 ```
 PyRoboSimulator-UE5/
@@ -78,7 +78,7 @@ PyRoboSimulator-UE5/
 └── PyRoboSimulator.uproject
 ```
 
-### 2. Parking Lot Scene Layout ✅ (Design)
+### 2. Parking Lot Scene Layout  [DESIGN]
 
 **Scene Bounds:** 200m × 200m × 50m (XYZ)  
 **Ground Level:** Z = 0m (sea level)  
@@ -131,7 +131,7 @@ PyRoboSimulator-UE5/
 
 ---
 
-### 3. Material Definitions ✅ (Design)
+### 3. Material Definitions  [DESIGN]
 
 #### Master Material (Physically Based)
 
@@ -235,7 +235,7 @@ Bool UseDisplacement
 
 ---
 
-### 4. Dynamic Lighting System ✅ (Design)
+### 4. Dynamic Lighting System  [DESIGN]
 
 #### Sun (Directional Light)
 **Type:** Directional Light  
@@ -307,7 +307,7 @@ Height: 8m above ground
 
 ---
 
-### 5. Weather System ✅ (Design)
+### 5. Weather System  [DESIGN]
 
 #### Rain Simulation
 
@@ -378,7 +378,7 @@ FogDensity = 1.0:  Heavy fog, 100m visibility
 
 ---
 
-### 6. Seasonal Color Correction ✅ (Design)
+### 6. Seasonal Color Correction  [DESIGN]
 
 **Implementation:** Post-Process Volume with per-season settings
 
@@ -412,7 +412,7 @@ DOY 271-365:  Fall → Orange/red shift, warm desaturation
 
 ---
 
-### 7. Sensor Camera Setup ✅ (Design)
+### 7. Sensor Camera Setup  [DESIGN]
 
 #### Main Camera (Stationary)
 **Position:** (0, -80, 10)  
@@ -455,7 +455,7 @@ DOY 271-365:  Fall → Orange/red shift, warm desaturation
 
 ---
 
-### 8. Python ↔ UE5 Bridge ✅ (Design)
+### 8. Python ↔ UE5 Bridge  [DESIGN]
 
 #### REST API Integration (Python ← → UE5)
 

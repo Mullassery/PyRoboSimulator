@@ -12,25 +12,25 @@ Production-ready simulation engine with multi-modal sensors, physics-accurate be
 
 ## Features
 
-### 🎯 Simulation Engine
+### Simulation Engine
 - **Physics-accurate**: Euler integration, collision detection, boundary conditions
 - **Scalable**: Support for 100K-1M agents in single simulation
 - **Event-driven**: Collision, goal-reached, state-change events
 - **Deterministic**: Seeded RNG for reproducible results
 
-### 🌍 Procedural World Generation
+### Procedural World Generation
 - **Built-in Scenarios**: Parking lot, warehouse, urban street
 - **Random Worlds**: Configurable agent count, obstacles, complexity
 - **Spawn Zones**: Flexible agent placement and distribution
 - **Dynamic Environment**: Weather, time-of-day, dynamic obstacles
 
-### 📹 Multi-Modal Sensors
+### Multi-Modal Sensors
 - **RGB Camera**: 1920×1080 @ 30 FPS, realistic optics
 - **Depth Sensor**: 512×512 @ 30 FPS, 0-300m range
 - **Lidar**: 512 rays × 16 layers, 360° horizontal FOV
 - **Thermal Camera**: 256×256 @ 30 FPS, -20°C to +60°C
 
-### 🚀 Production Ready
+### Production Ready
 - **REST API**: 15 endpoints, full OpenAPI documentation
 - **Authentication**: JWT tokens with bcrypt password hashing
 - **Monitoring**: Prometheus metrics, health checks, alerting
@@ -105,7 +105,7 @@ uvicorn pyrobosimulator.api.main:app --reload
 ### Rendering (Optional)
 - **Unreal Engine 5**: AAA graphics, sensor simulation (free, proprietary)
 
-### ✅ 100% Open Source
+### 100% Open Source
 All core dependencies use MIT/BSD/Apache 2.0 licenses. See [OSS Compliance](docs/OSS_COMPLIANCE.md).
 
 ---
@@ -125,11 +125,11 @@ All core dependencies use MIT/BSD/Apache 2.0 licenses. See [OSS Compliance](docs
 
 ## Use Cases
 
-🚗 **Autonomous Vehicles** — Test AV algorithms, validate sensor fusion  
-🤖 **Robotics** — Develop robot navigation, test multi-robot coordination  
-🎮 **Game Development** — Realistic NPCs, procedural worlds  
-🔬 **Research** — AI behavior, swarm intelligence, sensor simulation  
-📊 **Digital Twins** — Fleet simulation, operational scenario testing  
+**Autonomous Vehicles** — Test AV algorithms, validate sensor fusion  
+**Robotics** — Develop robot navigation, test multi-robot coordination  
+**Game Development** — Realistic NPCs, procedural worlds  
+**Research** — AI behavior, swarm intelligence, sensor simulation  
+**Digital Twins** — Fleet simulation, operational scenario testing  
 
 ---
 
@@ -168,10 +168,10 @@ pip install -e .[dev]
 
 ## Support & Community
 
-- 📚 [Documentation](docs/)
-- 💬 [GitHub Discussions](https://github.com/Mullassery/PyRoboSimulator/discussions)
-- 🐛 [Issues](https://github.com/Mullassery/PyRoboSimulator/issues)
-- 📧 info@pyrobosimulator.ai
+- [Documentation](docs/)
+- [GitHub Discussions](https://github.com/Mullassery/PyRoboSimulator/discussions)
+- [Issues](https://github.com/Mullassery/PyRoboSimulator/issues)
+- info@pyrobosimulator.ai
 
 ---
 

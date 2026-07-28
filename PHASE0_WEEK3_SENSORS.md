@@ -12,7 +12,7 @@
 
 ## Sensor Implementation Details
 
-### 1. RGB Camera ✅ (Design)
+### 1. RGB Camera  [DESIGN]
 
 #### Hardware Specification
 - **Resolution:** 1920 × 1080 (16:9)
@@ -96,7 +96,7 @@ Verify: High-frequency texture details visible in reflections
 
 ---
 
-### 2. Depth Camera ✅ (Design)
+### 2. Depth Camera  [DESIGN]
 
 #### Hardware Specification
 - **Resolution:** 1920 × 1080 (same as RGB)
@@ -203,7 +203,7 @@ Verify: Correlation between RGB brightness and inverse depth
 
 ---
 
-### 3. Lidar Scanner ✅ (Design)
+### 3. Lidar Scanner  [DESIGN]
 
 #### Specification
 - **Channels:** 16 (vertical lines)
@@ -389,7 +389,7 @@ Verify: np.allclose(measured_distances, ground_truth, atol=0.5)
 
 ---
 
-### 4. Thermal Camera ✅ (Design)
+### 4. Thermal Camera  [DESIGN]
 
 #### Specification
 - **Resolution:** 320 × 240 (typical thermal)
@@ -780,10 +780,10 @@ if __name__ == "__main__":
 ### Python Side (Already Ready)
 
 **Implemented:**
-- ✅ World Spec schema validation
-- ✅ FastAPI endpoints (load-world, sensor queries)
-- ✅ Claude integration for world generation
-- ✅ File structure (/tmp/pyrobo_sensor_output/)
+-  World Spec schema validation
+-  FastAPI endpoints (load-world, sensor queries)
+-  Claude integration for world generation
+-  File structure (/tmp/pyrobo_sensor_output/)
 
 **TODO (Week 3):**
 - [ ] Sensor data validation (test suite)

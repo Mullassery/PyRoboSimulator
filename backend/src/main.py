@@ -24,9 +24,9 @@ settings = Settings()
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Manage app lifespan: startup and shutdown."""
-    logger.info("🚀 PyRoboSimulator backend starting...")
+    logger.info("PyRoboSimulator backend starting...")
     yield
-    logger.info("🛑 PyRoboSimulator backend shutting down...")
+    logger.info("PyRoboSimulator backend shutting down...")
 
 
 app = FastAPI(

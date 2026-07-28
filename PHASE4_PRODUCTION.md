@@ -13,7 +13,7 @@
 
 ## Deliverables
 
-### 1. Production Infrastructure ✅ (Design)
+### 1. Production Infrastructure  [DESIGN]
 
 #### Kubernetes Deployment
 
@@ -264,7 +264,7 @@ jobs:
           kubectl rollout status deployment/pyrobosim-backend
 ```
 
-### 2. Monitoring & Observability ✅ (Design)
+### 2. Monitoring & Observability  [DESIGN]
 
 #### Logging
 
@@ -426,7 +426,7 @@ groups:
           summary: "Less than 10GB disk space remaining"
 ```
 
-### 3. Security Hardening ✅ (Design)
+### 3. Security Hardening  [DESIGN]
 
 #### Authentication & Authorization
 
@@ -524,7 +524,7 @@ JWT_SECRET = os.getenv("JWT_SECRET")
 # export ANTHROPIC_API_KEY="sk-..."
 ```
 
-### 4. Comprehensive Testing ✅ (Design)
+### 4. Comprehensive Testing  [DESIGN]
 
 #### Unit Tests
 
@@ -627,7 +627,7 @@ class TestResilience:
             assert "database" in response.json()["detail"].lower()
 ```
 
-### 5. Documentation ✅ (Design)
+### 5. Documentation  [DESIGN]
 
 #### API Documentation (Auto-generated)
 

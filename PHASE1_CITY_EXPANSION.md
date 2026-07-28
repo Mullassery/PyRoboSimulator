@@ -12,7 +12,7 @@
 
 ## Deliverables
 
-### 1. Procedural City Generation ✅ (Design)
+### 1. Procedural City Generation  [DESIGN]
 
 #### Scale
 - **Map Size:** 2km × 2km (100x expansion from Phase 0)
@@ -175,7 +175,7 @@ class POI:
     importance: int  # 1-5
 ```
 
-### 2. Traffic & Pedestrian AI ✅ (Design)
+### 2. Traffic & Pedestrian AI  [DESIGN]
 
 #### Vehicle Traffic System
 
@@ -288,7 +288,7 @@ class PedestrianSimulator:
 - Suburbs: 50-100
 - Control via spawn rate
 
-### 3. Extended Weather System v2 ✅ (Design)
+### 3. Extended Weather System v2  [DESIGN]
 
 #### Dynamic Weather Simulation
 
@@ -362,7 +362,7 @@ class WeatherState(Enum):
 - Footprints/tire tracks (interactive)
 - Wind-drifting effects
 
-### 4. Seasonal System ✅ (Design)
+### 4. Seasonal System  [DESIGN]
 
 #### Season Simulation
 
@@ -427,7 +427,7 @@ def get_seasonal_color(base_color: RGB, season: str, day: int) -> RGB:
 - Seasonal plant changes (flowers, harvest)
 - Schedule-based (rush hour, night shift)
 
-### 5. Streaming & Chunking System ✅ (Design)
+### 5. Streaming & Chunking System  [DESIGN]
 
 #### Spatial Chunking
 
@@ -512,7 +512,7 @@ class Chunk:
 - LOD1: Simplified mesh (200-500m)
 - LOD2: Billboard (500m+)
 
-### 6. Persistent Storage (Phase 1) ✅ (Design)
+### 6. Persistent Storage (Phase 1)  [DESIGN]
 
 **Database Schema:**
 

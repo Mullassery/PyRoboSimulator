@@ -13,7 +13,7 @@
 
 ## Deliverables
 
-### 1. Agent System (ECS Architecture) ✅ (Design)
+### 1. Agent System (ECS Architecture)  [DESIGN]
 
 #### Entity-Component System (ECS)
 
@@ -89,7 +89,7 @@ class MindComponent(Component):
 - Herd behavior
 - Predator/prey dynamics
 
-### 2. Agent Memory & Personality ✅ (Design)
+### 2. Agent Memory & Personality  [DESIGN]
 
 #### Memory Bank (Multi-Layer)
 
@@ -225,7 +225,7 @@ class EmotionalState:
 - Strong emotions spread faster
 - Personalities modulate susceptibility
 
-### 3. Goal & Motivation System ✅ (Design)
+### 3. Goal & Motivation System  [DESIGN]
 
 #### Goal Hierarchy
 
@@ -325,7 +325,7 @@ class Needs:
         self.stress += 0.00005 * dt      # Long-term
 ```
 
-### 4. Behavior & Action System ✅ (Design)
+### 4. Behavior & Action System  [DESIGN]
 
 #### Behavior Tree Execution
 
@@ -415,7 +415,7 @@ class Action:
         self.status = "done"
 ```
 
-### 5. Narrative Generation Engine ✅ (Design)
+### 5. Narrative Generation Engine  [DESIGN]
 
 #### Story Arc System
 
@@ -547,7 +547,7 @@ class CinematicDirector:
         return mapping.get(emotion, ["wide_shot"])
 ```
 
-### 6. Agent-World Interaction ✅ (Design)
+### 6. Agent-World Interaction  [DESIGN]
 
 #### Dialogue System
 
