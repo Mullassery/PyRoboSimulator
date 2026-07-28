@@ -57,6 +57,8 @@ function App() {
   const gridHelperRef = useRef<THREE.GridHelper | null>(null)
   const boundingBoxRef = useRef<THREE.BoxHelper | null>(null)
   const obstaclesInitializedRef = useRef(false)
+  const cameraRef = useRef<THREE.PerspectiveCamera | THREE.OrthographicCamera | null>(null)
+  const cameraControlsRef = useRef({ x: 0, y: 0, z: 0 })
 
   const simulationId = new URLSearchParams(window.location.search).get('id') || '1'
   const { frame, isConnected, sendCommand } = useWebSocket(simulationId)
@@ -90,6 +92,7 @@ function App() {
     const camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 10000)
     camera.position.set(150, 150, 150)
     camera.lookAt(0, 0, 0)
+    cameraRef.current = camera
 
     // Renderer
     const renderer = new THREE.WebGLRenderer({ canvas: canvasRef.current, antialias: true })
@@ -136,9 +139,47 @@ function App() {
       renderer.setSize(newWidth, newHeight)
     }
 
+    // Keyboard controls for free camera
+    const keys: Record<string, boolean> = {}
+    const handleKeyDown = (e: KeyboardEvent) => {
+      keys[e.key.toLowerCase()] = true
+    }
+    const handleKeyUp = (e: KeyboardEvent) => {
+      keys[e.key.toLowerCase()] = false
+    }
+
+    const updateFreeCamera = () => {
+      if (!cameraRef.current || cameraMode !== 'free') return
+      const speed = 2
+
+      if (keys['w']) cameraControlsRef.current.z -= speed
+      if (keys['s']) cameraControlsRef.current.z += speed
+      if (keys['a']) cameraControlsRef.current.x -= speed
+      if (keys['d']) cameraControlsRef.current.x += speed
+      if (keys['q']) cameraControlsRef.current.y -= speed
+      if (keys['e']) cameraControlsRef.current.y += speed
+
+      const cam = cameraRef.current as THREE.PerspectiveCamera
+      cam.position.x += cameraControlsRef.current.x * 0.1
+      cam.position.y += cameraControlsRef.current.y * 0.1
+      cam.position.z += cameraControlsRef.current.z * 0.1
+      cameraControlsRef.current = { x: 0, y: 0, z: 0 }
+      cam.lookAt(0, 0, 0)
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    window.addEventListener('keyup', handleKeyUp)
+
+    const cameraUpdateInterval = setInterval(updateFreeCamera, 16)
+
     window.addEventListener('resize', handleResize)
-    return () => window.removeEventListener('resize', handleResize)
-  }, [])
+    return () => {
+      window.removeEventListener('resize', handleResize)
+      window.removeEventListener('keydown', handleKeyDown)
+      window.removeEventListener('keyup', handleKeyUp)
+      clearInterval(cameraUpdateInterval)
+    }
+  }, [cameraMode])
 
   // Update layer visibility
   useEffect(() => {
@@ -163,6 +204,59 @@ function App() {
       line.visible = visibleLayers.trajectories
     })
   }, [visibleLayers])
+
+  // Update camera based on mode
+  useEffect(() => {
+    if (!cameraRef.current || !sceneRef.current || !frame) return
+
+    const frameData = frame as WorldFrame
+
+    switch (cameraMode) {
+      case 'topdown': {
+        const ortho = new THREE.OrthographicCamera(-500, 500, -500, 500, 0.1, 10000)
+        ortho.position.set(0, 500, 0)
+        ortho.lookAt(0, 0, 0)
+        if (cameraRef.current instanceof THREE.PerspectiveCamera) {
+          sceneRef.current.remove(cameraRef.current)
+        }
+        sceneRef.current.add(ortho)
+        cameraRef.current = ortho
+        break
+      }
+
+      case 'follow': {
+        const agentToFollow =
+          selectedAgent !== null ? selectedAgent : frameData.agents[0]?.id
+        const agent = frameData.agents.find((a) => a.id === agentToFollow)
+
+        if (agent && cameraRef.current instanceof THREE.PerspectiveCamera) {
+          const offset = 30
+          cameraRef.current.position.set(
+            agent.pos[0] + offset,
+            agent.pos[1] + offset,
+            agent.pos[2] + offset
+          )
+          cameraRef.current.lookAt(agent.pos[0], agent.pos[1], agent.pos[2])
+        }
+        break
+      }
+
+      case 'free':
+      default: {
+        if (cameraRef.current instanceof THREE.OrthographicCamera) {
+          const width = canvasRef.current?.clientWidth || 800
+          const height = canvasRef.current?.clientHeight || 600
+          const persp = new THREE.PerspectiveCamera(75, width / height, 0.1, 10000)
+          persp.position.set(150, 150, 150)
+          persp.lookAt(0, 0, 0)
+          sceneRef.current.remove(cameraRef.current)
+          sceneRef.current.add(persp)
+          cameraRef.current = persp
+        }
+        break
+      }
+    }
+  }, [cameraMode, selectedAgent, frame])
 
   // Update scene with frame data
   useEffect(() => {
