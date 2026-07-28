@@ -29,6 +29,13 @@ interface SensorData {
   thermal?: string
 }
 
+interface Obstacle {
+  id: number
+  pos: [number, number, number]
+  size: [number, number, number]
+  type: string
+}
+
 interface WorldFrame {
   type: string
   frame_id: number
@@ -36,6 +43,7 @@ interface WorldFrame {
   agents: Agent[]
   events: Event[]
   sensors?: Record<string, SensorData>
+  obstacles?: Obstacle[]
 }
 
 function App() {
@@ -43,6 +51,8 @@ function App() {
   const sceneRef = useRef<THREE.Scene | null>(null)
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null)
   const agentMeshesRef = useRef<Map<number, THREE.Mesh>>(new Map())
+  const obstaclesMeshesRef = useRef<Map<number, THREE.Mesh>>(new Map())
+  const obstaclesInitializedRef = useRef(false)
 
   const simulationId = new URLSearchParams(window.location.search).get('id') || '1'
   const { frame, isConnected, sendCommand } = useWebSocket(simulationId)
@@ -122,6 +132,23 @@ function App() {
     if (!frame || !sceneRef.current) return
 
     const frameData = frame as WorldFrame
+
+    // Initialize obstacles (one-time)
+    if (!obstaclesInitializedRef.current && frameData.obstacles) {
+      frameData.obstacles.forEach((obstacle: Obstacle) => {
+        const geometry = new THREE.BoxGeometry(obstacle.size[0], obstacle.size[1], obstacle.size[2])
+        const material = new THREE.MeshPhongMaterial({
+          color: 0x666666,
+          shininess: 30,
+        })
+        const mesh = new THREE.Mesh(geometry, material)
+        mesh.position.set(obstacle.pos[0], obstacle.pos[1], obstacle.pos[2])
+        mesh.userData.obstacleId = obstacle.id
+        sceneRef.current!.add(mesh)
+        obstaclesMeshesRef.current.set(obstacle.id, mesh)
+      })
+      obstaclesInitializedRef.current = true
+    }
 
     // Update agents
     frameData.agents.forEach((agent: Agent) => {

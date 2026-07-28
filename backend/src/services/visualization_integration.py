@@ -7,6 +7,7 @@ from typing import List, Optional
 from services.frame_streaming import (
     AgentFrame,
     EventFrame,
+    Obstacle,
     SensorData,
     Vector3,
     WorldFrame,
@@ -71,7 +72,7 @@ class VisualizationStreamer:
         """
         # Capture agent states
         agent_frames = []
-        for agent in self.engine.agents:
+        for agent in self.engine.agents.values():
             agent_frame = AgentFrame(
                 id=agent.id,
                 position=Vector3(agent.position.x, agent.position.y, 0.0),
@@ -98,6 +99,26 @@ class VisualizationStreamer:
         if False:  # Disabled by default (can be toggled)
             sensors = self._capture_sensors()
 
+        # Capture obstacles
+        obstacles = []
+        for obs_dict in self.engine.get_obstacles():
+            obstacles.append(
+                Obstacle(
+                    id=obs_dict["id"],
+                    position=Vector3(
+                        obs_dict["position"]["x"],
+                        obs_dict["position"]["y"],
+                        obs_dict["position"]["z"],
+                    ),
+                    size=Vector3(
+                        obs_dict["size"]["x"],
+                        obs_dict["size"]["y"],
+                        obs_dict["size"]["z"],
+                    ),
+                    obstacle_type=obs_dict.get("type", "wall"),
+                )
+            )
+
         # Create frame
         timestamp_ms = (time.time() - self.start_time) * 1000
         return WorldFrame(
@@ -106,6 +127,7 @@ class VisualizationStreamer:
             agents=agent_frames,
             events=event_frames,
             sensors=sensors,
+            obstacles=obstacles if obstacles else None,
         )
 
     def _capture_sensors(self) -> Optional[dict]:

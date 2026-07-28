@@ -67,6 +67,35 @@ class EventFrame:
 
 
 @dataclass
+class Obstacle:
+    """Obstacle in the world."""
+
+    id: int
+    position: Vector3
+    size: Vector3  # width, height, depth
+    obstacle_type: str = "wall"  # wall, box, cylinder
+
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert to dictionary for serialization."""
+        pos_list = (
+            self.position.to_list()
+            if hasattr(self.position, "to_list")
+            else [self.position.x, self.position.y, self.position.z]
+        )
+        size_list = (
+            self.size.to_list()
+            if hasattr(self.size, "to_list")
+            else [self.size.x, self.size.y, self.size.z]
+        )
+        return {
+            "id": self.id,
+            "pos": pos_list,
+            "size": size_list,
+            "type": self.obstacle_type,
+        }
+
+
+@dataclass
 class SensorData:
     """Sensor data for an agent."""
 
@@ -98,6 +127,7 @@ class WorldFrame:
     agents: List[AgentFrame]
     events: List[EventFrame]
     sensors: Optional[Dict[int, SensorData]] = None
+    obstacles: Optional[List[Obstacle]] = None
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for serialization."""
@@ -113,6 +143,7 @@ class WorldFrame:
             }
             if self.sensors
             else {},
+            "obstacles": [obs.to_dict() for obs in (self.obstacles or [])],
         }
 
     def to_msgpack(self) -> bytes:

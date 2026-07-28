@@ -308,6 +308,7 @@ class SimulationEngine:
         duration: float,
         timestep: float = 0.016,
         world_bounds: tuple[float, float, float, float] = (0, 1000, 0, 1000),
+        num_obstacles: int = 10,
     ):
         """Initialize simulation.
 
@@ -316,22 +317,26 @@ class SimulationEngine:
             duration: Total simulation duration (seconds)
             timestep: Physics timestep (seconds)
             world_bounds: (x_min, x_max, y_min, y_max)
+            num_obstacles: Number of obstacles to generate
         """
         self.num_agents = num_agents
         self.duration = duration
         self.timestep = timestep
         self.x_min, self.x_max, self.y_min, self.y_max = world_bounds
+        self.num_obstacles = num_obstacles
 
         self.current_time = 0.0
         self.step_count = 0
         self.agents: dict[int, Agent] = {}
         self.events: list[Event] = []
+        self.obstacles: list = []
 
         # Statistics
         self.total_collisions = 0
         self.goals_reached = 0
 
         self._spawn_agents()
+        self._spawn_obstacles()
 
     def _spawn_agents(self) -> None:
         """Spawn agents randomly in world."""
@@ -354,6 +359,25 @@ class SimulationEngine:
             agent.goal = Vector3(goal_x, goal_y, 0)
 
             self.agents[i] = agent
+
+    def _spawn_obstacles(self) -> None:
+        """Generate obstacles in world."""
+        np.random.seed(42)
+
+        for i in range(self.num_obstacles):
+            x = np.random.uniform(self.x_min + 50, self.x_max - 50)
+            y = np.random.uniform(self.y_min + 50, self.y_max - 50)
+
+            width = np.random.uniform(20, 80)
+            height = np.random.uniform(20, 80)
+
+            obstacle = {
+                "id": i,
+                "position": {"x": x, "y": y, "z": 0},
+                "size": {"x": width, "y": height, "z": 5},
+                "type": "wall",
+            }
+            self.obstacles.append(obstacle)
 
     def _update_agent_states(self) -> None:
         """Update agent states based on motion and status."""
@@ -578,3 +602,11 @@ class SimulationEngine:
         for agent_id, agent in self.agents.items():
             images[agent_id] = agent.generate_thermal_image()
         return images
+
+    def get_obstacles(self) -> list:
+        """Get all obstacles in world.
+
+        Returns:
+            List of obstacle dictionaries
+        """
+        return self.obstacles
