@@ -22,13 +22,20 @@ interface Event {
   data?: Record<string, any>
 }
 
+interface SensorData {
+  rgb?: string
+  depth?: string
+  lidar?: Array<[number, number, number]>
+  thermal?: string
+}
+
 interface WorldFrame {
   type: string
   frame_id: number
   timestamp_ms: number
   agents: Agent[]
   events: Event[]
-  sensors?: Record<string, any>
+  sensors?: Record<string, SensorData>
 }
 
 function App() {
@@ -205,7 +212,10 @@ function App() {
 
           {selectedAgent !== null && (
             <div className="sensor-panel-wrapper">
-              <SensorPanel agentId={selectedAgent} />
+              <SensorPanel
+                agentId={selectedAgent}
+                sensorData={frame?.sensors?.[selectedAgent] || null}
+              />
             </div>
           )}
         </div>

@@ -70,7 +70,7 @@ class EventFrame:
 class SensorData:
     """Sensor data for an agent."""
 
-    rgb: Optional[bytes] = None  # JPEG encoded
+    rgb: Optional[str] = None  # Base64 encoded JPEG
     depth: Optional[bytes] = None  # Base64 encoded float32 array
     lidar: Optional[List[List[float]]] = None  # List of [x, y, z] points
     thermal: Optional[bytes] = None  # Base64 encoded float32 array
@@ -79,7 +79,7 @@ class SensorData:
         """Convert to dictionary for serialization."""
         result = {}
         if self.rgb:
-            result["rgb"] = base64.b64encode(self.rgb).decode("utf-8")
+            result["rgb"] = self.rgb  # Already base64 encoded
         if self.depth is not None:
             result["depth"] = self.depth
         if self.lidar:

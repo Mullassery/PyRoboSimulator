@@ -1,10 +1,13 @@
 """Core simulation engine with physics loop."""
 
+import base64
+import io
 import math
 from dataclasses import dataclass
 from typing import Optional
 
 import numpy as np
+from PIL import Image
 
 
 @dataclass
@@ -52,6 +55,56 @@ class Agent:
     collision_radius: float = 0.5
     goal: Optional[Vector3] = None
     reached_goal: bool = False
+    state: str = "idle"  # idle, moving, goal_reached, collision
+
+    def __post_init__(self):
+        """Initialize agent after dataclass creation."""
+        self._rgb_frame_count = 0
+
+    def generate_rgb_frame(self) -> str:
+        """Generate synthetic RGB frame (JPEG encoded in base64).
+
+        Returns:
+            Base64-encoded JPEG image
+        """
+        # Create synthetic RGB image based on agent state
+        width, height = 640, 480
+        color = self._get_color_by_state()
+
+        # Create gradient image
+        img_array = np.zeros((height, width, 3), dtype=np.uint8)
+        for i in range(height):
+            img_array[i, :] = [
+                int(color[0] * (i / height)),
+                int(color[1] * (i / height)),
+                int(color[2] * (i / height)),
+            ]
+
+        # Add noise
+        noise = np.random.normal(0, 5, img_array.shape).astype(int)
+        img_array = np.clip(img_array + noise, 0, 255).astype(np.uint8)
+
+        # Convert to JPEG
+        img = Image.fromarray(img_array, "RGB")
+        buffer = io.BytesIO()
+        img.save(buffer, format="JPEG", quality=85)
+        jpeg_bytes = buffer.getvalue()
+
+        # Encode to base64
+        base64_str = base64.b64encode(jpeg_bytes).decode("utf-8")
+        self._rgb_frame_count += 1
+        return base64_str
+
+    def _get_color_by_state(self) -> tuple[int, int, int]:
+        """Get RGB color based on agent state."""
+        if self.state == "moving":
+            return (0, 255, 0)  # Green
+        elif self.state == "goal_reached":
+            return (255, 255, 0)  # Yellow
+        elif self.state == "collision":
+            return (255, 0, 0)  # Red
+        else:
+            return (0, 150, 255)  # Blue (idle)
 
     def update_physics(self, dt: float) -> None:
         """Update agent physics using Euler integration.
@@ -194,6 +247,16 @@ class SimulationEngine:
 
             self.agents[i] = agent
 
+    def _update_agent_states(self) -> None:
+        """Update agent states based on motion and status."""
+        for agent in self.agents.values():
+            if agent.reached_goal:
+                agent.state = "goal_reached"
+            elif agent.velocity.magnitude() > 0.1:
+                agent.state = "moving"
+            else:
+                agent.state = "idle"
+
     def step(self) -> list[Event]:
         """Execute one simulation step.
 
@@ -201,6 +264,9 @@ class SimulationEngine:
             List of events that occurred this step
         """
         step_events = []
+
+        # 0. Update agent states
+        self._update_agent_states()
 
         # 1. Update agent physics
         for agent in self.agents.values():
@@ -304,3 +370,28 @@ class SimulationEngine:
             "goals_reached": self.goals_reached,
             "agents": len(self.agents),
         }
+
+    def get_agent_rgb_frame(self, agent_id: int) -> Optional[str]:
+        """Get RGB frame (JPEG base64) from agent.
+
+        Args:
+            agent_id: Agent ID
+
+        Returns:
+            Base64-encoded JPEG string or None if agent not found
+        """
+        if agent_id not in self.agents:
+            return None
+        agent = self.agents[agent_id]
+        return agent.generate_rgb_frame()
+
+    def get_all_agents_rgb_frames(self) -> dict[int, str]:
+        """Get RGB frames for all agents.
+
+        Returns:
+            Dictionary mapping agent_id to base64-encoded JPEG
+        """
+        frames = {}
+        for agent_id, agent in self.agents.items():
+            frames[agent_id] = agent.generate_rgb_frame()
+        return frames

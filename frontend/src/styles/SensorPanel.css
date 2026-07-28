@@ -14,22 +14,58 @@
   letter-spacing: 0.5px;
 }
 
+.sensor-tabs-nav {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 8px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.tab-btn {
+  flex: 1;
+  padding: 6px 8px;
+  background-color: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--fg-muted);
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.2s;
+  letter-spacing: 0.5px;
+}
+
+.tab-btn:hover {
+  color: var(--fg-light);
+}
+
+.tab-btn.active {
+  color: var(--accent-blue);
+  border-bottom-color: var(--accent-blue);
+}
+
 .sensor-tabs {
   flex: 1;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 0;
 }
 
 .sensor-tab {
-  display: flex;
+  display: none;
   flex-direction: column;
   gap: 6px;
-  padding: 8px;
-  background-color: var(--bg-dark);
-  border: 1px solid var(--border-color);
-  border-radius: 4px;
+  padding: 0;
+  background-color: transparent;
+  border: none;
+  border-radius: 0;
+  height: 100%;
+}
+
+.sensor-tab.active {
+  display: flex;
 }
 
 .sensor-tab h4 {
@@ -37,12 +73,12 @@
   font-weight: 600;
   text-transform: uppercase;
   color: var(--accent-blue);
-  margin: 0;
+  margin: 0 0 6px 0;
   letter-spacing: 0.5px;
 }
 
 .sensor-feed {
-  aspect-ratio: 4 / 3;
+  flex: 1;
   background: linear-gradient(135deg, #1a1a1a 0%, #0f0f0f 100%);
   border: 1px solid var(--border-color);
   border-radius: 2px;
@@ -51,4 +87,12 @@
   justify-content: center;
   font-size: 11px;
   color: var(--fg-muted);
+  overflow: hidden;
+}
+
+.sensor-image {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  display: block;
 }
