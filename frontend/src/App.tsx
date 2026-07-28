@@ -54,8 +54,9 @@ function App() {
   const agentMeshesRef = useRef<Map<number, THREE.Mesh>>(new Map())
   const obstaclesMeshesRef = useRef<Map<number, THREE.Mesh>>(new Map())
   const trajectoryLinesRef = useRef<Map<number, THREE.LineSegments>>(new Map())
+  const gridHelperRef = useRef<THREE.GridHelper | null>(null)
+  const boundingBoxRef = useRef<THREE.BoxHelper | null>(null)
   const obstaclesInitializedRef = useRef(false)
-  const [showTrajectories, setShowTrajectories] = useState(true)
 
   const simulationId = new URLSearchParams(window.location.search).get('id') || '1'
   const { frame, isConnected, sendCommand } = useWebSocket(simulationId)
@@ -65,6 +66,13 @@ function App() {
   const [cameraMode, setCameraMode] = useState<'free' | 'topdown' | 'follow'>('free')
   const [selectedAgent, setSelectedAgent] = useState<number | null>(null)
   const [events, setEvents] = useState<Event[]>([])
+  const [visibleLayers, setVisibleLayers] = useState({
+    agents: true,
+    obstacles: true,
+    trajectories: true,
+    grid: true,
+    bounds: true,
+  })
 
   // Initialize Three.js scene
   useEffect(() => {
@@ -100,6 +108,7 @@ function App() {
     // Grid
     const gridHelper = new THREE.GridHelper(500, 50, 0x444444, 0x222222)
     scene.add(gridHelper)
+    gridHelperRef.current = gridHelper
 
     // World bounds
     const boundingBox = new THREE.BoxHelper(
@@ -109,6 +118,7 @@ function App() {
       )
     )
     scene.add(boundingBox)
+    boundingBoxRef.current = boundingBox
 
     // Animation loop
     const animate = () => {
@@ -129,6 +139,30 @@ function App() {
     window.addEventListener('resize', handleResize)
     return () => window.removeEventListener('resize', handleResize)
   }, [])
+
+  // Update layer visibility
+  useEffect(() => {
+    if (!sceneRef.current) return
+
+    if (gridHelperRef.current) {
+      gridHelperRef.current.visible = visibleLayers.grid
+    }
+    if (boundingBoxRef.current) {
+      boundingBoxRef.current.visible = visibleLayers.bounds
+    }
+
+    agentMeshesRef.current.forEach((mesh) => {
+      mesh.visible = visibleLayers.agents
+    })
+
+    obstaclesMeshesRef.current.forEach((mesh) => {
+      mesh.visible = visibleLayers.obstacles
+    })
+
+    trajectoryLinesRef.current.forEach((line) => {
+      line.visible = visibleLayers.trajectories
+    })
+  }, [visibleLayers])
 
   // Update scene with frame data
   useEffect(() => {
@@ -269,11 +303,13 @@ function App() {
           playing={playing}
           speed={speed}
           cameraMode={cameraMode}
-          showTrajectories={showTrajectories}
+          visibleLayers={visibleLayers}
           onPlayPause={handlePlayPause}
           onSpeedChange={handleSpeedChange}
           onCameraChange={handleCameraChange}
-          onTrajectoryToggle={setShowTrajectories}
+          onLayerToggle={(layer, visible) =>
+            setVisibleLayers({ ...visibleLayers, [layer]: visible })
+          }
         />
 
         <div className="bottom-panel">

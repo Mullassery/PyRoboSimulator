@@ -1,26 +1,34 @@
 import React from 'react'
 import '../styles/Controls.css'
 
+interface VisibilityLayers {
+  agents: boolean
+  obstacles: boolean
+  trajectories: boolean
+  grid: boolean
+  bounds: boolean
+}
+
 interface ControlsProps {
   playing: boolean
   speed: number
   cameraMode: 'free' | 'topdown' | 'follow'
-  showTrajectories: boolean
+  visibleLayers: VisibilityLayers
   onPlayPause: () => void
   onSpeedChange: (speed: number) => void
   onCameraChange: (mode: 'free' | 'topdown' | 'follow') => void
-  onTrajectoryToggle: (show: boolean) => void
+  onLayerToggle: (layer: keyof VisibilityLayers, visible: boolean) => void
 }
 
 export default function Controls({
   playing,
   speed,
   cameraMode,
-  showTrajectories,
+  visibleLayers,
   onPlayPause,
   onSpeedChange,
   onCameraChange,
-  onTrajectoryToggle,
+  onLayerToggle,
 }: ControlsProps) {
   return (
     <div className="controls">
@@ -95,15 +103,47 @@ export default function Controls({
       </div>
 
       <div className="control-section">
-        <label>Visualization</label>
+        <label>Layers</label>
         <div className="settings">
           <label>
             <input
               type="checkbox"
-              checked={showTrajectories}
-              onChange={(e) => onTrajectoryToggle(e.target.checked)}
+              checked={visibleLayers.agents}
+              onChange={(e) => onLayerToggle('agents', e.target.checked)}
             />
-            Show Trajectories
+            Agents
+          </label>
+          <label>
+            <input
+              type="checkbox"
+              checked={visibleLayers.obstacles}
+              onChange={(e) => onLayerToggle('obstacles', e.target.checked)}
+            />
+            Obstacles
+          </label>
+          <label>
+            <input
+              type="checkbox"
+              checked={visibleLayers.trajectories}
+              onChange={(e) => onLayerToggle('trajectories', e.target.checked)}
+            />
+            Trajectories
+          </label>
+          <label>
+            <input
+              type="checkbox"
+              checked={visibleLayers.grid}
+              onChange={(e) => onLayerToggle('grid', e.target.checked)}
+            />
+            Grid
+          </label>
+          <label>
+            <input
+              type="checkbox"
+              checked={visibleLayers.bounds}
+              onChange={(e) => onLayerToggle('bounds', e.target.checked)}
+            />
+            World Bounds
           </label>
         </div>
       </div>
