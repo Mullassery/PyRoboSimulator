@@ -12,6 +12,83 @@ interface DepthHeatmapProps {
   depthData: string
 }
 
+interface LidarViewerProps {
+  points: Array<[number, number, number]>
+}
+
+// Lidar point cloud viewer component
+function LidarViewer({ points }: LidarViewerProps) {
+  const canvasRef = useRef<HTMLCanvasElement>(null)
+  const rotationRef = useRef({ x: 0, y: 0 })
+
+  useEffect(() => {
+    if (!canvasRef.current || !points || points.length === 0) return
+
+    const canvas = canvasRef.current
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return
+
+    // Calculate point cloud bounds
+    let minX = Infinity,
+      maxX = -Infinity
+    let minY = Infinity,
+      maxY = -Infinity
+    let minZ = Infinity,
+      maxZ = -Infinity
+
+    for (const [x, y, z] of points) {
+      minX = Math.min(minX, x)
+      maxX = Math.max(maxX, x)
+      minY = Math.min(minY, y)
+      maxY = Math.max(maxY, y)
+      minZ = Math.min(minZ, z)
+      maxZ = Math.max(maxZ, z)
+    }
+
+    const centerX = (minX + maxX) / 2
+    const centerY = (minY + maxY) / 2
+    const centerZ = (minZ + maxZ) / 2
+
+    // Clear canvas
+    ctx.fillStyle = '#0f0f0f'
+    ctx.fillRect(0, 0, canvas.width, canvas.height)
+
+    // Draw point cloud (simple 2D projection for now)
+    const scale = Math.min(canvas.width, canvas.height) / (maxX - minX + 10)
+
+    ctx.fillStyle = '#00ff00'
+    for (const [x, y, z] of points) {
+      // Project 3D to 2D (simple orthographic projection)
+      const px = ((x - centerX) * scale + canvas.width / 2) | 0
+      const py = ((z - centerZ) * scale + canvas.height / 2) | 0
+
+      // Skip points outside canvas
+      if (px < 0 || px >= canvas.width || py < 0 || py >= canvas.height) continue
+
+      // Color by distance (depth)
+      const distance = Math.sqrt(x * x + y * y + z * z)
+      const hue = (distance / 300) * 240  // HSL hue
+      ctx.fillStyle = `hsl(${hue}, 100%, 50%)`
+
+      ctx.fillRect(px - 1, py - 1, 2, 2)
+    }
+
+    // Draw info
+    ctx.fillStyle = '#999999'
+    ctx.font = '11px monospace'
+    ctx.fillText(`${points.length} points | Range: 0-300m`, 6, canvas.height - 6)
+  }, [points])
+
+  return (
+    <canvas
+      ref={canvasRef}
+      className="lidar-canvas"
+      width={512}
+      height={512}
+    />
+  )
+}
+
 // Depth heatmap renderer component
 function DepthHeatmap({ depthData }: DepthHeatmapProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -148,12 +225,17 @@ export default function SensorPanel({ agentId, sensorData }: SensorPanelProps) {
 
         {activeTab === 'lidar' && (
           <div className="sensor-tab active">
-            <h4>Lidar</h4>
+            <h4>Lidar Point Cloud</h4>
+            <div className="sensor-controls">
+              <span className="point-count">
+                {sensorData?.lidar ? `${sensorData.lidar.length} points` : 'No data'}
+              </span>
+            </div>
             <div className="sensor-feed">
               {sensorData?.lidar ? (
-                <p>Lidar point cloud: {sensorData.lidar.length} points</p>
+                <LidarViewer points={sensorData.lidar} />
               ) : (
-                <p>Lidar sensor not yet implemented</p>
+                <p>Lidar data not available</p>
               )}
             </div>
           </div>

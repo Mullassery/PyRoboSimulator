@@ -129,3 +129,18 @@
   image-rendering: pixelated;
   image-rendering: crisp-edges;
 }
+
+.lidar-canvas {
+  max-width: 100%;
+  max-height: 100%;
+  display: block;
+  image-rendering: pixelated;
+}
+
+.point-count {
+  display: block;
+  font-size: 11px;
+  color: var(--accent-blue);
+  font-weight: 500;
+  letter-spacing: 0.5px;
+}

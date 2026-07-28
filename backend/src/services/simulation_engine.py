@@ -61,6 +61,46 @@ class Agent:
         """Initialize agent after dataclass creation."""
         self._rgb_frame_count = 0
 
+    def generate_lidar_cloud(self) -> list:
+        """Generate synthetic lidar point cloud.
+
+        Returns:
+            List of [x, y, z] points
+        """
+        # 512 rays × 16 layers = 8192 points
+        num_rays = 512
+        num_layers = 16
+        max_range = 300  # meters
+
+        points = []
+
+        for layer_idx in range(num_layers):
+            # Vertical angle for this layer
+            vertical_angle = -15 + (layer_idx / num_layers) * 30  # -15 to +15 degrees
+
+            for ray_idx in range(num_rays):
+                # Horizontal angle for this ray
+                horizontal_angle = (ray_idx / num_rays) * 360  # 0 to 360 degrees
+
+                # Random distance for demo
+                distance = np.random.uniform(5, max_range)
+
+                # Add some structure based on position
+                distance_mod = 20 + (self.position.x / 1000) * 30
+                distance = np.clip(distance + distance_mod, 5, max_range)
+
+                # Convert spherical to cartesian coordinates
+                vert_rad = np.radians(vertical_angle)
+                horz_rad = np.radians(horizontal_angle)
+
+                x = distance * np.cos(vert_rad) * np.cos(horz_rad)
+                y = distance * np.cos(vert_rad) * np.sin(horz_rad)
+                z = distance * np.sin(vert_rad)
+
+                points.append([float(x), float(y), float(z)])
+
+        return points
+
     def generate_depth_map(self) -> str:
         """Generate synthetic depth map (float32 base64 encoded).
 
@@ -454,3 +494,28 @@ class SimulationEngine:
         for agent_id, agent in self.agents.items():
             maps[agent_id] = agent.generate_depth_map()
         return maps
+
+    def get_agent_lidar_cloud(self, agent_id: int) -> Optional[list]:
+        """Get lidar point cloud from agent.
+
+        Args:
+            agent_id: Agent ID
+
+        Returns:
+            List of [x, y, z] points or None if agent not found
+        """
+        if agent_id not in self.agents:
+            return None
+        agent = self.agents[agent_id]
+        return agent.generate_lidar_cloud()
+
+    def get_all_agents_lidar_clouds(self) -> dict[int, list]:
+        """Get lidar point clouds for all agents.
+
+        Returns:
+            Dictionary mapping agent_id to point cloud (list of [x, y, z])
+        """
+        clouds = {}
+        for agent_id, agent in self.agents.items():
+            clouds[agent_id] = agent.generate_lidar_cloud()
+        return clouds
