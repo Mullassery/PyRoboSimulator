@@ -22,6 +22,10 @@ class Vector3:
         """Add vectors."""
         return Vector3(self.x + other.x, self.y + other.y, self.z + other.z)
 
+    def __sub__(self, other: "Vector3") -> "Vector3":
+        """Subtract vectors."""
+        return Vector3(self.x - other.x, self.y - other.y, self.z - other.z)
+
     def __mul__(self, scalar: float) -> "Vector3":
         """Multiply by scalar."""
         return Vector3(self.x * scalar, self.y * scalar, self.z * scalar)
@@ -167,6 +171,36 @@ class Agent:
         # Encode to base64
         base64_str = base64.b64encode(jpeg_bytes).decode("utf-8")
         self._rgb_frame_count += 1
+        return base64_str
+
+    def generate_thermal_image(self) -> str:
+        """Generate synthetic thermal image (-20°C to +60°C false-color).
+
+        Returns:
+            Base64-encoded thermal image (256x256 float32 array)
+        """
+        width, height = 256, 256
+        thermal_map = np.zeros((height, width), dtype=np.float32)
+
+        cx, cy = width // 2, height // 2
+        for y in range(height):
+            for x in range(width):
+                dx = (x - cx) / width
+                dy = (y - cy) / height
+                distance = np.sqrt(dx**2 + dy**2)
+
+                base_temp = 20  # Baseline room temperature (Celsius)
+                distance_effect = distance * 60
+
+                temp = base_temp + distance_effect
+                temp += (self.position.x / 1000) * 10
+                thermal_map[y, x] = np.clip(temp, -20, 60)
+
+        noise = np.random.normal(0, 1, thermal_map.shape).astype(np.float32)
+        thermal_map = np.clip(thermal_map + noise, -20, 60)
+
+        thermal_bytes = thermal_map.astype(np.float32).tobytes()
+        base64_str = base64.b64encode(thermal_bytes).decode("utf-8")
         return base64_str
 
     def _get_color_by_state(self) -> tuple[int, int, int]:
@@ -519,3 +553,28 @@ class SimulationEngine:
         for agent_id, agent in self.agents.items():
             clouds[agent_id] = agent.generate_lidar_cloud()
         return clouds
+
+    def get_agent_thermal_image(self, agent_id: int) -> Optional[str]:
+        """Get thermal image (base64 encoded) from agent.
+
+        Args:
+            agent_id: Agent ID
+
+        Returns:
+            Base64-encoded thermal image or None if agent not found
+        """
+        if agent_id not in self.agents:
+            return None
+        agent = self.agents[agent_id]
+        return agent.generate_thermal_image()
+
+    def get_all_agents_thermal_images(self) -> dict[int, str]:
+        """Get thermal images for all agents.
+
+        Returns:
+            Dictionary mapping agent_id to base64-encoded thermal image
+        """
+        images = {}
+        for agent_id, agent in self.agents.items():
+            images[agent_id] = agent.generate_thermal_image()
+        return images

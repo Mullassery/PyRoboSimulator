@@ -120,6 +120,7 @@ class VisualizationStreamer:
         rgb_frames = self.engine.get_all_agents_rgb_frames()
         depth_maps = self.engine.get_all_agents_depth_maps()
         lidar_clouds = self.engine.get_all_agents_lidar_clouds()
+        thermal_images = self.engine.get_all_agents_thermal_images()
 
         for agent_id, agent in self.engine.agents.items():
             # Get sensor manager if available
@@ -129,16 +130,17 @@ class VisualizationStreamer:
                 sensor_data = agent.sensors.get_all_sensor_readings()
                 sensor_data_dict = sensor_data
 
-            # Get RGB, depth, and lidar
+            # Get RGB, depth, lidar, and thermal
             rgb_base64 = rgb_frames.get(agent_id)
             depth_base64 = depth_maps.get(agent_id)
             lidar_cloud = lidar_clouds.get(agent_id)
+            thermal_base64 = thermal_images.get(agent_id)
 
             sensors[agent_id] = SensorData(
                 rgb=rgb_base64,  # Already base64 string
                 depth=depth_base64,  # Already base64 string
                 lidar=lidar_cloud,  # List of [x, y, z] points
-                thermal=sensor_data_dict.get("thermal"),
+                thermal=thermal_base64 or sensor_data_dict.get("thermal"),
             )
 
         return sensors if sensors else None

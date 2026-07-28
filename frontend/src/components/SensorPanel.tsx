@@ -89,6 +89,74 @@ function LidarViewer({ points }: LidarViewerProps) {
   )
 }
 
+interface ThermalViewerProps {
+  thermalData: string
+}
+
+// Thermal false-color viewer component
+function ThermalViewer({ thermalData }: ThermalViewerProps) {
+  const canvasRef = useRef<HTMLCanvasElement>(null)
+
+  useEffect(() => {
+    if (!canvasRef.current || !thermalData) return
+
+    const canvas = canvasRef.current
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return
+
+    try {
+      const binaryString = atob(thermalData)
+      const bytes = new Uint8Array(binaryString.length)
+      for (let i = 0; i < binaryString.length; i++) {
+        bytes[i] = binaryString.charCodeAt(i)
+      }
+
+      const thermalArray = new Float32Array(bytes.buffer)
+      const imageData = ctx.createImageData(256, 256)
+      const data = imageData.data
+
+      for (let i = 0; i < thermalArray.length; i++) {
+        const temp = thermalArray[i]
+        const normalized = (temp + 20) / 80
+
+        let r = 0,
+          g = 0,
+          b = 0
+
+        if (normalized < 0.25) {
+          b = Math.floor(255 * (1 - normalized / 0.25))
+          g = Math.floor(255 * (normalized / 0.25))
+          r = 0
+        } else if (normalized < 0.5) {
+          g = 255
+          r = Math.floor(255 * ((normalized - 0.25) / 0.25))
+          b = 0
+        } else if (normalized < 0.75) {
+          r = 255
+          g = Math.floor(255 * (1 - (normalized - 0.5) / 0.25))
+          b = 0
+        } else {
+          r = 255
+          g = 0
+          b = Math.floor(255 * ((normalized - 0.75) / 0.25))
+        }
+
+        const pixelIdx = i * 4
+        data[pixelIdx] = r
+        data[pixelIdx + 1] = g
+        data[pixelIdx + 2] = b
+        data[pixelIdx + 3] = 255
+      }
+
+      ctx.putImageData(imageData, 0, 0)
+    } catch (error) {
+      console.error('Error rendering thermal image:', error)
+    }
+  }, [thermalData])
+
+  return <canvas ref={canvasRef} className="thermal-canvas" width={256} height={256} />
+}
+
 // Depth heatmap renderer component
 function DepthHeatmap({ depthData }: DepthHeatmapProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -243,16 +311,19 @@ export default function SensorPanel({ agentId, sensorData }: SensorPanelProps) {
 
         {activeTab === 'thermal' && (
           <div className="sensor-tab active">
-            <h4>Thermal Camera</h4>
+            <h4>Thermal Imaging</h4>
+            <div className="sensor-controls">
+              <label>
+                Temperature Range:
+                <input type="range" min="-20" max="60" defaultValue="60" />
+                <span>-20 to +60C</span>
+              </label>
+            </div>
             <div className="sensor-feed">
               {sensorData?.thermal ? (
-                <img
-                  src={`data:image/png;base64,${sensorData.thermal}`}
-                  alt="Thermal Camera"
-                  className="sensor-image"
-                />
+                <ThermalViewer thermalData={sensorData.thermal} />
               ) : (
-                <p>Thermal sensor not yet implemented</p>
+                <p>Thermal sensor data not available</p>
               )}
             </div>
           </div>
