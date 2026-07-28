@@ -8,7 +8,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from config.settings import Settings
-from routers import health, simulations
+from routers import auth, health, results, simulations
+from services.monitoring import PrometheusMiddleware, metrics_endpoint
 
 # Configure logging
 logging.basicConfig(
@@ -35,7 +36,8 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# CORS Middleware
+# Middleware stack
+app.add_middleware(PrometheusMiddleware)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.CORS_ORIGINS,
@@ -60,6 +62,12 @@ async def readiness_check():
     return {"ready": True}
 
 
+@app.get("/metrics", tags=["Monitoring"])
+async def metrics():
+    """Prometheus metrics endpoint."""
+    return await metrics_endpoint()
+
+
 # Exception handlers
 @app.exception_handler(ValueError)
 async def value_error_handler(request, exc):
@@ -72,7 +80,9 @@ async def value_error_handler(request, exc):
 
 # Include routers
 app.include_router(health.router, prefix="/api/v1", tags=["Health"])
-app.include_router(simulations.router, prefix="/api/v1", tags=["Simulations"])
+app.include_router(auth.router, prefix="/api/v1", tags=["Auth"])
+app.include_router(simulations.router, prefix="/api/v1")
+app.include_router(results.router, prefix="/api/v1")
 
 
 if __name__ == "__main__":
