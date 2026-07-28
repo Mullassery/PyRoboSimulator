@@ -8,7 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from config.settings import Settings
-from routers import auth, health, results, simulations
+from routers import auth, health, results, simulations, visualization
 from services.monitoring import PrometheusMiddleware, metrics_endpoint
 
 # Configure logging
@@ -83,6 +83,7 @@ app.include_router(health.router, prefix="/api/v1", tags=["Health"])
 app.include_router(auth.router, prefix="/api/v1", tags=["Auth"])
 app.include_router(simulations.router, prefix="/api/v1")
 app.include_router(results.router, prefix="/api/v1")
+app.include_router(visualization.router)  # WebSocket routes (no prefix)
 
 
 if __name__ == "__main__":

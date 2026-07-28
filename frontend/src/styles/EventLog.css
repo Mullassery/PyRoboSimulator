@@ -1,0 +1,69 @@
+.event-log {
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.event-log h3 {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--fg-muted);
+  margin-bottom: 8px;
+  letter-spacing: 0.5px;
+}
+
+.events-list {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.empty-message {
+  font-size: 12px;
+  color: var(--fg-muted);
+  text-align: center;
+  padding: 24px 0;
+}
+
+.event-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px;
+  background-color: var(--bg-dark);
+  border-left: 3px solid var(--border-color);
+  border-radius: 2px;
+  font-size: 11px;
+}
+
+.event-item.event-collision {
+  border-left-color: var(--accent-red);
+}
+
+.event-item.event-goal_reached {
+  border-left-color: var(--accent-green);
+}
+
+.event-item.event-state_change {
+  border-left-color: var(--accent-blue);
+}
+
+.event-type {
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.event-agent {
+  color: var(--fg-muted);
+}
+
+.event-pos {
+  font-family: 'Courier New', monospace;
+  color: var(--fg-muted);
+  font-size: 10px;
+}

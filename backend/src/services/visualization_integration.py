@@ -1,0 +1,150 @@
+"""Integration between SimulationEngine and real-time visualization."""
+
+import asyncio
+import time
+from typing import List, Optional
+
+from services.frame_streaming import (
+    AgentFrame,
+    EventFrame,
+    SensorData,
+    Vector3,
+    WorldFrame,
+)
+from services.simulation_engine import SimulationEngine
+
+
+class VisualizationStreamer:
+    """Streams simulation frames to connected clients in real-time."""
+
+    def __init__(self, simulation_engine: SimulationEngine, simulation_id: int):
+        """Initialize streamer.
+
+        Args:
+            simulation_engine: Running simulation engine
+            simulation_id: Simulation ID for tracking
+        """
+        self.engine = simulation_engine
+        self.simulation_id = simulation_id
+        self.frame_id = 0
+        self.start_time = time.time()
+        self.broadcast_callback = None
+        self.frame_rate = 60  # Target 60 FPS
+
+    def set_broadcast_callback(self, callback):
+        """Set callback for broadcasting frames.
+
+        Args:
+            callback: Async function(simulation_id, frame) to broadcast frame
+        """
+        self.broadcast_callback = callback
+
+    async def stream_simulation(self) -> None:
+        """Main streaming loop - run during simulation.
+
+        Capture engine state and broadcast frames at target frame rate.
+        """
+        frame_interval = 1.0 / self.frame_rate
+        last_frame_time = time.time()
+
+        while self.engine.is_running or len(self.engine.events) > 0:
+            current_time = time.time()
+            elapsed = current_time - last_frame_time
+
+            if elapsed >= frame_interval:
+                # Capture and broadcast frame
+                frame = self._capture_frame()
+                if self.broadcast_callback:
+                    await self.broadcast_callback(self.simulation_id, frame)
+
+                self.frame_id += 1
+                last_frame_time = current_time
+            else:
+                # Sleep until next frame
+                await asyncio.sleep(frame_interval - elapsed)
+
+    def _capture_frame(self) -> WorldFrame:
+        """Capture current simulation state as frame.
+
+        Returns:
+            WorldFrame with agent positions, events, and sensor data
+        """
+        # Capture agent states
+        agent_frames = []
+        for agent in self.engine.agents:
+            agent_frame = AgentFrame(
+                id=agent.id,
+                position=Vector3(agent.position.x, agent.position.y, 0.0),
+                rotation=Vector3(0.0, 0.0, 0.0),
+                velocity=Vector3(agent.velocity.x, agent.velocity.y, 0.0),
+                state=agent.state,
+            )
+            agent_frames.append(agent_frame)
+
+        # Capture recent events
+        event_frames = []
+        for event in self.engine.events[-10:]:  # Last 10 events only
+            event_frame = EventFrame(
+                id=event["id"],
+                type=event["type"],
+                agent_id=event["agent_id"],
+                position=Vector3(event["position"]["x"], event["position"]["y"], 0.0),
+                data=event.get("data"),
+            )
+            event_frames.append(event_frame)
+
+        # Capture sensor data (optional, computationally expensive)
+        sensors = None
+        if False:  # Disabled by default (can be toggled)
+            sensors = self._capture_sensors()
+
+        # Create frame
+        timestamp_ms = (time.time() - self.start_time) * 1000
+        return WorldFrame(
+            frame_id=self.frame_id,
+            timestamp_ms=timestamp_ms,
+            agents=agent_frames,
+            events=event_frames,
+            sensors=sensors,
+        )
+
+    def _capture_sensors(self) -> Optional[dict]:
+        """Capture sensor data for all agents.
+
+        Returns:
+            Dictionary mapping agent_id to SensorData
+        """
+        sensors = {}
+        for agent in self.engine.agents:
+            # Get sensor manager if available
+            if hasattr(agent, "sensors"):
+                sensor_data = agent.sensors.get_all_sensor_readings()
+
+                sensors[agent.id] = SensorData(
+                    rgb=sensor_data.get("rgb"),
+                    depth=sensor_data.get("depth"),
+                    lidar=sensor_data.get("lidar"),
+                    thermal=sensor_data.get("thermal"),
+                )
+
+        return sensors if sensors else None
+
+
+async def create_streaming_simulation(
+    engine: SimulationEngine,
+    simulation_id: int,
+    broadcast_callback,
+) -> VisualizationStreamer:
+    """Create a simulation with real-time streaming.
+
+    Args:
+        engine: Simulation engine
+        simulation_id: Simulation ID
+        broadcast_callback: Async callback for frame broadcasting
+
+    Returns:
+        VisualizationStreamer instance
+    """
+    streamer = VisualizationStreamer(engine, simulation_id)
+    streamer.set_broadcast_callback(broadcast_callback)
+    return streamer
