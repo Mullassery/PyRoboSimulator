@@ -61,6 +61,40 @@ class Agent:
         """Initialize agent after dataclass creation."""
         self._rgb_frame_count = 0
 
+    def generate_depth_map(self) -> str:
+        """Generate synthetic depth map (float32 base64 encoded).
+
+        Returns:
+            Base64-encoded depth map (512x512 float32 array)
+        """
+        # Create depth map based on agent position (simulates distance variation)
+        width, height = 512, 512
+        depth_map = np.zeros((height, width), dtype=np.float32)
+
+        # Create distance gradient based on position
+        cx, cy = width // 2, height // 2
+        for y in range(height):
+            for x in range(width):
+                # Distance from center increases with position
+                dx = (x - cx) / width
+                dy = (y - cy) / height
+                distance = np.sqrt(dx**2 + dy**2) * 300  # 0-300m range
+
+                # Add based on agent position (simulated parallax)
+                distance += (self.position.x / 1000) * 50  # Agent position affects depth
+                distance = np.clip(distance, 0, 300)  # Clamp to valid range
+
+                depth_map[y, x] = distance
+
+        # Add noise for realism
+        noise = np.random.normal(0, 2, depth_map.shape).astype(np.float32)
+        depth_map = np.clip(depth_map + noise, 0, 300)
+
+        # Encode as base64
+        depth_bytes = depth_map.astype(np.float32).tobytes()
+        base64_str = base64.b64encode(depth_bytes).decode("utf-8")
+        return base64_str
+
     def generate_rgb_frame(self) -> str:
         """Generate synthetic RGB frame (JPEG encoded in base64).
 
@@ -395,3 +429,28 @@ class SimulationEngine:
         for agent_id, agent in self.agents.items():
             frames[agent_id] = agent.generate_rgb_frame()
         return frames
+
+    def get_agent_depth_map(self, agent_id: int) -> Optional[str]:
+        """Get depth map (base64 encoded) from agent.
+
+        Args:
+            agent_id: Agent ID
+
+        Returns:
+            Base64-encoded depth map or None if agent not found
+        """
+        if agent_id not in self.agents:
+            return None
+        agent = self.agents[agent_id]
+        return agent.generate_depth_map()
+
+    def get_all_agents_depth_maps(self) -> dict[int, str]:
+        """Get depth maps for all agents.
+
+        Returns:
+            Dictionary mapping agent_id to base64-encoded depth map
+        """
+        maps = {}
+        for agent_id, agent in self.agents.items():
+            maps[agent_id] = agent.generate_depth_map()
+        return maps

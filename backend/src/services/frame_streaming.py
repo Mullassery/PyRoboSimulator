@@ -71,9 +71,9 @@ class SensorData:
     """Sensor data for an agent."""
 
     rgb: Optional[str] = None  # Base64 encoded JPEG
-    depth: Optional[bytes] = None  # Base64 encoded float32 array
+    depth: Optional[str] = None  # Base64 encoded float32 array (512x512)
     lidar: Optional[List[List[float]]] = None  # List of [x, y, z] points
-    thermal: Optional[bytes] = None  # Base64 encoded float32 array
+    thermal: Optional[str] = None  # Base64 encoded float32 array (256x256)
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for serialization."""
