@@ -38,3 +38,6 @@ dependencies = [
 [project.optional-dependencies]
 dev = ["pytest>=7.0", "pytest-cov", "httpx>=0.25.0"]
 ros2 = ["rclpy>=0.17.0"]
+
+[project.scripts]
+pyrobosimulator = "pyrobosimulator.cli:main"
