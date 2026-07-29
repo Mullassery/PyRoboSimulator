@@ -65,6 +65,7 @@ class Agent:
         """Initialize agent after dataclass creation."""
         self._rgb_frame_count = 0
         self.trajectory: list = []  # List of (x, y) positions over time
+        self._prev_reached_goal: bool = False  # Track previous goal state for edge detection
 
     def generate_lidar_cloud(self) -> list:
         """Generate synthetic lidar point cloud.
@@ -331,10 +332,12 @@ class SimulationEngine:
         self.agents: dict[int, Agent] = {}
         self.events: list[Event] = []
         self.obstacles: list = []
+        self._next_event_id: int = 0  # Monotonic event ID counter
 
         # Statistics
         self.total_collisions = 0
         self.goals_reached = 0
+        self.is_running: bool = True
 
         self._spawn_agents()
         self._spawn_obstacles()
@@ -430,6 +433,8 @@ class SimulationEngine:
                             }
                         },
                     )
+                    event.id = self._next_event_id
+                    self._next_event_id += 1
                     step_events.append(event)
 
                     # Bounce agents apart
@@ -440,14 +445,17 @@ class SimulationEngine:
 
         # 3. Goal reached detection
         for agent in self.agents.values():
-            if agent.reached_goal and not agent.reached_goal:
+            if agent.reached_goal and not agent._prev_reached_goal:
                 self.goals_reached += 1
                 event = Event(
                     timestamp=self.current_time,
                     event_type="goal_reached",
                     agent_ids=[agent.id],
                 )
+                event.id = self._next_event_id
+                self._next_event_id += 1
                 step_events.append(event)
+            agent._prev_reached_goal = agent.reached_goal
 
         # 4. Emit step complete event
         step_event = Event(

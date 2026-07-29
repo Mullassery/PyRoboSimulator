@@ -55,6 +55,7 @@ class EventFrame:
     type: str  # "collision", "goal_reached", etc
     agent_id: int
     position: Vector3
+    timestamp_ms: float = 0.0
     data: Optional[Dict[str, Any]] = None
 
     def to_dict(self) -> Dict[str, Any]:
@@ -64,6 +65,7 @@ class EventFrame:
             "type": self.type,
             "agent_id": self.agent_id,
             "pos": self.position.to_list(),
+            "timestamp_ms": self.timestamp_ms,
         }
         if self.data:
             result["data"] = self.data

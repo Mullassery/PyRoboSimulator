@@ -58,7 +58,10 @@ function App() {
   const boundingBoxRef = useRef<THREE.BoxHelper | null>(null)
   const obstaclesInitializedRef = useRef(false)
   const cameraRef = useRef<THREE.PerspectiveCamera | THREE.OrthographicCamera | null>(null)
+  const cameraTargetRef = useRef(new THREE.Vector3(0, 0, 0))
   const cameraControlsRef = useRef({ x: 0, y: 0, z: 0 })
+  const cameraModeRef = useRef<'free' | 'topdown' | 'follow'>('free')
+  const rafIdRef = useRef<number | null>(null)
 
   const simulationId = new URLSearchParams(window.location.search).get('id') || '1'
   const { frame, isConnected, sendCommand } = useWebSocket(simulationId)
@@ -66,7 +69,8 @@ function App() {
   const [playing, setPlaying] = useState(true)
   const [speed, setSpeed] = useState(1.0)
   const [cameraMode, setCameraMode] = useState<'free' | 'topdown' | 'follow'>('free')
-  const [selectedAgent, setSelectedAgent] = useState<number | null>(null)
+  const [selectedAgentIds, setSelectedAgentIds] = useState<Set<number>>(new Set())
+  const [primarySelectedAgent, setPrimarySelectedAgent] = useState<number | null>(null)
   const [events, setEvents] = useState<Event[]>([])
   const [visibleLayers, setVisibleLayers] = useState({
     agents: true,
@@ -76,7 +80,12 @@ function App() {
     bounds: true,
   })
 
-  // Initialize Three.js scene
+  // Sync cameraModeRef with cameraMode state (for updateFreeCamera closure)
+  useEffect(() => {
+    cameraModeRef.current = cameraMode
+  }, [cameraMode])
+
+  // Initialize Three.js scene (mount once)
   useEffect(() => {
     if (!canvasRef.current) return
 
@@ -123,10 +132,12 @@ function App() {
     scene.add(boundingBox)
     boundingBoxRef.current = boundingBox
 
-    // Animation loop
+    // Animation loop — reads cameraRef.current every frame (not closed-over camera)
     const animate = () => {
-      requestAnimationFrame(animate)
-      renderer.render(scene, camera)
+      rafIdRef.current = requestAnimationFrame(animate)
+      if (cameraRef.current) {
+        renderer.render(scene, cameraRef.current)
+      }
     }
     animate()
 
@@ -134,8 +145,15 @@ function App() {
     const handleResize = () => {
       const newWidth = canvasRef.current?.clientWidth || width
       const newHeight = canvasRef.current?.clientHeight || height
-      camera.aspect = newWidth / newHeight
-      camera.updateProjectionMatrix()
+      if (cameraRef.current instanceof THREE.PerspectiveCamera) {
+        cameraRef.current.aspect = newWidth / newHeight
+        cameraRef.current.updateProjectionMatrix()
+      } else if (cameraRef.current instanceof THREE.OrthographicCamera) {
+        const scale = newWidth / newHeight
+        cameraRef.current.left = -500 * scale
+        cameraRef.current.right = 500 * scale
+        cameraRef.current.updateProjectionMatrix()
+      }
       renderer.setSize(newWidth, newHeight)
     }
 
@@ -149,7 +167,7 @@ function App() {
     }
 
     const updateFreeCamera = () => {
-      if (!cameraRef.current || cameraMode !== 'free') return
+      if (!cameraRef.current || cameraModeRef.current !== 'free') return
       const speed = 2
 
       if (keys['w']) cameraControlsRef.current.z -= speed
@@ -164,22 +182,71 @@ function App() {
       cam.position.y += cameraControlsRef.current.y * 0.1
       cam.position.z += cameraControlsRef.current.z * 0.1
       cameraControlsRef.current = { x: 0, y: 0, z: 0 }
-      cam.lookAt(0, 0, 0)
+      cam.lookAt(cameraTargetRef.current)
+    }
+
+    // Handle click-to-select (raycasting against agent meshes)
+    const handleCanvasClick = (e: MouseEvent) => {
+      if (!(cameraRef.current && sceneRef.current)) return
+
+      const canvas = canvasRef.current!
+      const rect = canvas.getBoundingClientRect()
+      const x = ((e.clientX - rect.left) / rect.width) * 2 - 1
+      const y = -((e.clientY - rect.top) / rect.height) * 2 + 1
+
+      const raycaster = new THREE.Raycaster()
+      raycaster.setFromCamera(new THREE.Vector2(x, y), cameraRef.current)
+
+      const agents = Array.from(agentMeshesRef.current.values())
+      const intersects = raycaster.intersectObjects(agents)
+
+      if (intersects.length > 0) {
+        const clicked = intersects[0].object as THREE.Mesh
+        const clickedAgentId = clicked.userData.agentId as number
+
+        if (e.shiftKey || e.ctrlKey || e.metaKey) {
+          // Multi-select: toggle membership
+          if (selectedAgentIds.has(clickedAgentId)) {
+            selectedAgentIds.delete(clickedAgentId)
+          } else {
+            selectedAgentIds.add(clickedAgentId)
+          }
+          setSelectedAgentIds(new Set(selectedAgentIds))
+        } else {
+          // Single select: replace or clear
+          if (selectedAgentIds.size === 1 && selectedAgentIds.has(clickedAgentId)) {
+            setSelectedAgentIds(new Set())
+            setPrimarySelectedAgent(null)
+          } else {
+            setSelectedAgentIds(new Set([clickedAgentId]))
+            setPrimarySelectedAgent(clickedAgentId)
+          }
+        }
+      } else {
+        // Click empty space: clear selection
+        setSelectedAgentIds(new Set())
+        setPrimarySelectedAgent(null)
+      }
     }
 
     window.addEventListener('keydown', handleKeyDown)
     window.addEventListener('keyup', handleKeyUp)
+    window.addEventListener('resize', handleResize)
+    canvasRef.current.addEventListener('click', handleCanvasClick)
 
     const cameraUpdateInterval = setInterval(updateFreeCamera, 16)
 
-    window.addEventListener('resize', handleResize)
     return () => {
-      window.removeEventListener('resize', handleResize)
       window.removeEventListener('keydown', handleKeyDown)
       window.removeEventListener('keyup', handleKeyUp)
+      window.removeEventListener('resize', handleResize)
+      canvasRef.current?.removeEventListener('click', handleCanvasClick)
       clearInterval(cameraUpdateInterval)
+      if (rafIdRef.current !== null) {
+        cancelAnimationFrame(rafIdRef.current)
+      }
     }
-  }, [cameraMode])
+  }, [])
 
   // Update layer visibility
   useEffect(() => {
@@ -213,30 +280,35 @@ function App() {
 
     switch (cameraMode) {
       case 'topdown': {
-        const ortho = new THREE.OrthographicCamera(-500, 500, -500, 500, 0.1, 10000)
-        ortho.position.set(0, 500, 0)
-        ortho.lookAt(0, 0, 0)
-        if (cameraRef.current instanceof THREE.PerspectiveCamera) {
-          sceneRef.current.remove(cameraRef.current)
+        if (!(cameraRef.current instanceof THREE.OrthographicCamera)) {
+          const ortho = new THREE.OrthographicCamera(-500, 500, -500, 500, 0.1, 10000)
+          ortho.position.set(0, 500, 0)
+          ortho.lookAt(0, 0, 0)
+          if (cameraRef.current instanceof THREE.PerspectiveCamera) {
+            sceneRef.current.remove(cameraRef.current)
+          }
+          sceneRef.current.add(ortho)
+          cameraRef.current = ortho
         }
-        sceneRef.current.add(ortho)
-        cameraRef.current = ortho
         break
       }
 
       case 'follow': {
-        const agentToFollow =
-          selectedAgent !== null ? selectedAgent : frameData.agents[0]?.id
-        const agent = frameData.agents.find((a) => a.id === agentToFollow)
+        if (cameraRef.current instanceof THREE.PerspectiveCamera) {
+          const agentToFollow =
+            primarySelectedAgent !== null ? primarySelectedAgent : frameData.agents[0]?.id
+          const agent = frameData.agents.find((a) => a.id === agentToFollow)
 
-        if (agent && cameraRef.current instanceof THREE.PerspectiveCamera) {
-          const offset = 30
-          cameraRef.current.position.set(
-            agent.pos[0] + offset,
-            agent.pos[1] + offset,
-            agent.pos[2] + offset
-          )
-          cameraRef.current.lookAt(agent.pos[0], agent.pos[1], agent.pos[2])
+          if (agent) {
+            const offset = 30
+            cameraRef.current.position.set(
+              agent.pos[0] + offset,
+              agent.pos[1] + offset,
+              agent.pos[2] + offset
+            )
+            cameraTargetRef.current.set(agent.pos[0], agent.pos[1], agent.pos[2])
+            cameraRef.current.lookAt(cameraTargetRef.current)
+          }
         }
         break
       }
@@ -256,7 +328,7 @@ function App() {
         break
       }
     }
-  }, [cameraMode, selectedAgent, frame])
+  }, [cameraMode, primarySelectedAgent, frame])
 
   // Update scene with frame data
   useEffect(() => {
@@ -302,7 +374,7 @@ function App() {
       ;(mesh.material as THREE.MeshPhongMaterial).color.set(getAgentColor(agent.state))
 
       // Update trajectory if available and enabled
-      if (showTrajectories && agent.traj && agent.traj.length > 1) {
+      if (visibleLayers.trajectories && agent.traj && agent.traj.length > 1) {
         let line = trajectoryLinesRef.current.get(agent.id)
 
         if (!line) {
@@ -411,11 +483,11 @@ function App() {
             <EventLog events={events} />
           </div>
 
-          {selectedAgent !== null && (
+          {primarySelectedAgent !== null && (
             <div className="sensor-panel-wrapper">
               <SensorPanel
-                agentId={selectedAgent}
-                sensorData={frame?.sensors?.[selectedAgent] || null}
+                agentId={primarySelectedAgent}
+                sensorData={frame?.sensors?.[primarySelectedAgent] || null}
               />
             </div>
           )}

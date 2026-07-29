@@ -87,14 +87,15 @@ class VisualizationStreamer:
 
         # Capture recent events
         event_frames = []
-        for i, event in enumerate(self.engine.events[-10:]):  # Last 10 events only
+        for event in self.engine.events[-10:]:  # Last 10 events only
             agent_id = event.agent_ids[0] if event.agent_ids else -1
-            event_pos_data = event.data.get("position", {"x": 0, "y": 0})
+            event_pos_data = event.data.get("position", {"x": 0, "y": 0}) if event.data else {"x": 0, "y": 0}
             event_frame = EventFrame(
-                id=i,
+                id=event.id,
                 type=event.event_type,
                 agent_id=agent_id,
                 position=Vector3(event_pos_data.get("x", 0), event_pos_data.get("y", 0), 0.0),
+                timestamp_ms=event.timestamp * 1000,
                 data=event.data,
             )
             event_frames.append(event_frame)

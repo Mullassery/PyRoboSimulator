@@ -78,8 +78,27 @@ function unpackMessagePack(buffer: ArrayBuffer): any {
     return result
   }
 
+  function readArray(n: number): any[] {
+    const arr = []
+    for (let i = 0; i < n; i++) {
+      arr.push(unpack())
+    }
+    return arr
+  }
+
+  function readMap(n: number): Record<string, any> {
+    const obj: Record<string, any> = {}
+    for (let i = 0; i < n; i++) {
+      const key = unpack()
+      const value = unpack()
+      obj[key] = value
+    }
+    return obj
+  }
+
   function unpack(): any {
-    const byte = view.getUint8(offset++)
+    const byte = view.getUint8(offset)
+    offset += 1
 
     // Positive fixint
     if ((byte & 0x80) === 0) {
@@ -94,23 +113,13 @@ function unpackMessagePack(buffer: ArrayBuffer): any {
     // Fixmap
     if ((byte & 0xf0) === 0x80) {
       const size = byte & 0x0f
-      const obj: Record<string, any> = {}
-      for (let i = 0; i < size; i++) {
-        const key = unpack()
-        const value = unpack()
-        obj[key] = value
-      }
-      return obj
+      return readMap(size)
     }
 
     // Fixarray
     if ((byte & 0xf0) === 0x90) {
       const size = byte & 0x0f
-      const arr = []
-      for (let i = 0; i < size; i++) {
-        arr.push(unpack())
-      }
-      return arr
+      return readArray(size)
     }
 
     // Fixstr
@@ -127,35 +136,91 @@ function unpackMessagePack(buffer: ArrayBuffer): any {
         return false
       case 0xc3:
         return true
-      case 0xcc:
-        return view.getUint8(offset++)
-      case 0xcd:
-        return view.getUint16(offset++, false)
-      case 0xce:
-        return view.getUint32(offset++, false)
-      case 0xcf:
-        return view.getBigUint64(offset++, false)
-      case 0xd0:
-        return view.getInt8(offset++)
-      case 0xd1:
-        return view.getInt16(offset++, false)
-      case 0xd2:
-        return view.getInt32(offset++, false)
-      case 0xd3:
-        return view.getBigInt64(offset++, false)
-      case 0xca:
-        return view.getFloat32(offset++, false)
-      case 0xcb:
-        return view.getFloat64(offset++, false)
-      case 0xd9:
-        const strLen = view.getUint8(offset++)
+      case 0xcc: {
+        const v = view.getUint8(offset)
+        offset += 1
+        return v
+      }
+      case 0xcd: {
+        const v = view.getUint16(offset, false)
+        offset += 2
+        return v
+      }
+      case 0xce: {
+        const v = view.getUint32(offset, false)
+        offset += 4
+        return v
+      }
+      case 0xcf: {
+        const v = view.getBigUint64(offset, false)
+        offset += 8
+        return v
+      }
+      case 0xd0: {
+        const v = view.getInt8(offset)
+        offset += 1
+        return v
+      }
+      case 0xd1: {
+        const v = view.getInt16(offset, false)
+        offset += 2
+        return v
+      }
+      case 0xd2: {
+        const v = view.getInt32(offset, false)
+        offset += 4
+        return v
+      }
+      case 0xd3: {
+        const v = view.getBigInt64(offset, false)
+        offset += 8
+        return v
+      }
+      case 0xca: {
+        const v = view.getFloat32(offset, false)
+        offset += 4
+        return v
+      }
+      case 0xcb: {
+        const v = view.getFloat64(offset, false)
+        offset += 8
+        return v
+      }
+      case 0xd9: {
+        const strLen = view.getUint8(offset)
+        offset += 1
         return decoder.decode(read(strLen))
-      case 0xda:
-        const strLen16 = view.getUint16(offset++, false)
-        return decoder.decode(read(strLen16))
-      case 0xdb:
-        const strLen32 = view.getUint32(offset++, false)
-        return decoder.decode(read(strLen32))
+      }
+      case 0xda: {
+        const strLen = view.getUint16(offset, false)
+        offset += 2
+        return decoder.decode(read(strLen))
+      }
+      case 0xdb: {
+        const strLen = view.getUint32(offset, false)
+        offset += 4
+        return decoder.decode(read(strLen))
+      }
+      case 0xdc: {
+        const n = view.getUint16(offset, false)
+        offset += 2
+        return readArray(n)
+      }
+      case 0xdd: {
+        const n = view.getUint32(offset, false)
+        offset += 4
+        return readArray(n)
+      }
+      case 0xde: {
+        const n = view.getUint16(offset, false)
+        offset += 2
+        return readMap(n)
+      }
+      case 0xdf: {
+        const n = view.getUint32(offset, false)
+        offset += 4
+        return readMap(n)
+      }
       default:
         throw new Error(`Unsupported MessagePack type: 0x${byte.toString(16)}`)
     }
