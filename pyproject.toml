@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pyrobosimulator"
-version = "0.1.1"
+version = "0.2.0"
 description = "AI-native world simulation engine: narratives, robotics, agents, ROS 2"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -41,3 +41,8 @@ ros2 = ["rclpy>=0.17.0"]
 
 [project.scripts]
 pyrobosimulator = "pyrobosimulator.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["pyrobosimulator*"]
+exclude = ["backend*", "frontend*", "pyrobosimulator-core*", "python*", "scripts*"]
