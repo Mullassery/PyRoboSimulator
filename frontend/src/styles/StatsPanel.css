@@ -1,0 +1,260 @@
+/* Real-Time Statistics Panel Styling */
+
+.stats-panel {
+  background: linear-gradient(180deg, #1a1a1a, #0f0f0f);
+  border: 1px solid #444;
+  border-radius: 8px;
+  padding: 1rem;
+  max-height: 600px;
+  overflow-y: auto;
+  font-size: 0.85rem;
+}
+
+.stats-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #333;
+}
+
+.stats-header h3 {
+  margin: 0;
+  color: #e0e0e0;
+  font-size: 1rem;
+}
+
+.stats-section {
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #2a2a2a;
+}
+
+.stats-section:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.section-title {
+  color: #a0a0a0;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 0.75rem;
+}
+
+/* Stat Grid */
+.stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 0.75rem;
+}
+
+.stat-box {
+  background: rgba(58, 127, 189, 0.1);
+  border: 1px solid rgba(58, 127, 189, 0.3);
+  border-radius: 4px;
+  padding: 0.75rem;
+  text-align: center;
+}
+
+.stat-box:hover {
+  background: rgba(58, 127, 189, 0.15);
+  border-color: rgba(58, 127, 189, 0.5);
+}
+
+.stat-label {
+  color: #888;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  margin-bottom: 0.3rem;
+}
+
+.stat-value {
+  color: #e0e0e0;
+  font-size: 1.2rem;
+  font-weight: 700;
+  font-family: 'Monaco', 'Courier New', monospace;
+}
+
+.stat-unit {
+  font-size: 0.75rem;
+  margin-left: 0.2rem;
+  opacity: 0.7;
+}
+
+/* Mini Charts */
+.mini-chart {
+  margin-bottom: 0.75rem;
+  background: rgba(40, 40, 40, 0.6);
+  padding: 0.5rem;
+  border-radius: 4px;
+  border: 1px solid #333;
+}
+
+.chart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.35rem;
+}
+
+.chart-title {
+  color: #a0a0a0;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.chart-value {
+  color: #e0e0e0;
+  font-size: 0.8rem;
+  font-weight: 700;
+  font-family: 'Monaco', 'Courier New', monospace;
+}
+
+.chart-bar-container {
+  height: 12px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 2px;
+  overflow: hidden;
+  border: 1px solid #2a2a2a;
+}
+
+.chart-bar {
+  height: 100%;
+  transition: width 0.2s ease;
+  box-shadow: 0 0 4px rgba(90, 159, 221, 0.3);
+}
+
+/* State Distribution */
+.state-distribution {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+@media (max-width: 768px) {
+  .state-distribution {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Event Rates */
+.event-rates {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 0.75rem;
+}
+
+@media (max-width: 768px) {
+  .event-rates {
+    grid-template-columns: 1fr;
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Pie Chart */
+.pie-chart {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 200px;
+  position: relative;
+  background: radial-gradient(circle, #2a2a2a 40%, transparent 70%);
+}
+
+.pie-slice {
+  position: absolute;
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  opacity: 0;
+  animation: pieSliceRotate 0.5s ease-out forwards;
+}
+
+@keyframes pieSliceRotate {
+  to {
+    opacity: 1;
+  }
+}
+
+/* Scrollbar styling */
+.stats-panel::-webkit-scrollbar {
+  width: 8px;
+}
+
+.stats-panel::-webkit-scrollbar-track {
+  background: #1a1a1a;
+}
+
+.stats-panel::-webkit-scrollbar-thumb {
+  background: #444;
+  border-radius: 4px;
+}
+
+.stats-panel::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1024px) {
+  .stats-panel {
+    max-height: 400px;
+    font-size: 0.8rem;
+  }
+
+  .stat-value {
+    font-size: 1rem;
+  }
+
+  .chart-bar-container {
+    height: 10px;
+  }
+}
+
+@media (max-width: 768px) {
+  .stats-panel {
+    max-height: 300px;
+    padding: 0.75rem;
+  }
+
+  .stats-section {
+    margin-bottom: 1rem;
+    padding-bottom: 0.75rem;
+  }
+
+  .stats-grid {
+    gap: 0.5rem;
+  }
+
+  .stat-box {
+    padding: 0.5rem;
+  }
+
+  .stat-value {
+    font-size: 0.9rem;
+  }
+}
+
+/* Dark theme adjustments */
+@media (prefers-color-scheme: dark) {
+  .stats-panel {
+    background: linear-gradient(180deg, #1a1a1a, #0f0f0f);
+  }
+
+  .stat-box {
+    background: rgba(58, 127, 189, 0.08);
+  }
+
+  .mini-chart {
+    background: rgba(30, 30, 30, 0.8);
+  }
+}
