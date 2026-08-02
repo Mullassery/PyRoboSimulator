@@ -496,3 +496,23 @@ Built with Python, FastAPI, PostgreSQL, Redis, Kubernetes, and the open source c
 ---
 
 **PyRoboSimulator v0.2.0** | [GitHub](https://github.com/Mullassery/PyRoboSimulator) | [PyPI](https://pypi.org/project/pyrobosimulator/) | [Issues](https://github.com/Mullassery/PyRoboSimulator/issues)
+
+## Dashboard
+
+Real-time metrics with keyboard shortcuts:
+- `bash scripts/setup_shortcuts.sh` (one-time setup)
+- `dash-[package]` - Static snapshot
+- `dash-[package]-live` - Live monitoring
+- `dash-[package]-export` - Export to JSON
+
+See `DASHBOARD_SHORTCUTS.md`.
+
+## OpenTelemetry
+
+Export metrics to 6 backends: Prometheus, Datadog, Honeycomb, New Relic, Jaeger, X-Ray.
+
+See `OTEL_SETUP_GUIDE.md`.
+
+## Production Deployment
+
+Kubernetes and Docker ready. See `PRODUCTION_DEPLOYMENT.md`.

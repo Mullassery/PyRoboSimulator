@@ -1,4 +1,4 @@
-"""Post-install messaging"""
+"""Post-install messaging for PyRoboSimulator"""
 
 def post_install():
     print("""
@@ -14,6 +14,11 @@ def post_install():
    $ pyrobosimulator dashboard --static
    $ python3 -c "from pyrobosimulator.mission import MissionPlanner; m = MissionPlanner(); print('Planner ready')"
 
+⌨️  KEYBOARD SHORTCUTS (after running setup):
+   $ dash-pyrobosimulator          → Static dashboard snapshot
+   $ dash-pyrobosimulator-live     → Live dashboard (Ctrl+C to exit)
+   $ dash-pyrobosimulator-export   → Export metrics to JSON
+
 ✨ KEY FEATURES:
    ✓ UE5 world generation with Claude NLP
    ✓ 12+ agent simulation
@@ -21,13 +26,15 @@ def post_install():
    ✓ ROS 2 integration (8 nodes)
    ✓ Sensor fidelity: RGB + Depth + Lidar + Thermal
    ✓ Physics accuracy (98.4%)
-   ✓ PyTerrainMap terrain integration
-   ✓ PyRoboReplay decision recording
 
 📖 DOCUMENTATION:
-   Dashboard:   pyrobosimulator dashboard --help
-   Tutorials:   https://github.com/Mullassery/PyRoboSimulator#readme
-   Issues:      https://github.com/Mullassery/PyRoboSimulator/issues
+   Setup shortcuts:  bash <(curl -s https://raw.githubusercontent.com/Mullassery/PyRoboSimulator/main/scripts/setup_shortcuts.sh)
+   Dashboard help:   pyrobosimulator dashboard --help
+   Tutorials:        https://github.com/Mullassery/PyRoboSimulator#readme
+   GitHub Issues:    https://github.com/Mullassery/PyRoboSimulator/issues
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     """)
+
+if __name__ == "__main__":
+    post_install()

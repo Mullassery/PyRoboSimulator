@@ -1,4 +1,6 @@
 import React from 'react'
+import { PresetStorage } from '../services/presetManager'
+import PresetButtons from './PresetButtons'
 import '../styles/Controls.css'
 
 interface VisibilityLayers {
@@ -14,10 +16,17 @@ interface ControlsProps {
   speed: number
   cameraMode: 'free' | 'topdown' | 'follow'
   visibleLayers: VisibilityLayers
+  presets?: PresetStorage
   onPlayPause: () => void
   onSpeedChange: (speed: number) => void
   onCameraChange: (mode: 'free' | 'topdown' | 'follow') => void
   onLayerToggle: (layer: keyof VisibilityLayers, visible: boolean) => void
+  onApplyPreset?: (presetName: string) => void
+  onSavePreset?: (name: string) => boolean
+  onDeletePreset?: (name: string) => void
+  onExportPresets?: () => string
+  onImportPresets?: (json: string) => boolean
+  onResetToDefaults?: () => void
 }
 
 export default function Controls({
@@ -25,10 +34,17 @@ export default function Controls({
   speed,
   cameraMode,
   visibleLayers,
+  presets,
   onPlayPause,
   onSpeedChange,
   onCameraChange,
   onLayerToggle,
+  onApplyPreset,
+  onSavePreset,
+  onDeletePreset,
+  onExportPresets,
+  onImportPresets,
+  onResetToDefaults,
 }: ControlsProps) {
   return (
     <div className="controls">
@@ -147,6 +163,18 @@ export default function Controls({
           </label>
         </div>
       </div>
+
+      {presets && onApplyPreset && (
+        <PresetButtons
+          presets={presets}
+          onApplyPreset={onApplyPreset}
+          onSavePreset={onSavePreset || (() => false)}
+          onDeletePreset={onDeletePreset || (() => {})}
+          onExportPresets={onExportPresets || (() => '')}
+          onImportPresets={onImportPresets || (() => false)}
+          onResetToDefaults={onResetToDefaults || (() => {})}
+        />
+      )}
     </div>
   )
 }

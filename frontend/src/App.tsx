@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react'
 import * as THREE from 'three'
 import { useWebSocket } from './hooks/useWebSocket'
+import { useViewPresets } from './hooks/useViewPresets'
 import Controls from './components/Controls'
 import SensorPanel from './components/SensorPanel'
 import EventLog from './components/EventLog'
@@ -79,6 +80,13 @@ function App() {
     grid: true,
     bounds: true,
   })
+
+  // Initialize view presets hook (will be configured after camera is created)
+  const viewPresetsConfig = {
+    camera: cameraRef.current,
+    cameraTarget: cameraTargetRef.current,
+  }
+  const viewPresets = useViewPresets(viewPresetsConfig)
 
   // Sync cameraModeRef with cameraMode state (for updateFreeCamera closure)
   useEffect(() => {
@@ -470,12 +478,19 @@ function App() {
           speed={speed}
           cameraMode={cameraMode}
           visibleLayers={visibleLayers}
+          presets={viewPresets.presets}
           onPlayPause={handlePlayPause}
           onSpeedChange={handleSpeedChange}
           onCameraChange={handleCameraChange}
           onLayerToggle={(layer, visible) =>
             setVisibleLayers({ ...visibleLayers, [layer]: visible })
           }
+          onApplyPreset={viewPresets.applyPreset}
+          onSavePreset={viewPresets.saveCurrentViewAsPreset}
+          onDeletePreset={viewPresets.deletePreset}
+          onExportPresets={viewPresets.exportPresets}
+          onImportPresets={viewPresets.importPresets}
+          onResetToDefaults={viewPresets.resetToDefaults}
         />
 
         <div className="bottom-panel">
