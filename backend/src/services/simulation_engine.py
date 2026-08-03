@@ -68,11 +68,23 @@ class Agent:
         self._prev_reached_goal: bool = False  # Track previous goal state for edge detection
         self._prev_depth_map: Optional[np.ndarray] = None  # For temporal filtering
 
-    def generate_lidar_cloud(self) -> list:
-        """Generate synthetic lidar point cloud.
+    def generate_lidar_cloud(
+        self,
+        rain_intensity: float = 0.0,
+        beam_spread: float = 0.1,
+        multipath_probability: float = 0.05,
+        add_temporal_jitter: bool = True
+    ) -> list:
+        """Generate synthetic lidar point cloud with realistic effects.
+
+        Args:
+            rain_intensity: Rain intensity (0-1, where 1 = 80% point loss)
+            beam_spread: Beam spread angle in degrees (angular resolution)
+            multipath_probability: Probability of multi-path returns per ray
+            add_temporal_jitter: Add temporal noise (frame-to-frame jitter)
 
         Returns:
-            List of [x, y, z] points
+            List of [x, y, z] points with realistic artifacts
         """
         # 512 rays × 16 layers = 8192 points
         num_rays = 512
@@ -82,19 +94,35 @@ class Agent:
         points = []
 
         for layer_idx in range(num_layers):
-            # Vertical angle for this layer
-            vertical_angle = -15 + (layer_idx / num_layers) * 30  # -15 to +15 degrees
+            # Vertical angle for this layer (-15 to +15 degrees)
+            vertical_angle = -15 + (layer_idx / num_layers) * 30
 
             for ray_idx in range(num_rays):
-                # Horizontal angle for this ray
-                horizontal_angle = (ray_idx / num_rays) * 360  # 0 to 360 degrees
+                # Horizontal angle for this ray (0 to 360 degrees)
+                horizontal_angle = (ray_idx / num_rays) * 360
 
-                # Random distance for demo
+                # Check rain occlusion (stochastic based on intensity)
+                if rain_intensity > 0:
+                    # Rain causes point loss: probability increases with intensity
+                    # At 1.0 intensity, ~80% of points are lost
+                    rain_drop_prob = rain_intensity * 0.8
+                    if np.random.rand() < rain_drop_prob:
+                        continue  # Skip this ray (rain occlusion)
+
+                # Base distance with agent position influence
                 distance = np.random.uniform(5, max_range)
-
-                # Add some structure based on position
                 distance_mod = 20 + (self.position.x / 1000) * 30
                 distance = np.clip(distance + distance_mod, 5, max_range)
+
+                # Apply beam spread (angular noise)
+                if beam_spread > 0:
+                    # Add small random angle to each ray
+                    spread_angle = np.random.normal(0, beam_spread)
+                    horizontal_angle += spread_angle
+
+                # Add temporal jitter (frame-to-frame noise)
+                if add_temporal_jitter:
+                    distance += np.random.normal(0, 0.01 * distance)  # 1% jitter
 
                 # Convert spherical to cartesian coordinates
                 vert_rad = np.radians(vertical_angle)
@@ -105,6 +133,20 @@ class Agent:
                 z = distance * np.sin(vert_rad)
 
                 points.append([float(x), float(y), float(z)])
+
+                # Multi-path returns (secondary reflections from ground)
+                if multipath_probability > 0 and np.random.rand() < multipath_probability:
+                    # Secondary return from ground (~80% of primary distance)
+                    secondary_distance = distance * 0.8
+                    # Slightly different angle (simulating ground reflection)
+                    reflect_angle = horizontal_angle + np.random.normal(0, 2)
+                    reflect_vert = -vertical_angle  # Bounce from ground
+
+                    x2 = secondary_distance * np.cos(np.radians(reflect_vert)) * np.cos(np.radians(reflect_angle))
+                    y2 = secondary_distance * np.cos(np.radians(reflect_vert)) * np.sin(np.radians(reflect_angle))
+                    z2 = secondary_distance * np.sin(np.radians(reflect_vert))
+
+                    points.append([float(x2), float(y2), float(z2)])
 
         return points
 
