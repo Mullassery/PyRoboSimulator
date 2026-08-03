@@ -141,11 +141,15 @@ class Agent:
         base64_str = base64.b64encode(depth_bytes).decode("utf-8")
         return base64_str
 
-    def generate_rgb_frame(self) -> str:
-        """Generate synthetic RGB frame (JPEG encoded in base64).
+    def generate_rgb_frame(self, iso: int = 100, color_grading: str = "daylight") -> str:
+        """Generate synthetic RGB frame with realistic sensor effects (JPEG encoded in base64).
+
+        Args:
+            iso: ISO sensitivity (100, 400, 1600, 3200) - higher = more noise
+            color_grading: Preset ("daylight", "night", "thermal_tint", "none")
 
         Returns:
-            Base64-encoded JPEG image
+            Base64-encoded JPEG image with sensor artifacts
         """
         # Create synthetic RGB image based on agent state
         width, height = 640, 480
@@ -160,9 +164,12 @@ class Agent:
                 int(color[2] * (i / height)),
             ]
 
-        # Add noise
-        noise = np.random.normal(0, 5, img_array.shape).astype(int)
-        img_array = np.clip(img_array + noise, 0, 255).astype(np.uint8)
+        # Apply sensor effects
+        img_array = self._apply_sensor_effects(
+            img_array,
+            iso=iso,
+            color_grading=color_grading
+        )
 
         # Convert to JPEG
         img = Image.fromarray(img_array, "RGB")
@@ -174,6 +181,49 @@ class Agent:
         base64_str = base64.b64encode(jpeg_bytes).decode("utf-8")
         self._rgb_frame_count += 1
         return base64_str
+
+    def _apply_sensor_effects(
+        self, img_array: np.ndarray, iso: int = 100, color_grading: str = "daylight"
+    ) -> np.ndarray:
+        """Apply realistic RGB camera sensor effects.
+
+        Args:
+            img_array: Input RGB image (H×W×3 uint8)
+            iso: ISO sensitivity (100-3200)
+            color_grading: Preset ("daylight", "night", "thermal_tint", "none")
+
+        Returns:
+            Image with applied effects (uint8)
+        """
+        from services.sensor_effects import (
+            add_gaussian_noise,
+            apply_radial_distortion,
+            apply_motion_blur,
+            apply_color_grading,
+        )
+
+        result = img_array.astype(np.float32)
+
+        # 1. ISO-based Gaussian noise (higher ISO = more noise)
+        iso_noise_map = {100: 3.0, 400: 8.0, 1600: 20.0, 3200: 45.0}
+        noise_sigma = iso_noise_map.get(iso, 3.0)
+        result = add_gaussian_noise(result, noise_sigma, 0, 255)
+
+        # 2. Lens distortion (slight barrel distortion)
+        result = apply_radial_distortion(result, k1=0.05, k2=0.01)
+
+        # 3. Motion blur based on velocity magnitude
+        speed = self.velocity.magnitude()
+        if speed > 0.1:
+            # Normalize velocity to get direction
+            vel_norm = self.velocity.normalize()
+            direction = (vel_norm.x, vel_norm.y)
+            result = apply_motion_blur(result, speed, direction, max_kernel=15)
+
+        # 4. Color grading preset
+        result = apply_color_grading(result.astype(np.uint8), color_grading)
+
+        return result.astype(np.uint8)
 
     def generate_thermal_image(self) -> str:
         """Generate synthetic thermal image (-20°C to +60°C false-color).

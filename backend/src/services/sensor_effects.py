@@ -50,6 +50,11 @@ def apply_radial_distortion(image: np.ndarray, k1: float, k2: float) -> np.ndarr
     dx = src_xx - x0
     dy = src_yy - y0
 
+    # Reshape dx and dy for broadcasting with color channels
+    if image.ndim == 3:
+        dx = dx[:, :, np.newaxis]
+        dy = dy[:, :, np.newaxis]
+
     result = (
         image[y0, x0] * (1 - dx) * (1 - dy)
         + image[y0, x1] * dx * (1 - dy)
