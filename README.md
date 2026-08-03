@@ -37,11 +37,12 @@ A complete, open-source simulation engine built for developers and researchers w
 - **Velocity/acceleration** clamping for stability
 - **100K+ agents/second** throughput on standard hardware
 
-### Sensor Suite
-- **RGB Camera**: 1920×1080 @ 30 FPS with realistic optics and exposure control
-- **Depth Sensor**: 512×512 float32 @ 30 FPS, 0-300m range with noise modeling
-- **Lidar**: 512 rays × 16 layers (8K+ points/frame), 360° horizontal FOV
-- **Thermal Camera**: 256×256 @ 30 FPS, -20°C to +60°C with emissivity simulation
+### Sensor Suite (Phase 1C: Realistic Sensor Simulation)
+- **RGB Camera**: 1920×1080 @ 30 FPS with ISO-based noise, lens distortion, motion blur, color grading presets
+- **Depth Sensor**: 512×512 float32 @ 30 FPS, 0-300m range with quantization, range-based noise, temporal filtering, edge artifacts
+- **Lidar**: 512 rays × 16 layers (8K+ points/frame), rain occlusion (20-30%), beam spread, multi-path returns, temporal jitter
+- **Thermal Camera**: 256×256 @ 30 FPS, -20°C to +60°C with material emissivity (11 types), view factor, calibration error
+- **Sensor Fusion**: Real-time multi-sensor integration with timestamp synchronization, coordinate transforms, <0.01ms latency
 
 ### World Generation
 - **Built-in scenarios**: Parking lot (4×5 grid), warehouse (4 corners + shelves), urban street (3×3 intersections)
@@ -72,7 +73,7 @@ A complete, open-source simulation engine built for developers and researchers w
 ### 1. Install
 
 ```bash
-pip install pyrobosimulator==0.2.0
+pip install pyrobosimulator==0.3.0
 ```
 
 ### 2. Run Your First Simulation
@@ -241,7 +242,12 @@ All benchmarks run on a 2023 MacBook Pro (Apple Silicon M2, 8GB RAM):
 | **Throughput** | 100K+ agents/sec | Single machine, full physics |
 | **API Latency (P99)** | <500ms | 95th percentile over 10K requests |
 | **Simulation Startup** | <1s | Engine initialization + world load |
-| **Sensor Throughput** | 30 FPS | All 4 sensors per agent |
+| **Sensor Throughput** | 30 FPS | All 4 sensors per agent, realistic effects |
+| **RGB Rendering** | 7-300ms | Depends on ISO (100-3200) |
+| **Depth Generation** | 5.5ms | Vectorized quantization + noise + filtering |
+| **Lidar Cloud** | 21.9ms | With rain occlusion, beam spread, multi-path |
+| **Thermal Imaging** | 2.1ms | Material emissivity + calibration |
+| **Sensor Fusion** | 0.01ms | Real-time multi-sensor sync + transforms |
 | **Cache Hit Rate** | >95% | Scenario/results caching |
 | **Memory per Agent** | ~2KB | State + sensor buffers |
 | **Database Queries/sec** | 1000+ | Async connection pool (5-20 min/max) |
