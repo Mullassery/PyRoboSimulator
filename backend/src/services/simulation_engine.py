@@ -346,35 +346,127 @@ class Agent:
 
         return result.astype(np.uint8)
 
-    def generate_thermal_image(self) -> str:
-        """Generate synthetic thermal image (-20°C to +60°C false-color).
+    def generate_thermal_image(
+        self,
+        min_temp: float = -20.0,
+        max_temp: float = 60.0,
+        calibration_error: float = 2.0
+    ) -> str:
+        """Generate synthetic thermal image with realistic sensor effects (float32 base64 encoded).
+
+        Args:
+            min_temp: Minimum temperature range (Celsius, default -20°C)
+            max_temp: Maximum temperature range (Celsius, default +60°C)
+            calibration_error: Sensor calibration uncertainty (±degrees)
 
         Returns:
             Base64-encoded thermal image (256x256 float32 array)
         """
         width, height = 256, 256
-        thermal_map = np.zeros((height, width), dtype=np.float32)
 
+        # Vectorized thermal map generation
+        yy, xx = np.mgrid[0:height, 0:width]
         cx, cy = width // 2, height // 2
-        for y in range(height):
-            for x in range(width):
-                dx = (x - cx) / width
-                dy = (y - cy) / height
-                distance = np.sqrt(dx**2 + dy**2)
 
-                base_temp = 20  # Baseline room temperature (Celsius)
-                distance_effect = distance * 60
+        dx = (xx - cx) / width
+        dy = (yy - cy) / height
+        distance = np.sqrt(dx**2 + dy**2)
 
-                temp = base_temp + distance_effect
-                temp += (self.position.x / 1000) * 10
-                thermal_map[y, x] = np.clip(temp, -20, 60)
+        # Generate temperature map based on distance and agent position
+        base_temp = 20.0  # Baseline room temperature
+        distance_effect = distance * (max_temp - min_temp) / 2
+        thermal_map = base_temp + distance_effect + (self.position.x / 1000) * 10
 
-        noise = np.random.normal(0, 1, thermal_map.shape).astype(np.float32)
-        thermal_map = np.clip(thermal_map + noise, -20, 60)
+        # Apply material-based emissivity variation
+        thermal_map = self._apply_thermal_effects(
+            thermal_map,
+            min_temp=min_temp,
+            max_temp=max_temp,
+            calibration_error=calibration_error
+        )
 
+        # Encode as base64
         thermal_bytes = thermal_map.astype(np.float32).tobytes()
         base64_str = base64.b64encode(thermal_bytes).decode("utf-8")
         return base64_str
+
+    def _apply_thermal_effects(
+        self,
+        thermal_map: np.ndarray,
+        min_temp: float = -20.0,
+        max_temp: float = 60.0,
+        calibration_error: float = 2.0
+    ) -> np.ndarray:
+        """Apply realistic thermal camera sensor effects.
+
+        Args:
+            thermal_map: Input temperature map (H×W float32, °C)
+            min_temp: Temperature range minimum
+            max_temp: Temperature range maximum
+            calibration_error: Calibration uncertainty (±degrees)
+
+        Returns:
+            Thermal map with applied effects (float32, °C)
+        """
+        result = thermal_map.astype(np.float32)
+
+        # 1. Material emissivity variation (11 materials with different values)
+        # Create spatial patches with different emissivity
+        material_emissivity = {
+            "asphalt": 0.95,      # High thermal absorption
+            "concrete": 0.92,     # High
+            "metal": 0.15,        # Very low
+            "glass": 0.85,        # High
+            "water": 0.98,        # Very high
+            "grass": 0.90,        # High
+            "bark": 0.94,         # High
+            "leaves": 0.96,       # High
+            "soil": 0.93,         # High
+            "plastic": 0.85,      # Medium
+            "brick": 0.93,        # High
+        }
+
+        h, w = result.shape
+        # Divide into regions with different materials
+        materials_list = list(material_emissivity.items())
+        num_materials = len(materials_list)
+
+        # Create material patches horizontally
+        patch_w = w // num_materials
+
+        for mat_idx, (material, emissivity) in enumerate(materials_list):
+            x_start = mat_idx * patch_w
+            x_end = (mat_idx + 1) * patch_w if mat_idx < num_materials - 1 else w
+
+            # Apply emissivity factor (scale apparent temperature)
+            # Lower emissivity = lower apparent temperature (scale down less, but visible effect)
+            # Modulate around baseline, not multiply from zero
+            base_offset = (max_temp + min_temp) / 2
+            result[:, x_start:x_end] = (
+                (result[:, x_start:x_end] - base_offset) * emissivity + base_offset
+            )
+
+        # 2. View factor effect (directional sensitivity)
+        # Simulate that viewing angle affects measurement
+        yy, xx = np.mgrid[0:h, 0:w]
+        center_dist = np.sqrt((yy - h/2)**2 + (xx - w/2)**2) / max(h, w)
+        view_factor = 0.8 + 0.2 * (1 - center_dist)  # Reduce at edges (off-axis)
+
+        result = result * view_factor
+
+        # 3. Temperature range clipping and calibration
+        result = np.clip(result, min_temp, max_temp)
+
+        # 4. Calibration error (±2°C uncertainty)
+        if calibration_error > 0:
+            calib_offset = np.random.normal(0, calibration_error, result.shape)
+            result = np.clip(result + calib_offset, min_temp, max_temp)
+
+        # 5. Sensor noise (thermal sensor noise, ~0.2°C)
+        thermal_noise = np.random.normal(0, 0.2, result.shape)
+        result = np.clip(result + thermal_noise, min_temp, max_temp)
+
+        return result
 
     def _get_color_by_state(self) -> tuple[int, int, int]:
         """Get RGB color based on agent state."""
