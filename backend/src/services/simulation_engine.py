@@ -3,7 +3,7 @@
 import base64
 import io
 import math
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Optional
 
 import numpy as np
@@ -66,6 +66,7 @@ class Agent:
         self._rgb_frame_count = 0
         self.trajectory: list = []  # List of (x, y) positions over time
         self._prev_reached_goal: bool = False  # Track previous goal state for edge detection
+        self._prev_depth_map: Optional[np.ndarray] = None  # For temporal filtering
 
     def generate_lidar_cloud(self) -> list:
         """Generate synthetic lidar point cloud.
@@ -107,39 +108,117 @@ class Agent:
 
         return points
 
-    def generate_depth_map(self) -> str:
-        """Generate synthetic depth map (float32 base64 encoded).
+    def generate_depth_map(
+        self,
+        min_range: float = 0.1,
+        max_range: float = 300.0,
+        quantization: float = 0.001,
+        temporal_filter: bool = True
+    ) -> str:
+        """Generate synthetic depth map with realistic sensor effects (float32 base64 encoded).
+
+        Args:
+            min_range: Minimum detectable range (meters, default 0.1m)
+            max_range: Maximum detectable range (meters, default 300m)
+            quantization: Depth quantization step (meters, default 0.001m = 1mm)
+            temporal_filter: Apply temporal filtering (frame averaging)
 
         Returns:
             Base64-encoded depth map (512x512 float32 array)
         """
         # Create depth map based on agent position (simulates distance variation)
         width, height = 512, 512
-        depth_map = np.zeros((height, width), dtype=np.float32)
 
-        # Create distance gradient based on position
+        # Vectorized depth map generation
         cx, cy = width // 2, height // 2
-        for y in range(height):
-            for x in range(width):
-                # Distance from center increases with position
-                dx = (x - cx) / width
-                dy = (y - cy) / height
-                distance = np.sqrt(dx**2 + dy**2) * 300  # 0-300m range
+        yy, xx = np.mgrid[0:height, 0:width]
+        dx = (xx - cx) / width
+        dy = (yy - cy) / height
 
-                # Add based on agent position (simulated parallax)
-                distance += (self.position.x / 1000) * 50  # Agent position affects depth
-                distance = np.clip(distance, 0, 300)  # Clamp to valid range
+        # Distance from center increases with position
+        depth_map = np.sqrt(dx**2 + dy**2) * max_range
 
-                depth_map[y, x] = distance
+        # Add based on agent position (simulated parallax)
+        depth_map += (self.position.x / 1000) * 50
+        depth_map = np.clip(depth_map, min_range, max_range).astype(np.float32)
 
-        # Add noise for realism
-        noise = np.random.normal(0, 2, depth_map.shape).astype(np.float32)
-        depth_map = np.clip(depth_map + noise, 0, 300)
+        # Apply depth sensor effects
+        depth_map = self._apply_depth_sensor_effects(
+            depth_map,
+            min_range=min_range,
+            max_range=max_range,
+            quantization=quantization,
+            temporal_filter=temporal_filter
+        )
 
         # Encode as base64
         depth_bytes = depth_map.astype(np.float32).tobytes()
         base64_str = base64.b64encode(depth_bytes).decode("utf-8")
         return base64_str
+
+    def _apply_depth_sensor_effects(
+        self,
+        depth_map: np.ndarray,
+        min_range: float = 0.1,
+        max_range: float = 300.0,
+        quantization: float = 0.001,
+        temporal_filter: bool = True
+    ) -> np.ndarray:
+        """Apply realistic depth camera sensor effects.
+
+        Args:
+            depth_map: Input depth map (H×W float32)
+            min_range: Near clip plane (meters)
+            max_range: Far clip plane (meters)
+            quantization: Quantization step (meters)
+            temporal_filter: Use frame averaging for smoothing
+
+        Returns:
+            Depth map with applied sensor effects (float32)
+        """
+        from services.sensor_effects import add_gaussian_noise, quantize
+
+        result = depth_map.astype(np.float32)
+
+        # 1. Near/far clip plane enforcement
+        result = np.clip(result, min_range, max_range)
+
+        # 2. Range-based Gaussian noise (higher at far ranges)
+        # Noise increases with distance (1% of range), vectorized
+        noise_sigma = result * 0.01
+        noise = np.random.normal(0, 1, result.shape).astype(np.float32)
+        result = result + noise * noise_sigma
+
+        # 3. Clip to valid range after noise
+        result = np.clip(result, min_range, max_range)
+
+        # 4. Quantization (1mm steps default)
+        if quantization > 0:
+            result = quantize(result, quantization)
+
+        # 5. Edge artifact simulation (higher uncertainty at depth discontinuities)
+        # Vectorized edge detection using numpy gradient
+        gradient_y, gradient_x = np.gradient(result)
+        gradient_mag = np.sqrt(gradient_x**2 + gradient_y**2)
+
+        # Add extra noise at edges (threshold: 10% of max_range)
+        edge_threshold = max_range * 0.1
+        edge_mask = gradient_mag > edge_threshold
+
+        if np.any(edge_mask):
+            edge_noise = np.random.normal(0, max_range * 0.02, result.shape)
+            result[edge_mask] = np.clip(result[edge_mask] + edge_noise[edge_mask], min_range, max_range)
+
+        # 6. Temporal filtering (frame averaging with previous frame)
+        if temporal_filter and self._prev_depth_map is not None:
+            # Simple exponential moving average (alpha=0.3)
+            alpha = 0.3
+            result = alpha * result + (1 - alpha) * self._prev_depth_map
+
+        # Store for next frame's temporal filtering
+        self._prev_depth_map = result.copy()
+
+        return result
 
     def generate_rgb_frame(self, iso: int = 100, color_grading: str = "daylight") -> str:
         """Generate synthetic RGB frame with realistic sensor effects (JPEG encoded in base64).
