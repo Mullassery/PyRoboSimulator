@@ -16,12 +16,14 @@ A complete, open-source simulation engine built for developers and researchers w
 
 
 ## Real Use Cases
+See [INSTALL.md](.github/INSTALL.md) for platform-specific installation guidance.
 
 This library is used for:
 - See examples below
 - Check GitHub issues for real-world usage
 
 ## Get Started
+See [INSTALL.md](.github/INSTALL.md) for platform-specific installation guidance.
 
 ```python
 # Quick example - copy and run
@@ -29,6 +31,7 @@ This library is used for:
 ```
 
 ## Why PyRoboSimulator?
+See [INSTALL.md](.github/INSTALL.md) for platform-specific installation guidance.
 
 **Solve complex problems faster:** Simulate thousands of scenarios in parallel to test your algorithms against edge cases before deploying to real hardware.
 
@@ -43,6 +46,7 @@ This library is used for:
 ---
 
 ## Key Capabilities
+See [INSTALL.md](.github/INSTALL.md) for platform-specific installation guidance.
 
 ### Physics Engine
 - **Euler integration** with configurable timestep (default 16ms @ 60Hz)
@@ -178,6 +182,7 @@ This library is used for:
 ---
 
 ## Getting Started (5 Minutes)
+See [INSTALL.md](.github/INSTALL.md) for platform-specific installation guidance.
 
 ### 1. Install
 
@@ -231,6 +236,7 @@ curl -X POST http://localhost:8000/api/v1/simulations \
 ---
 
 ## Real-World Examples
+See [INSTALL.md](.github/INSTALL.md) for platform-specific installation guidance.
 
 ### Autonomous Vehicles
 ```python
@@ -302,6 +308,7 @@ for frame in engine.get_sensor_frames(agent_id=0):
 ---
 
 ## Architecture
+See [INSTALL.md](.github/INSTALL.md) for platform-specific installation guidance.
 
 ```
 ┌────────────────────────────────────────────┐
@@ -343,6 +350,7 @@ for frame in engine.get_sensor_frames(agent_id=0):
 ---
 
 ## Performance Benchmarks
+See [INSTALL.md](.github/INSTALL.md) for platform-specific installation guidance.
 
 All benchmarks run on a 2023 MacBook Pro (Apple Silicon M2, 8GB RAM):
 
@@ -366,6 +374,7 @@ All benchmarks run on a 2023 MacBook Pro (Apple Silicon M2, 8GB RAM):
 ---
 
 ## API Overview
+See [INSTALL.md](.github/INSTALL.md) for platform-specific installation guidance.
 
 ### Core Endpoints
 
@@ -395,6 +404,7 @@ See [API Documentation](backend/docs/API.md) for full reference.
 ---
 
 ## Testing & Quality
+See [INSTALL.md](.github/INSTALL.md) for platform-specific installation guidance.
 
 **Test Suite**
 - 150+ tests covering unit, integration, and performance scenarios
@@ -419,6 +429,7 @@ pytest -v --cov=src
 ---
 
 ## Deployment
+See [INSTALL.md](.github/INSTALL.md) for platform-specific installation guidance.
 
 ### Docker
 
@@ -453,6 +464,7 @@ See [Deployment Guide](backend/docs/DEPLOYMENT.md) for detailed instructions.
 ---
 
 ## Technology Stack
+See [INSTALL.md](.github/INSTALL.md) for platform-specific installation guidance.
 
 **Language & Framework**
 - Python 3.10+
@@ -490,6 +502,7 @@ See [Deployment Guide](backend/docs/DEPLOYMENT.md) for detailed instructions.
 ---
 
 ## Comparison with Alternatives
+See [INSTALL.md](.github/INSTALL.md) for platform-specific installation guidance.
 
 | Feature | PyRoboSimulator | CARLA | Gazebo | AirSim |
 |---------|---|---|---|---|
@@ -508,6 +521,7 @@ See [Deployment Guide](backend/docs/DEPLOYMENT.md) for detailed instructions.
 ---
 
 ## Documentation
+See [INSTALL.md](.github/INSTALL.md) for platform-specific installation guidance.
 
 - **[Full API Reference](backend/docs/API.md)** — REST endpoints, request/response schemas
 - **[Deployment Guide](backend/docs/DEPLOYMENT.md)** — Docker, Kubernetes, local development
@@ -519,6 +533,7 @@ See [Deployment Guide](backend/docs/DEPLOYMENT.md) for detailed instructions.
 ---
 
 ## Roadmap
+See [INSTALL.md](.github/INSTALL.md) for platform-specific installation guidance.
 
 ### Phase 0-2 (Complete - v0.1-v0.5.0)
 - [x] Core simulation engine with physics
@@ -552,6 +567,7 @@ See [Deployment Guide](backend/docs/DEPLOYMENT.md) for detailed instructions.
 ---
 
 ## Contributing
+See [INSTALL.md](.github/INSTALL.md) for platform-specific installation guidance.
 
 We welcome contributions! Check out our [Contributing Guide](CONTRIBUTING.md).
 
@@ -573,6 +589,7 @@ pytest  # Run tests
 ---
 
 ## Support & Community
+See [INSTALL.md](.github/INSTALL.md) for platform-specific installation guidance.
 
 **Get Help**
 - [Documentation](backend/docs/) — Comprehensive guides
@@ -588,6 +605,7 @@ pytest  # Run tests
 ---
 
 ## License
+See [INSTALL.md](.github/INSTALL.md) for platform-specific installation guidance.
 
 **MIT License** — See [LICENSE](LICENSE) file
 
@@ -596,6 +614,7 @@ PyRoboSimulator is open source and free for commercial use, modification, and di
 ---
 
 ## Citation
+See [INSTALL.md](.github/INSTALL.md) for platform-specific installation guidance.
 
 If you use PyRoboSimulator in your research, please cite:
 
@@ -612,6 +631,7 @@ If you use PyRoboSimulator in your research, please cite:
 ---
 
 ## Acknowledgments
+See [INSTALL.md](.github/INSTALL.md) for platform-specific installation guidance.
 
 Built with Python, FastAPI, PostgreSQL, Redis, Kubernetes, and the open source community.
 
@@ -620,6 +640,7 @@ Built with Python, FastAPI, PostgreSQL, Redis, Kubernetes, and the open source c
 **PyRoboSimulator v0.8.0** | [GitHub](https://github.com/Mullassery/PyRoboSimulator) | [PyPI](https://pypi.org/project/pyrobosimulator/) | [Issues](https://github.com/Mullassery/PyRoboSimulator/issues)
 
 ## Dashboard
+See [INSTALL.md](.github/INSTALL.md) for platform-specific installation guidance.
 
 Real-time metrics with keyboard shortcuts:
 - `bash scripts/setup_shortcuts.sh` (one-time setup)
@@ -630,11 +651,13 @@ Real-time metrics with keyboard shortcuts:
 See `DASHBOARD_SHORTCUTS.md`.
 
 ## OpenTelemetry
+See [INSTALL.md](.github/INSTALL.md) for platform-specific installation guidance.
 
 Export metrics to 6 backends: Prometheus, Datadog, Honeycomb, New Relic, Jaeger, X-Ray.
 
 See `OTEL_SETUP_GUIDE.md`.
 
 ## Production Deployment
+See [INSTALL.md](.github/INSTALL.md) for platform-specific installation guidance.
 
 Kubernetes and Docker ready. See `PRODUCTION_DEPLOYMENT.md`.
