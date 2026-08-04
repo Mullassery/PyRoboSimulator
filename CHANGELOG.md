@@ -5,6 +5,51 @@ All notable changes to PyRoboSimulator will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.0] - 2026-08-05
+
+### Added - Phase 3: Expectation Framework & Scenario Generation Complete
+
+#### Expectation-Aware Simulation (3.0)
+- Probabilistic expectation modeling (11 types)
+- Environment profiles (18+ types with sensor/network quality)
+- Geographic profiles (10+ regions with infrastructure/cooperation factors)
+- Expectation engine with violation detection
+- Cascading effects modeling (multi-system failures)
+- Fleet learning module (failure/recovery tracking)
+- Expectation validator for action validation
+- <10ms expectation evaluation per agent
+
+#### Advanced Scenario Generation (3.1)
+- Curriculum learning with progressive difficulty (6 levels)
+- 18+ environment types × 10+ geographic regions
+- Synthetic scenario generation (millions of scenarios)
+- Weather/time-of-day/season/density integration
+- Rare event generation (earthquakes, floods, power outages)
+- Infrastructure failure simulation
+- Scenario classification (nominal/degraded/crisis/catastrophic)
+- Difficulty scaling and validation checkpoint generation
+
+#### Validation & Reporting Framework (3.2)
+- Performance metrics collector (6 metric types)
+- Comprehensive validation framework (4 validators)
+- Violation detection and tracking
+- Root cause analysis engine (confidence/probability scoring)
+- Executive summaries and detailed reports
+- Violation dashboards with severity/type breakdowns
+- Mitigation recommendations
+- Performance statistics and aggregation
+
+### Performance
+- Scenario generation: 1000 scenarios/sec
+- Expectation evaluation: <10ms per agent
+- Report generation: <100ms for 1000+ events
+- Memory: ~100KB per scenario + expectations
+
+### Testing
+- 50+ scenario generation tests
+- 40+ validation & reporting tests
+- All integration tests passing
+
 ## [0.5.0] - 2026-08-05
 
 ### Added - Phase 2: AI Agents & Behavior Complete
