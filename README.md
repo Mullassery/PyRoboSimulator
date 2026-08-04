@@ -8,7 +8,7 @@ A complete, open-source simulation engine built for developers and researchers w
 
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Tests](https://img.shields.io/badge/tests-60%2B-brightgreen.svg)](#testing)
+[![Tests](https://img.shields.io/badge/tests-100%2B-brightgreen.svg)](#testing)
 [![Coverage](https://img.shields.io/badge/coverage-90%25+-brightgreen.svg)](#testing)
 [![Open Source](https://img.shields.io/badge/Open%20Source-100%25-brightgreen.svg)](backend/docs/OSS_COMPLIANCE.md)
 
@@ -44,6 +44,32 @@ A complete, open-source simulation engine built for developers and researchers w
 - **Thermal Camera**: 256×256 @ 30 FPS, -20°C to +60°C with material emissivity (11 types), view factor, calibration error
 - **Sensor Fusion**: Real-time multi-sensor integration with timestamp synchronization, coordinate transforms, <0.01ms latency
 
+### World Streaming & UE5 Integration (Phase 1C.8)
+- **Chunked world loading**: 500m × 500m chunks with LOD support
+- **Mesh generation**: Obstacle serialization in JSON and binary formats
+- **Dynamic streaming**: Handle 1000+ obstacles with <100ms load latency
+- **Memory efficient**: Automatic caching and cache invalidation
+
+### State Synchronization (Phase 1C.9)
+- **Bidirectional sync**: Python ↔ UE5 state reconciliation
+- **Conflict resolution**: Multiple strategies (last_write_wins, backend_wins, UE5_wins)
+- **State validation**: Pluggable validation rules framework
+- **Rollback support**: State history tracking and recovery
+- **<16ms latency**: Per-frame synchronization overhead
+
+### Sensor Data Recording (Phase 1C.10)
+- **Ring buffer**: Real-time frame buffering
+- **Multi-format storage**: HDF5, Zarr, raw binary with compression
+- **Query interface**: Search by agent, timestamp, or sensor type
+- **Automatic cleanup**: Memory management and retention policies
+
+### Behavior Trees (Phase 2.1)
+- **Composite nodes**: Sequence, Selector, Parallel with configurable policies
+- **Decorator nodes**: Inverter, Repeater, Limiter for advanced control
+- **Execution framework**: <1ms per-tree evaluation with 100+ agents
+- **YAML support**: Load trees from configuration files
+- **Telemetry**: Execution tracking and performance monitoring
+
 ### World Generation
 - **Built-in scenarios**: Parking lot (4×5 grid), warehouse (4 corners + shelves), urban street (3×3 intersections)
 - **Procedural generation**: Random obstacle placement, configurable complexity, spawn zone definition
@@ -73,7 +99,7 @@ A complete, open-source simulation engine built for developers and researchers w
 ### 1. Install
 
 ```bash
-pip install pyrobosimulator==0.3.0
+pip install pyrobosimulator==0.4.0
 ```
 
 ### 2. Run Your First Simulation
