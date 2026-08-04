@@ -14,6 +14,20 @@ A complete, open-source simulation engine built for developers and researchers w
 
 ---
 
+
+## Real Use Cases
+
+This library is used for:
+- See examples below
+- Check GitHub issues for real-world usage
+
+## Get Started
+
+```python
+# Quick example - copy and run
+# See full docs for detailed usage
+```
+
 ## Why PyRoboSimulator?
 
 **Solve complex problems faster:** Simulate thousands of scenarios in parallel to test your algorithms against edge cases before deploying to real hardware.
