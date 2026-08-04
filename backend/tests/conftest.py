@@ -4,76 +4,79 @@ import asyncio
 from typing import AsyncGenerator
 
 import pytest
-from httpx import AsyncClient
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
-from sqlalchemy.orm import sessionmaker
 
-from src.main import app
-from src.db.models import Base
-from src.db.session import get_db
-
-
-# Use in-memory SQLite for testing
-TEST_DATABASE_URL = "sqlite+aiosqlite:///:memory:"
-
-
-@pytest.fixture(scope="session")
-def event_loop():
-    """Create event loop for async tests."""
-    loop = asyncio.get_event_loop_policy().new_event_loop()
-    yield loop
-    loop.close()
+# Try to import app dependencies, but allow tests to run without them
+try:
+    from httpx import AsyncClient
+    from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
+    from sqlalchemy.orm import sessionmaker
+    from src.main import app
+    from src.db.models import Base
+    from src.db.session import get_db
+    HAS_APP = True
+except (ImportError, ModuleNotFoundError):
+    HAS_APP = False
 
 
-@pytest.fixture
-async def test_db() -> AsyncGenerator[AsyncSession, None]:
-    """Create test database session.
+if HAS_APP:
+    # Use in-memory SQLite for testing
+    TEST_DATABASE_URL = "sqlite+aiosqlite:///:memory:"
 
-    Yields:
-        AsyncSession for test database
-    """
-    engine = create_async_engine(
-        TEST_DATABASE_URL,
-        echo=False,
-        connect_args={"check_same_thread": False},
-    )
+    @pytest.fixture(scope="session")
+    def event_loop():
+        """Create event loop for async tests."""
+        loop = asyncio.get_event_loop_policy().new_event_loop()
+        yield loop
+        loop.close()
 
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
+    @pytest.fixture
+    async def test_db() -> AsyncGenerator[AsyncSession, None]:
+        """Create test database session.
 
-    async_session = sessionmaker(
-        engine,
-        class_=AsyncSession,
-        expire_on_commit=False,
-        autoflush=False,
-    )
+        Yields:
+            AsyncSession for test database
+        """
+        engine = create_async_engine(
+            TEST_DATABASE_URL,
+            echo=False,
+            connect_args={"check_same_thread": False},
+        )
 
-    async with async_session() as session:
-        yield session
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.create_all)
 
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.drop_all)
+        async_session = sessionmaker(
+            engine,
+            class_=AsyncSession,
+            expire_on_commit=False,
+            autoflush=False,
+        )
 
-    await engine.dispose()
+        async with async_session() as session:
+            yield session
 
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.drop_all)
 
-@pytest.fixture
-async def client(test_db: AsyncSession) -> AsyncGenerator[AsyncClient, None]:
-    """Create async test client for FastAPI app.
+        await engine.dispose()
 
-    Args:
-        test_db: Test database session
+    @pytest.fixture
+    async def client(test_db: AsyncSession) -> AsyncGenerator[AsyncClient, None]:
+        """Create async test client for FastAPI app.
 
-    Yields:
-        AsyncClient configured to use test database
-    """
+        Args:
+            test_db: Test database session
 
-    async def override_get_db():
-        yield test_db
+        Yields:
+            AsyncClient configured to use test database
+        """
 
-    app.dependency_overrides[get_db] = override_get_db
+        async def override_get_db():
+            yield test_db
 
-    async with AsyncClient(app=app, base_url="http://test") as async_client:
-        yield async_client
+        app.dependency_overrides[get_db] = override_get_db
 
-    app.dependency_overrides.clear()
+        async with AsyncClient(app=app, base_url="http://test") as async_client:
+            yield async_client
+
+        app.dependency_overrides.clear()
