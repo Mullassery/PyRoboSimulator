@@ -8,7 +8,7 @@ A complete, open-source simulation engine built for developers and researchers w
 
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Tests](https://img.shields.io/badge/tests-190%2B-brightgreen.svg)](#testing)
+[![Tests](https://img.shields.io/badge/tests-150%2B-brightgreen.svg)](#testing)
 [![Coverage](https://img.shields.io/badge/coverage-90%25+-brightgreen.svg)](#testing)
 [![Open Source](https://img.shields.io/badge/Open%20Source-100%25-brightgreen.svg)](backend/docs/OSS_COMPLIANCE.md)
 
@@ -94,6 +94,51 @@ A complete, open-source simulation engine built for developers and researchers w
 - **Range-Based Broadcasting**: Proximity communication (e.g., 10m range)
 - **Network Statistics**: Comprehensive telemetry and monitoring
 
+### Narrative Simulation Engine (Phase 3)
+- **NLP-Driven Scenarios**: Convert natural language to simulation scenarios via Claude API
+- **Narrative Types**: 11 scenario types (rescue, patrol, inspection, delivery, etc.)
+- **Dynamic Story Branching**: Conditional, probabilistic, and agent-driven branching
+- **Agent Behavior Interpretation**: Automatic action conversion to simulation primitives
+- **Constraint System**: Goal tracking, violation detection, event sequencing
+- **Narrative Validation**: 30+ automated validation checks
+
+### Real-to-Sim Bridge (Phase 4)
+- **ROS Bag Parsing**: Multi-sensor playback (poses, images, point clouds, IMU, GPS)
+- **Trajectory Extraction**: Automatic waypoint detection and segmentation
+- **Sensor Replay**: Synchronized multi-sensor playback with configurable speed
+- **Sim-Real Validation**: Metric comparison (MSE, RMSE, velocity alignment)
+- **Execution Log Conversion**: Transform real robot logs into simulation scenarios
+- **Graceful Fallback**: Mock parsers for data without ROS infrastructure
+
+### Analytics Dashboard (Phase 5)
+- **CLI-Based Monitoring**: Real-time metrics via Textual terminal UI
+- **7-Panel Layout**: Metrics, Narrative, Performance, Sensors, Validation, Progress, Control
+- **Time-Series Storage**: Circular buffers for efficient metric tracking
+- **Event Callbacks**: Real-time updates for simulation, narrative, validation, sensor events
+- **Rich Formatting**: Tables, charts, and status displays
+- **Zero Dependencies**: Optional Textual—graceful fallback if unavailable
+
+### Curriculum Learning (Phase 6)
+- **Adaptive Difficulty**: 7-factor weighted model (path, obstacles, time, sensors, dynamics, precision, objectives)
+- **Learner Profiles**: Track success rates, performance metrics, progression
+- **Progressive Scenarios**: Auto-scaling difficulty with 3 scenario types (navigation, inspection, delivery)
+- **Curriculum Plans**: Multi-lesson sequences with performance-based adaptation
+- **Outcome Analysis**: Path efficiency, time efficiency, and success tracking
+
+### Multi-Agent Coordination (Phase 7)
+- **Formation Control**: 6 formation types (swarm, line, circle, grid, hierarchy, scout)
+- **Messaging System**: Targeted, broadcast, hierarchical, and consensus communication
+- **Collective Intelligence**: Team cohesion metrics and synchronized action
+- **Role-Based Teams**: Leader/follower hierarchies with dynamic role assignment
+- **Team Status Monitoring**: Aggregate metrics across fleet
+
+### Fleet Learning (Phase 8)
+- **Experience Logging**: Structured capture of agent actions and outcomes
+- **Pattern Identification**: Automatic discovery of successful strategies
+- **Knowledge Transfer**: Mentor assignment and experience sharing
+- **Team Performance Analytics**: Success rates, efficiency metrics, anomaly detection
+- **Agent Recommendations**: Personalized guidance based on peer performance
+
 ### World Generation
 - **Built-in scenarios**: Parking lot (4×5 grid), warehouse (4 corners + shelves), urban street (3×3 intersections)
 - **Procedural generation**: Random obstacle placement, configurable complexity, spawn zone definition
@@ -123,7 +168,7 @@ A complete, open-source simulation engine built for developers and researchers w
 ### 1. Install
 
 ```bash
-pip install pyrobosimulator==0.5.0
+pip install pyrobosimulator==0.8.0
 ```
 
 ### 2. Run Your First Simulation
@@ -338,7 +383,7 @@ See [API Documentation](backend/docs/API.md) for full reference.
 ## Testing & Quality
 
 **Test Suite**
-- 60+ tests covering unit, integration, and performance scenarios
+- 150+ tests covering unit, integration, and performance scenarios
 - 90%+ code coverage (enforced via CI/CD)
 - Performance benchmarks for common operations
 - Security scanning (bandit, safety)
@@ -365,8 +410,8 @@ pytest -v --cov=src
 
 ```bash
 cd backend
-docker build -t pyrobosimulator:0.2.0 .
-docker run -p 8000:8000 pyrobosimulator:0.2.0
+docker build -t pyrobosimulator:0.8.0 .
+docker run -p 8000:8000 pyrobosimulator:0.8.0
 ```
 
 ### Kubernetes
@@ -461,27 +506,34 @@ See [Deployment Guide](backend/docs/DEPLOYMENT.md) for detailed instructions.
 
 ## Roadmap
 
-### Phase 0 (Current - v0.2.0)
+### Phase 0-2 (Complete - v0.1-v0.5.0)
 - [x] Core simulation engine with physics
-- [x] Multi-modal sensor suite
-- [x] Production REST API
+- [x] Multi-modal sensor suite (RGB, Depth, Lidar, Thermal)
+- [x] Production REST API with 15+ endpoints
 - [x] PostgreSQL database + Redis caching
 - [x] Kubernetes deployment manifests
-- [x] 60+ tests, 90%+ coverage
-- [x] Complete documentation
+- [x] Behavior trees with YAML support
+- [x] Navigation & pathfinding (A*, RVO, NavMesh)
+- [x] Agent memory system (episodic, semantic, procedural, emotional)
+- [x] Multi-agent communication framework
+- [x] 190+ tests, 90%+ coverage
 
-### Phase 1 (Next - ~8-12 weeks)
-- [ ] UE5 rendering engine integration
-- [ ] Real-time visualization
-- [ ] Advanced AI behavior trees
-- [ ] NLP-driven world generation
-- [ ] Performance optimization (GPU acceleration)
+### Phase 3-8 (Complete - v0.8.0)
+- [x] Narrative Simulation Engine (NLP→scenario conversion via Claude API)
+- [x] Real-to-Sim Bridge (ROS bag parsing, trajectory extraction, validation)
+- [x] Analytics Dashboard (CLI-based with Textual, 7-panel layout)
+- [x] Curriculum Learning (7-factor difficulty model, adaptive progression)
+- [x] Multi-Agent Coordination (6 formation types, team messaging)
+- [x] Fleet Learning (experience logging, pattern identification, knowledge transfer)
 
-### Future Phases
-- Domain randomization for ML training
-- Multi-agent learning support
-- Digital twin capabilities
-- Advanced analytics and replay
+### Phase 9+ (Planned - v1.0.0+)
+- [ ] UE5 rendering engine integration with AAA visuals
+- [ ] Real-time 3D visualization
+- [ ] Domain randomization for ML training
+- [ ] Digital twin capabilities for real robot monitoring
+- [ ] Advanced causal inference and decision tree analysis
+- [ ] Distributed simulation across multiple machines
+- [ ] Performance optimization (GPU acceleration for physics)
 
 ---
 
@@ -551,7 +603,7 @@ Built with Python, FastAPI, PostgreSQL, Redis, Kubernetes, and the open source c
 
 ---
 
-**PyRoboSimulator v0.2.0** | [GitHub](https://github.com/Mullassery/PyRoboSimulator) | [PyPI](https://pypi.org/project/pyrobosimulator/) | [Issues](https://github.com/Mullassery/PyRoboSimulator/issues)
+**PyRoboSimulator v0.8.0** | [GitHub](https://github.com/Mullassery/PyRoboSimulator) | [PyPI](https://pypi.org/project/pyrobosimulator/) | [Issues](https://github.com/Mullassery/PyRoboSimulator/issues)
 
 ## Dashboard
 
