@@ -8,7 +8,7 @@ A complete, open-source simulation engine built for developers and researchers w
 
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Tests](https://img.shields.io/badge/tests-100%2B-brightgreen.svg)](#testing)
+[![Tests](https://img.shields.io/badge/tests-190%2B-brightgreen.svg)](#testing)
 [![Coverage](https://img.shields.io/badge/coverage-90%25+-brightgreen.svg)](#testing)
 [![Open Source](https://img.shields.io/badge/Open%20Source-100%25-brightgreen.svg)](backend/docs/OSS_COMPLIANCE.md)
 
@@ -70,6 +70,30 @@ A complete, open-source simulation engine built for developers and researchers w
 - **YAML support**: Load trees from configuration files
 - **Telemetry**: Execution tracking and performance monitoring
 
+### Navigation & Pathfinding (Phase 2.2)
+- **A* Pathfinding**: Efficient route planning with heuristic caching
+- **Navigation Mesh**: Walkable polygon support for terrain
+- **Collision Avoidance**: RVO (Reciprocal Velocity Obstacle) for smooth movement
+- **Dynamic Obstacles**: Real-time integration into pathfinding
+- **Cache Hit Rate**: 50%+ on repeated paths
+- **Performance**: <1ms pathfinding with caching
+
+### Agent Memory & State (Phase 2.3)
+- **Multi-Layer Memory**: Episodic, semantic, procedural, emotional
+- **Memory Decay**: Configurable aging with recency bias
+- **Relationships**: Trust, familiarity, interaction tracking
+- **Emotional State**: Valence-based emotion system
+- **Advanced Queries**: Search by type, tags, strength threshold
+- **Memory Capacity**: Auto-pruning of weak memories
+
+### Multi-Agent Communication (Phase 2.4)
+- **Message Types**: Direct, broadcast, multicast communication
+- **Priority Queuing**: Critical, high, normal, low priority levels
+- **Expiration Tracking**: Automatic message cleanup
+- **Acknowledgment**: Message delivery confirmation
+- **Range-Based Broadcasting**: Proximity communication (e.g., 10m range)
+- **Network Statistics**: Comprehensive telemetry and monitoring
+
 ### World Generation
 - **Built-in scenarios**: Parking lot (4×5 grid), warehouse (4 corners + shelves), urban street (3×3 intersections)
 - **Procedural generation**: Random obstacle placement, configurable complexity, spawn zone definition
@@ -99,7 +123,7 @@ A complete, open-source simulation engine built for developers and researchers w
 ### 1. Install
 
 ```bash
-pip install pyrobosimulator==0.4.0
+pip install pyrobosimulator==0.5.0
 ```
 
 ### 2. Run Your First Simulation

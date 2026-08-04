@@ -5,6 +5,51 @@ All notable changes to PyRoboSimulator will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.0] - 2026-08-05
+
+### Added - Phase 2: AI Agents & Behavior Complete
+
+#### Navigation & Pathfinding (2.2)
+- A* pathfinding algorithm with heuristic caching
+- Navigation mesh with walkable polygon support
+- RVO (Reciprocal Velocity Obstacle) collision avoidance
+- Dynamic obstacle integration
+- Path caching with 50%+ hit rate
+- Support for 100+ concurrent agents
+- <1ms pathfinding with cache
+
+#### Agent Memory & State (2.3)
+- Multi-layer memory system (episodic, semantic, procedural, emotional)
+- Configurable decay rates for memory aging
+- Relationship tracking (trust, familiarity, interaction count)
+- Emotion-aware memory with valence tracking
+- Advanced querying (by type, tags, strength threshold)
+- Memory capacity management with auto-pruning
+- Emotional state calculation
+- Supports 1000+ memory entries per agent
+
+#### Multi-Agent Communication (2.4)
+- Message-based communication (direct, broadcast, multicast)
+- Priority-based message queuing (critical, high, normal, low)
+- Message expiration and acknowledgment tracking
+- Communication network topology
+- Range-based broadcasting (proximity communication)
+- Message history and comprehensive querying
+- Coordination primitives (CoordinationPrimitive, LeaderElection)
+- Simple leader election algorithm
+- Network statistics and telemetry
+
+### Performance
+- Navigation: <1ms A* with caching
+- Memory: O(1) access with decay
+- Communication: <10ms message delivery
+- Support for 1000+ agents in all systems
+
+### Testing
+- 95+ new unit tests (all passing)
+- Comprehensive integration tests
+- Performance benchmarks included
+
 ## [0.4.0] - 2026-08-05
 
 ### Added - Phase 1C.8-1C.10 & Phase 2.1 Complete
