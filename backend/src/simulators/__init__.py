@@ -39,6 +39,9 @@ from backend.src.simulators.backend_manager import (
     BackendManager,
 )
 from backend.src.simulators.mock_backend import MockBackend
+from backend.src.simulators.isaac_sim_backend import IsaacSimBackend
+from backend.src.simulators.gazebo_backend import GazeboBackend
+from backend.src.simulators.mujoco_backend import MuJoCoBackend
 
 __all__ = [
     # Enums
