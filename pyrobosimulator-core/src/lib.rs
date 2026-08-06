@@ -14,7 +14,7 @@ pub use mission::Mission;
 pub use narrative::NarrativeEngine;
 
 #[pymodule]
-fn _core(py: Python, m: &PyModule) -> PyResult<()> {
+fn _core(_py: Python, m: &pyo3::Bound<'_, pyo3::types::PyModule>) -> PyResult<()> {
     m.add_class::<World>()?;
     m.add_class::<Agent>()?;
     m.add_class::<Mission>()?;

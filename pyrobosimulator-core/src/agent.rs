@@ -45,8 +45,8 @@ impl Agent {
         &self.name
     }
 
-    pub fn agent_type(&self) -> &AgentType {
-        &self.agent_type
+    pub fn agent_type(&self) -> AgentType {
+        self.agent_type.clone()
     }
 
     pub fn position(&self) -> [f64; 3] {
