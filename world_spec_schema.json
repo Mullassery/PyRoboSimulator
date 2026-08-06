@@ -1,0 +1,835 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "PyRoboSimulator World Specification",
+  "description": "Complete specification for generating a 3D world in Unreal Engine 5",
+  "type": "object",
+  "required": [
+    "location",
+    "time",
+    "weather",
+    "environment"
+  ],
+  "properties": {
+    "version": {
+      "type": "string",
+      "default": "1.0.0",
+      "description": "Schema version for backwards compatibility"
+    },
+    "location": {
+      "type": "object",
+      "required": [
+        "name",
+        "latitude",
+        "longitude"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Location name (e.g., 'Tokyo', 'Mars Colony Alpha', 'Bengaluru')"
+        },
+        "latitude": {
+          "type": "number",
+          "minimum": -90,
+          "maximum": 90,
+          "description": "Latitude in decimal degrees"
+        },
+        "longitude": {
+          "type": "number",
+          "minimum": -180,
+          "maximum": 180,
+          "description": "Longitude in decimal degrees"
+        },
+        "scene_type": {
+          "type": "string",
+          "enum": [
+            "urban",
+            "rural",
+            "industrial",
+            "natural",
+            "mars_colony",
+            "lunar_base",
+            "underwater",
+            "fictional_city",
+            "forest",
+            "desert",
+            "mountain",
+            "coastal"
+          ],
+          "description": "Type of scene to generate"
+        },
+        "terrain_base": {
+          "type": "string",
+          "enum": [
+            "earth",
+            "mars",
+            "moon",
+            "venus",
+            "procedural"
+          ],
+          "default": "earth",
+          "description": "Planetary or terrain base"
+        },
+        "elevation_meters": {
+          "type": "number",
+          "default": 0,
+          "description": "Base elevation above sea level (meters)"
+        }
+      },
+      "additionalProperties": false
+    },
+    "time": {
+      "type": "object",
+      "required": [
+        "hour",
+        "minute"
+      ],
+      "properties": {
+        "year": {
+          "type": "integer",
+          "minimum": 1900,
+          "maximum": 2100,
+          "default": 2026,
+          "description": "Year (affects historical context, technology level)"
+        },
+        "month": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 12,
+          "default": 7,
+          "description": "Month (1-12)"
+        },
+        "day": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 31,
+          "default": 28,
+          "description": "Day of month"
+        },
+        "hour": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 23,
+          "description": "Hour (0-23, 24-hour format)"
+        },
+        "minute": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 59,
+          "description": "Minute (0-59)"
+        },
+        "second": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 59,
+          "default": 0,
+          "description": "Second (0-59)"
+        }
+      },
+      "additionalProperties": false
+    },
+    "season": {
+      "type": "string",
+      "enum": [
+        "spring",
+        "summer",
+        "autumn",
+        "winter",
+        "none"
+      ],
+      "description": "Season (affects vegetation, weather patterns, daylight)"
+    },
+    "weather": {
+      "type": "object",
+      "required": [
+        "type",
+        "intensity"
+      ],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "clear",
+            "cloudy",
+            "partly_cloudy",
+            "overcast",
+            "rain",
+            "heavy_rain",
+            "monsoon",
+            "thunderstorm",
+            "snow",
+            "heavy_snow",
+            "blizzard",
+            "dust_storm",
+            "sand_storm",
+            "fog",
+            "dense_fog",
+            "mist",
+            "hail",
+            "sleet"
+          ],
+          "description": "Weather type"
+        },
+        "intensity": {
+          "type": "number",
+          "minimum": 0.0,
+          "maximum": 1.0,
+          "description": "Intensity (0.0=none, 1.0=extreme)"
+        },
+        "wind_speed_kmh": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 300,
+          "default": 5,
+          "description": "Wind speed in km/h"
+        },
+        "wind_direction_degrees": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 360,
+          "default": 0,
+          "description": "Wind direction (0=North, 90=East, 180=South, 270=West)"
+        },
+        "humidity_percent": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Relative humidity percentage"
+        },
+        "air_temperature_celsius": {
+          "type": "number",
+          "minimum": -50,
+          "maximum": 60,
+          "description": "Air temperature in Celsius"
+        },
+        "visibility_km": {
+          "type": "number",
+          "minimum": 0.1,
+          "maximum": 100,
+          "default": 100,
+          "description": "Visibility range in kilometers"
+        },
+        "precipitation_mm_per_hour": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 500,
+          "default": 0,
+          "description": "Precipitation rate (mm/h)"
+        },
+        "atmospheric_pressure_hpa": {
+          "type": "number",
+          "minimum": 850,
+          "maximum": 1050,
+          "default": 1013.25,
+          "description": "Atmospheric pressure in hPa"
+        }
+      },
+      "additionalProperties": false
+    },
+    "environment": {
+      "type": "object",
+      "properties": {
+        "vegetation_density": {
+          "type": "string",
+          "enum": [
+            "none",
+            "sparse",
+            "moderate",
+            "dense",
+            "very_dense"
+          ],
+          "default": "moderate",
+          "description": "Vegetation coverage"
+        },
+        "vegetation_type": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "grass",
+              "shrubs",
+              "trees_deciduous",
+              "trees_coniferous",
+              "trees_tropical",
+              "crops",
+              "flowers",
+              "moss",
+              "cacti"
+            ]
+          },
+          "description": "Types of vegetation to include"
+        },
+        "architecture_style": {
+          "type": "string",
+          "enum": [
+            "modern",
+            "contemporary",
+            "classical",
+            "historical",
+            "futuristic",
+            "cyberpunk",
+            "steampunk",
+            "japanese_traditional",
+            "mediterranean",
+            "scandinavian",
+            "brutalist",
+            "minimalist",
+            "victorian",
+            "colonial",
+            "deco"
+          ],
+          "description": "Architectural style (urban scenes)"
+        },
+        "building_condition": {
+          "type": "string",
+          "enum": [
+            "pristine",
+            "maintained",
+            "weathered",
+            "aged",
+            "dilapidated"
+          ],
+          "default": "maintained",
+          "description": "Overall building condition"
+        },
+        "population_density": {
+          "type": "string",
+          "enum": [
+            "none",
+            "low",
+            "medium",
+            "high",
+            "very_high"
+          ],
+          "default": "medium",
+          "description": "NPC/pedestrian density"
+        },
+        "traffic_level": {
+          "type": "string",
+          "enum": [
+            "none",
+            "light",
+            "moderate",
+            "heavy",
+            "gridlocked"
+          ],
+          "default": "moderate",
+          "description": "Vehicle traffic level"
+        },
+        "vehicle_types": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "car",
+              "truck",
+              "bus",
+              "motorcycle",
+              "bicycle",
+              "delivery_robot",
+              "autonomous_vehicle",
+              "taxi",
+              "emergency_vehicle"
+            ]
+          },
+          "description": "Types of vehicles to include"
+        },
+        "construction_activity": {
+          "type": "boolean",
+          "default": false,
+          "description": "Include active construction zones"
+        },
+        "industrial_areas": {
+          "type": "boolean",
+          "default": false,
+          "description": "Include industrial facilities"
+        },
+        "water_bodies": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "river",
+              "lake",
+              "ocean",
+              "canal",
+              "pond",
+              "waterfall",
+              "flooding"
+            ]
+          },
+          "description": "Types of water bodies to include"
+        },
+        "lighting_setup": {
+          "type": "object",
+          "properties": {
+            "street_lights": {
+              "type": "boolean",
+              "default": true,
+              "description": "Include street lighting"
+            },
+            "building_lights": {
+              "type": "boolean",
+              "default": true,
+              "description": "Include building interior/exterior lights"
+            },
+            "neon_signs": {
+              "type": "boolean",
+              "default": false,
+              "description": "Include neon signage (cyberpunk cities)"
+            },
+            "traffic_signals": {
+              "type": "boolean",
+              "default": true,
+              "description": "Include traffic lights"
+            },
+            "artificial_light_intensity": {
+              "type": "number",
+              "minimum": 0.0,
+              "maximum": 2.0,
+              "default": 1.0,
+              "description": "Multiplier for artificial lighting"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "scene_scale": {
+      "type": "object",
+      "properties": {
+        "width_meters": {
+          "type": "number",
+          "minimum": 100,
+          "maximum": 1000000,
+          "default": 500,
+          "description": "Scene width in meters"
+        },
+        "height_meters": {
+          "type": "number",
+          "minimum": 100,
+          "maximum": 1000000,
+          "default": 500,
+          "description": "Scene height (depth) in meters"
+        },
+        "max_height_meters": {
+          "type": "number",
+          "minimum": 10,
+          "maximum": 10000,
+          "default": 500,
+          "description": "Maximum terrain/building height"
+        }
+      },
+      "additionalProperties": false
+    },
+    "terrain": {
+      "type": "object",
+      "description": "Terrain generation and detail configuration",
+      "required": [
+        "detail_level"
+      ],
+      "properties": {
+        "detail_level": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 10,
+          "default": 5,
+          "description": "Terrain detail level: 0=flat/simple → 5=default → 10=ultra-detailed (affects performance & storage)"
+        },
+        "detail_level_description": {
+          "type": "object",
+          "properties": {
+            "0": {"type": "string", "enum": ["Flat plane (mobile devices)"]},
+            "1": {"type": "string", "enum": ["Minimal terrain variation (low-end devices)"]},
+            "2": {"type": "string", "enum": ["Basic heightmap (low-end devices)"]},
+            "3": {"type": "string", "enum": ["Moderate terrain (embedded systems)"]},
+            "4": {"type": "string", "enum": ["Standard terrain (mid-range GPUs)"]},
+            "5": {"type": "string", "enum": ["Default terrain detail (recommended for robotics)"]},
+            "6": {"type": "string", "enum": ["Enhanced terrain detail (good GPUs)"]},
+            "7": {"type": "string", "enum": ["High terrain detail (RTX 3080+)"]},
+            "8": {"type": "string", "enum": ["Ultra terrain detail with micro-geometry (RTX 4090)"]},
+            "9": {"type": "string", "enum": ["Extreme detail with erosion simulation"]},
+            "10": {"type": "string", "enum": ["Maximum detail with procedural erosion & weathering"]}
+          }
+        },
+        "mesh_density": {
+          "type": "integer",
+          "minimum": 512,
+          "maximum": 32768,
+          "default": 4096,
+          "description": "Terrain mesh vertex count (higher = more detailed but slower)"
+        },
+        "lod_enable": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable Level-of-Detail (LOD) for terrain streaming"
+        },
+        "erosion_simulation": {
+          "type": "boolean",
+          "default": false,
+          "description": "Simulate erosion effects (requires detail_level >= 8)"
+        },
+        "microvertex_displacement": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable micro-displacement mapping for fine surface detail (requires detail_level >= 8 + ray-tracing)"
+        },
+        "vegetation_density": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 10,
+          "default": 5,
+          "description": "Vegetation coverage density (independent of terrain detail)"
+        },
+        "vegetation_detail_level": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 10,
+          "default": 5,
+          "description": "Vegetation LOD detail (tree branch complexity, leaf count)"
+        },
+        "building_complexity": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 10,
+          "default": 5,
+          "description": "Building geometry complexity (0=simple boxes, 10=detailed architecture with interior detail)"
+        }
+      },
+      "additionalProperties": false
+    },
+    "rendering_quality": {
+      "type": "object",
+      "properties": {
+        "profile": {
+          "type": "string",
+          "enum": [
+            "low",
+            "medium",
+            "high",
+            "ultra",
+            "custom"
+          ],
+          "default": "medium",
+          "description": "Rendering profile (presets resolution, FPS, ray-tracing). Use 'custom' to override individual settings."
+        },
+        "resolution_width": {
+          "type": "integer",
+          "minimum": 320,
+          "maximum": 7680,
+          "default": 1280,
+          "description": "Output resolution width (pixels). Ignored if profile != 'custom'."
+        },
+        "resolution_height": {
+          "type": "integer",
+          "minimum": 240,
+          "maximum": 4320,
+          "default": 720,
+          "description": "Output resolution height (pixels). Ignored if profile != 'custom'. Default: 720p"
+        },
+        "fps": {
+          "type": "integer",
+          "enum": [15, 24, 30, 60, 120],
+          "default": 30,
+          "description": "Target frames per second. Default: 30 FPS"
+        },
+        "ray_tracing_enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable real-time ray tracing (GPU-intensive)"
+        },
+        "ray_tracing_quality": {
+          "type": "string",
+          "enum": [
+            "off",
+            "low",
+            "medium",
+            "high",
+            "ultra"
+          ],
+          "default": "medium",
+          "description": "Ray tracing quality level (affects performance)"
+        },
+        "global_illumination_method": {
+          "type": "string",
+          "enum": [
+            "lumen",
+            "baked",
+            "hybrid",
+            "none"
+          ],
+          "default": "lumen",
+          "description": "Global illumination approach"
+        },
+        "shadow_quality": {
+          "type": "string",
+          "enum": [
+            "low",
+            "medium",
+            "high",
+            "ultra"
+          ],
+          "default": "medium",
+          "description": "Shadow map quality and cascade levels"
+        },
+        "anti_aliasing": {
+          "type": "string",
+          "enum": [
+            "none",
+            "fxaa",
+            "taa",
+            "dlss",
+            "fsr"
+          ],
+          "default": "taa",
+          "description": "Anti-aliasing method (TAA recommended for motion)"
+        },
+        "temporal_super_resolution": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable UE5 Temporal Super Resolution (helps with performance)"
+        },
+        "motion_blur_enabled": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable motion blur for cinematic effect"
+        },
+        "depth_of_field_enabled": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable depth of field (cinematic focus effect)"
+        },
+        "bloom_enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable bloom/glare effect"
+        }
+      },
+      "additionalProperties": false
+    },
+    "sensors": {
+      "type": "object",
+      "properties": {
+        "rgb_cameras": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "position": {"type": "string", "description": "e.g., 'robot_front', 'drone', 'fixed_on_building'"},
+              "resolution": {"type": "string", "enum": ["640x480", "1280x720", "1920x1080"]},
+              "fov_degrees": {"type": "number", "minimum": 10, "maximum": 170},
+              "enabled": {"type": "boolean"}
+            }
+          },
+          "description": "RGB cameras to simulate"
+        },
+        "lidar": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "channels": {"type": "integer", "enum": [16, 32, 64, 128]},
+              "rotation_hz": {"type": "number", "minimum": 5, "maximum": 20},
+              "range_max_meters": {"type": "number", "minimum": 10, "maximum": 200},
+              "enabled": {"type": "boolean"}
+            }
+          },
+          "description": "Lidar sensors to simulate"
+        },
+        "depth_cameras": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "enabled": {"type": "boolean"},
+              "resolution": {"type": "string"}
+            }
+          },
+          "description": "Depth cameras (RGB-D)"
+        },
+        "thermal_cameras": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "enabled": {"type": "boolean"},
+              "range_celsius": {"type": "array", "items": {"type": "number"}, "minItems": 2, "maxItems": 2}
+            }
+          },
+          "description": "Thermal IR cameras"
+        },
+        "radar": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "enabled": {"type": "boolean"},
+              "range_max_meters": {"type": "number"}
+            }
+          },
+          "description": "Radar sensors (Doppler)"
+        },
+        "imu": {
+          "type": "boolean",
+          "default": false,
+          "description": "Include IMU (accelerometer, gyroscope)"
+        },
+        "gps": {
+          "type": "boolean",
+          "default": false,
+          "description": "Include GPS/GNSS"
+        }
+      },
+      "additionalProperties": false
+    },
+    "narrative": {
+      "type": "object",
+      "properties": {
+        "story_type": {
+          "type": "string",
+          "enum": [
+            "none",
+            "exploration",
+            "delivery",
+            "rescue",
+            "investigation",
+            "cinematic"
+          ],
+          "default": "none"
+        },
+        "difficulty": {
+          "type": "string",
+          "enum": [
+            "easy",
+            "medium",
+            "hard",
+            "extreme"
+          ],
+          "default": "medium"
+        },
+        "time_limit_seconds": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Optional time limit for mission (0=unlimited)"
+        }
+      },
+      "additionalProperties": false
+    },
+    "metadata": {
+      "type": "object",
+      "properties": {
+        "created_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO 8601 timestamp of world creation"
+        },
+        "created_by": {
+          "type": "string",
+          "description": "NLP prompt that generated this world"
+        },
+        "tags": {
+          "type": "array",
+          "items": {"type": "string"},
+          "description": "Searchable tags (e.g., 'urban', 'rain', 'night')"
+        },
+        "reproducible": {
+          "type": "boolean",
+          "default": true,
+          "description": "Whether this exact world can be regenerated (all seeds stored)"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false,
+  "examples": [
+    {
+      "version": "1.0.0",
+      "location": {
+        "name": "Tokyo",
+        "latitude": 35.6762,
+        "longitude": 139.6503,
+        "scene_type": "urban",
+        "terrain_base": "earth"
+      },
+      "time": {
+        "year": 2026,
+        "month": 3,
+        "day": 15,
+        "hour": 17,
+        "minute": 30,
+        "second": 0
+      },
+      "season": "spring",
+      "weather": {
+        "type": "rain",
+        "intensity": 0.4,
+        "wind_speed_kmh": 8,
+        "humidity_percent": 75,
+        "air_temperature_celsius": 12,
+        "visibility_km": 8,
+        "precipitation_mm_per_hour": 5
+      },
+      "environment": {
+        "vegetation_density": "dense",
+        "vegetation_type": ["trees_deciduous", "flowers", "grass"],
+        "architecture_style": "modern",
+        "population_density": "very_high",
+        "traffic_level": "heavy",
+        "water_bodies": ["river"]
+      },
+      "scene_scale": {
+        "width_meters": 2000,
+        "height_meters": 2000
+      },
+      "terrain": {
+        "detail_level": 5,
+        "mesh_density": 4096,
+        "lod_enable": true,
+        "erosion_simulation": false,
+        "vegetation_density": 7,
+        "vegetation_detail_level": 6,
+        "building_complexity": 6
+      },
+      "rendering_quality": {
+        "profile": "medium",
+        "resolution_width": 1280,
+        "resolution_height": 720,
+        "fps": 30,
+        "ray_tracing_enabled": true,
+        "ray_tracing_quality": "medium",
+        "shadow_quality": "medium",
+        "anti_aliasing": "taa",
+        "temporal_super_resolution": true
+      },
+      "sensors": {
+        "rgb_cameras": [
+          {
+            "position": "drone",
+            "resolution": "1920x1080",
+            "fov_degrees": 60,
+            "enabled": true
+          }
+        ],
+        "lidar": [
+          {
+            "channels": 16,
+            "rotation_hz": 10,
+            "range_max_meters": 100,
+            "enabled": true
+          }
+        ],
+        "depth_cameras": [
+          {
+            "enabled": true
+          }
+        ],
+        "thermal_cameras": [
+          {
+            "enabled": true
+          }
+        ]
+      }
+    }
+  ]
+}
