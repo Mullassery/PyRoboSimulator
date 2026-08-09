@@ -8,8 +8,8 @@ A complete, open-source simulation engine built for developers and researchers w
 
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Tests](https://img.shields.io/badge/tests-150%2B-brightgreen.svg)](#testing)
-[![Coverage](https://img.shields.io/badge/coverage-90%25+-brightgreen.svg)](#testing)
+[![CI/CD](https://github.com/Mullassery/PyRoboSimulator/actions/workflows/ci-cd.yaml/badge.svg)](https://github.com/Mullassery/PyRoboSimulator/actions/workflows/ci-cd.yaml)
+[![codecov](https://codecov.io/gh/Mullassery/PyRoboSimulator/branch/main/graph/badge.svg)](https://codecov.io/gh/Mullassery/PyRoboSimulator)
 [![Open Source](https://img.shields.io/badge/Open%20Source-100%25-brightgreen.svg)](backend/docs/OSS_COMPLIANCE.md)
 
 ---
