@@ -12,6 +12,7 @@ class TestAPIPerformance:
     async def test_list_simulations_performance(
         self,
         client: AsyncClient,
+        auth_headers: dict,
         benchmark_async,
     ) -> None:
         """Benchmark listing simulations."""
@@ -20,10 +21,11 @@ class TestAPIPerformance:
             await client.post(
                 "/api/v1/simulations",
                 json={"name": f"sim_{i}", "num_agents": 100, "duration": 60.0},
+                headers=auth_headers,
             )
 
         async def list_sims():
-            return await client.get("/api/v1/simulations")
+            return await client.get("/api/v1/simulations", headers=auth_headers)
 
         # Note: benchmark_async not available in standard pytest
         # This is a placeholder for actual benchmark
@@ -31,13 +33,16 @@ class TestAPIPerformance:
         assert response.status_code == 200
 
     @pytest.mark.asyncio
-    async def test_concurrent_simulation_creation(self, client: AsyncClient) -> None:
+    async def test_concurrent_simulation_creation(
+        self, client: AsyncClient, auth_headers: dict
+    ) -> None:
         """Test creating multiple simulations concurrently."""
 
         async def create_sim(i: int):
             return await client.post(
                 "/api/v1/simulations",
                 json={"name": f"concurrent_{i}", "num_agents": 100, "duration": 60.0},
+                headers=auth_headers,
             )
 
         # Create 10 simulations concurrently
@@ -48,19 +53,28 @@ class TestAPIPerformance:
         assert all(r.status_code == 201 for r in responses)
 
     @pytest.mark.asyncio
-    async def test_pagination_performance(self, client: AsyncClient) -> None:
+    async def test_pagination_performance(
+        self, client: AsyncClient, auth_headers: dict
+    ) -> None:
         """Test pagination efficiency."""
         # Create 100 simulations
         for i in range(100):
             await client.post(
                 "/api/v1/simulations",
                 json={"name": f"page_test_{i}", "num_agents": 100, "duration": 60.0},
+                headers=auth_headers,
             )
 
         # Fetch different pages
-        response1 = await client.get("/api/v1/simulations?limit=20&offset=0")
-        response2 = await client.get("/api/v1/simulations?limit=20&offset=20")
-        response3 = await client.get("/api/v1/simulations?limit=20&offset=80")
+        response1 = await client.get(
+            "/api/v1/simulations?limit=20&offset=0", headers=auth_headers
+        )
+        response2 = await client.get(
+            "/api/v1/simulations?limit=20&offset=20", headers=auth_headers
+        )
+        response3 = await client.get(
+            "/api/v1/simulations?limit=20&offset=80", headers=auth_headers
+        )
 
         assert response1.status_code == 200
         assert response2.status_code == 200

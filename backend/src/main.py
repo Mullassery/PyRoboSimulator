@@ -3,12 +3,15 @@
 import logging
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI, Response, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from config.settings import Settings
+from db.session import get_db
 from routers import auth, health, results, simulations, visualization
+from services.health import check_cache, check_database
 from services.monitoring import PrometheusMiddleware, metrics_endpoint
 
 # Configure logging
@@ -55,11 +58,24 @@ async def health_check():
 
 
 @app.get("/ready", tags=["Health"])
-async def readiness_check():
-    """Readiness probe for Kubernetes."""
-    # TODO: Check database connectivity
-    # TODO: Check Redis connectivity
-    return {"ready": True}
+async def readiness_check(
+    response: Response,
+    db: AsyncSession = Depends(get_db),
+):
+    """Readiness probe for Kubernetes: actually checks database and cache
+    connectivity rather than unconditionally reporting ready."""
+    database_ok = await check_database(db)
+    cache_ok = await check_cache()
+    ready = database_ok and cache_ok
+
+    if not ready:
+        response.status_code = status.HTTP_503_SERVICE_UNAVAILABLE
+
+    return {
+        "ready": ready,
+        "database": "ok" if database_ok else "unavailable",
+        "cache": "ok" if cache_ok else "unavailable",
+    }
 
 
 @app.get("/metrics", tags=["Monitoring"])

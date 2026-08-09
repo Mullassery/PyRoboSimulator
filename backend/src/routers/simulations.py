@@ -11,6 +11,7 @@ from src.models import (
     SimulationStatus,
     SimulationUpdate,
 )
+from src.services.auth import get_current_user_id
 
 router = APIRouter(prefix="/simulations", tags=["Simulations"])
 
@@ -19,8 +20,23 @@ simulations_db: dict[int, dict] = {}
 next_sim_id = 1
 
 
+def _get_owned_simulation(sim_id: int, user_id: int) -> dict:
+    """Look up a simulation, scoped to its owner.
+
+    A simulation belonging to another user is reported as 404 rather than 403
+    so requests can't be used to enumerate other users' simulation IDs.
+    """
+    sim = simulations_db.get(sim_id)
+    if sim is None or sim["user_id"] != user_id:
+        raise HTTPException(status_code=404, detail="Simulation not found")
+    return sim
+
+
 @router.post("", response_model=SimulationResponse, status_code=201)
-async def create_simulation(req: SimulationCreate) -> SimulationResponse:
+async def create_simulation(
+    req: SimulationCreate,
+    user_id: int = Depends(get_current_user_id),
+) -> SimulationResponse:
     """Create a new simulation.
 
     Request body:
@@ -33,6 +49,7 @@ async def create_simulation(req: SimulationCreate) -> SimulationResponse:
         Newly created simulation with ID and status 'created'
 
     Raises:
+        401: Missing or invalid authentication
         400: Invalid request (bad agent count, duration, etc.)
         409: Duplicate simulation name
     """
@@ -55,7 +72,7 @@ async def create_simulation(req: SimulationCreate) -> SimulationResponse:
 
     sim = {
         "id": sim_id,
-        "user_id": 1,  # TODO: Get from auth context
+        "user_id": user_id,
         "scenario_id": req.scenario_id,
         "name": req.name,
         "status": SimulationStatus.CREATED,
@@ -76,8 +93,9 @@ async def list_simulations(
     limit: int = Query(20, ge=1, le=1000),
     offset: int = Query(0, ge=0),
     status: Optional[SimulationStatus] = Query(None),
+    user_id: int = Depends(get_current_user_id),
 ) -> SimulationListResponse:
-    """List simulations (paginated).
+    """List the authenticated user's simulations (paginated).
 
     Query parameters:
     - limit: Items per page (1-1000, default 20)
@@ -85,10 +103,13 @@ async def list_simulations(
     - status: Filter by status (created, running, completed, failed, cancelled)
 
     Returns:
-        Paginated list of simulations
+        Paginated list of simulations belonging to the authenticated user
+
+    Raises:
+        401: Missing or invalid authentication
     """
-    # Filter by status if provided
-    filtered = simulations_db.values()
+    # Scope to the authenticated user, then filter by status if provided
+    filtered = [s for s in simulations_db.values() if s["user_id"] == user_id]
     if status:
         filtered = [s for s in filtered if s["status"] == status]
 
@@ -109,7 +130,9 @@ async def list_simulations(
 
 
 @router.get("/{sim_id}", response_model=SimulationResponse)
-async def get_simulation(sim_id: int) -> SimulationResponse:
+async def get_simulation(
+    sim_id: int, user_id: int = Depends(get_current_user_id)
+) -> SimulationResponse:
     """Get simulation details by ID.
 
     Args:
@@ -119,18 +142,18 @@ async def get_simulation(sim_id: int) -> SimulationResponse:
         Simulation object with all fields
 
     Raises:
-        404: Simulation not found
+        401: Missing or invalid authentication
+        404: Simulation not found (or not owned by the authenticated user)
     """
-    if sim_id not in simulations_db:
-        raise HTTPException(status_code=404, detail="Simulation not found")
-
-    return SimulationResponse(**simulations_db[sim_id])
+    sim = _get_owned_simulation(sim_id, user_id)
+    return SimulationResponse(**sim)
 
 
 @router.put("/{sim_id}", response_model=SimulationResponse)
 async def update_simulation(
     sim_id: int,
     req: SimulationUpdate,
+    user_id: int = Depends(get_current_user_id),
 ) -> SimulationResponse:
     """Update simulation (only name can be changed).
 
@@ -142,13 +165,11 @@ async def update_simulation(
         Updated simulation
 
     Raises:
-        404: Simulation not found
+        401: Missing or invalid authentication
+        404: Simulation not found (or not owned by the authenticated user)
         400: Cannot update running simulation
     """
-    if sim_id not in simulations_db:
-        raise HTTPException(status_code=404, detail="Simulation not found")
-
-    sim = simulations_db[sim_id]
+    sim = _get_owned_simulation(sim_id, user_id)
 
     if sim["status"] == SimulationStatus.RUNNING:
         raise HTTPException(
@@ -163,20 +184,20 @@ async def update_simulation(
 
 
 @router.delete("/{sim_id}", status_code=204)
-async def delete_simulation(sim_id: int) -> None:
+async def delete_simulation(
+    sim_id: int, user_id: int = Depends(get_current_user_id)
+) -> None:
     """Delete simulation by ID.
 
     Args:
         sim_id: Simulation ID
 
     Raises:
-        404: Simulation not found
+        401: Missing or invalid authentication
+        404: Simulation not found (or not owned by the authenticated user)
         400: Cannot delete running simulation
     """
-    if sim_id not in simulations_db:
-        raise HTTPException(status_code=404, detail="Simulation not found")
-
-    sim = simulations_db[sim_id]
+    sim = _get_owned_simulation(sim_id, user_id)
 
     if sim["status"] == SimulationStatus.RUNNING:
         raise HTTPException(
@@ -188,7 +209,9 @@ async def delete_simulation(sim_id: int) -> None:
 
 
 @router.post("/{sim_id}/start", response_model=SimulationResponse, status_code=202)
-async def start_simulation(sim_id: int) -> SimulationResponse:
+async def start_simulation(
+    sim_id: int, user_id: int = Depends(get_current_user_id)
+) -> SimulationResponse:
     """Start simulation execution.
 
     Args:
@@ -198,13 +221,11 @@ async def start_simulation(sim_id: int) -> SimulationResponse:
         Simulation with status changed to 'running'
 
     Raises:
-        404: Simulation not found
+        401: Missing or invalid authentication
+        404: Simulation not found (or not owned by the authenticated user)
         400: Simulation already running or completed
     """
-    if sim_id not in simulations_db:
-        raise HTTPException(status_code=404, detail="Simulation not found")
-
-    sim = simulations_db[sim_id]
+    sim = _get_owned_simulation(sim_id, user_id)
 
     if sim["status"] in [SimulationStatus.RUNNING, SimulationStatus.COMPLETED]:
         raise HTTPException(
@@ -219,7 +240,9 @@ async def start_simulation(sim_id: int) -> SimulationResponse:
 
 
 @router.post("/{sim_id}/stop", response_model=SimulationResponse)
-async def stop_simulation(sim_id: int) -> SimulationResponse:
+async def stop_simulation(
+    sim_id: int, user_id: int = Depends(get_current_user_id)
+) -> SimulationResponse:
     """Stop simulation execution.
 
     Args:
@@ -229,13 +252,11 @@ async def stop_simulation(sim_id: int) -> SimulationResponse:
         Simulation with status changed to 'cancelled'
 
     Raises:
-        404: Simulation not found
+        401: Missing or invalid authentication
+        404: Simulation not found (or not owned by the authenticated user)
         400: Simulation not running
     """
-    if sim_id not in simulations_db:
-        raise HTTPException(status_code=404, detail="Simulation not found")
-
-    sim = simulations_db[sim_id]
+    sim = _get_owned_simulation(sim_id, user_id)
 
     if sim["status"] != SimulationStatus.RUNNING:
         raise HTTPException(
@@ -250,7 +271,9 @@ async def stop_simulation(sim_id: int) -> SimulationResponse:
 
 
 @router.get("/{sim_id}/status", response_model=dict)
-async def get_simulation_status(sim_id: int) -> dict:
+async def get_simulation_status(
+    sim_id: int, user_id: int = Depends(get_current_user_id)
+) -> dict:
     """Get simulation status.
 
     Args:
@@ -260,12 +283,10 @@ async def get_simulation_status(sim_id: int) -> dict:
         Status and progress information
 
     Raises:
-        404: Simulation not found
+        401: Missing or invalid authentication
+        404: Simulation not found (or not owned by the authenticated user)
     """
-    if sim_id not in simulations_db:
-        raise HTTPException(status_code=404, detail="Simulation not found")
-
-    sim = simulations_db[sim_id]
+    sim = _get_owned_simulation(sim_id, user_id)
 
     return {
         "id": sim["id"],
