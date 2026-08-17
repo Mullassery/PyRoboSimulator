@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-#[pyclass]
+#[pyclass(eq, eq_int)]
 pub enum AgentType {
     Robot,
     Human,

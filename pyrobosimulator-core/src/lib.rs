@@ -12,13 +12,16 @@ pub use world::{World, WorldConfig};
 pub use agent::{Agent, AgentType};
 pub use mission::Mission;
 pub use narrative::NarrativeEngine;
+pub use ros2::ROS2Bridge;
 
 #[pymodule]
 fn _core(_py: Python, m: &pyo3::Bound<'_, pyo3::types::PyModule>) -> PyResult<()> {
     m.add_class::<World>()?;
     m.add_class::<Agent>()?;
+    m.add_class::<AgentType>()?;
     m.add_class::<Mission>()?;
     m.add_class::<NarrativeEngine>()?;
+    m.add_class::<ROS2Bridge>()?;
 
     Ok(())
 }

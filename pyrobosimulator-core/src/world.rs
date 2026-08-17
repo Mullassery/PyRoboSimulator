@@ -1,7 +1,7 @@
 use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
-use chrono::{DateTime, Utc};
+use chrono::Utc;
 use std::collections::HashMap;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -61,5 +61,20 @@ impl World {
 
     pub fn fidelity(&self) -> &str {
         &self.metadata.fidelity_level
+    }
+
+    /// Add (or replace) an agent in this world, keyed by the agent's id.
+    pub fn add_agent(&mut self, agent: crate::Agent) {
+        self.active_agents.insert(agent.id.clone(), agent);
+    }
+
+    /// Remove an agent by id. Returns true if an agent was actually removed.
+    pub fn remove_agent(&mut self, agent_id: &str) -> bool {
+        self.active_agents.remove(agent_id).is_some()
+    }
+
+    /// Number of agents currently active in this world.
+    pub fn agent_count(&self) -> usize {
+        self.active_agents.len()
     }
 }
