@@ -4,7 +4,7 @@ build-backend = "maturin"
 
 [project]
 name = "pyrobosimulator"
-version = "0.8.0"
+version = "0.10.0"
 description = "AI-native world simulation engine: narratives, robotics, agents, ROS 2"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -20,5 +20,18 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
 ]
 
+[project.scripts]
+pyrobosimulator = "pyrobosimulator.cli:main"
+
 [tool.maturin]
 module-name = "pyrobosimulator._core"
+# Without this, maturin falls back to an implicit-namespace-package
+# `pyrobosimulator/` at the repo root (which has no __init__.py), silently
+# shipping a wheel where `import pyrobosimulator; pyrobosimulator.World`
+# does not exist. The real package -- the one with __init__.py wiring up
+# World/Agent/Mission/NarrativeEngine/ROS2Bridge from the compiled
+# extension -- lives in python/pyrobosimulator/. Verified by unzipping the
+# previously-published 0.8.0 wheel on PyPI: it has the same bug (no
+# __init__.py), so `pip install pyrobosimulator` has never actually
+# exposed the documented API until this fix.
+python-source = "python"
