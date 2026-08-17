@@ -249,18 +249,19 @@ class TestAdvancedScenarioGenerator:
         assert len(crisis) > 0
         assert len(catastrophic) > 0
 
-        # Check difficulty ranges for each class
+        # Check difficulty ranges for each class (must match the real
+        # thresholds in AdvancedScenarioGenerator._generate_base_scenario).
         for s in nominal:
-            assert s.difficulty < 0.25
+            assert s.difficulty < 0.35
 
         for s in degraded:
-            assert 0.25 <= s.difficulty < 0.5
+            assert 0.35 <= s.difficulty < 0.6
 
         for s in crisis:
-            assert 0.5 <= s.difficulty < 0.75
+            assert 0.6 <= s.difficulty < 0.8
 
         for s in catastrophic:
-            assert s.difficulty >= 0.75
+            assert s.difficulty >= 0.8
 
     def test_scenario_weather_selection(self):
         """Test weather selection by region."""
@@ -316,14 +317,27 @@ class TestAdvancedScenarioGenerator:
         """Test violation generation by scenario class."""
         gen = AdvancedScenarioGenerator()
 
-        # Generate nominal scenarios (should have few violations)
+        # Generate nominal scenarios (should have few violations).
+        # Bounded retry: with the default difficulty_distribution this
+        # should converge in 1-2 batches (NOMINAL is roughly TRIVIAL+EASY
+        # under the real classification thresholds). A previous version of
+        # this loop had no iteration cap, and a since-fixed threshold bug
+        # made NOMINAL unreachable under the default distribution at all --
+        # that combination hung the whole suite indefinitely. The cap here
+        # turns "unreachable" into a fast, clear test failure instead.
         nominal_scenarios = []
-        while len(nominal_scenarios) < 20:
+        for _ in range(50):
+            if len(nominal_scenarios) >= 20:
+                break
             gen.scenario_counter = 0
             gen.generated_scenarios = []
             batch = gen.generate_scenario_batch(count=100)
             nominal_scenarios.extend([s for s in batch if s.class_ == ScenarioClass.NOMINAL])
             nominal_scenarios = nominal_scenarios[:20]
+        assert len(nominal_scenarios) >= 20, (
+            "Failed to generate 20 NOMINAL scenarios in 50 batches of 100 -- "
+            "NOMINAL may be unreachable under the default difficulty_distribution."
+        )
 
         avg_nominal_violations = sum(
             len(s.active_violations) for s in nominal_scenarios

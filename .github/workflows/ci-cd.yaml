@@ -113,7 +113,14 @@ jobs:
       - name: Run tests
         working-directory: backend
         env:
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
+          # Must use the asyncpg driver scheme: src/db/session.py passes this
+          # straight into SQLAlchemy's create_async_engine(), which needs an
+          # async-capable DBAPI. A plain postgresql:// URL makes SQLAlchemy
+          # fall back to psycopg2 (sync-only, and not even a declared
+          # dependency), breaking every test that imports src.main (and thus
+          # every test using the `client` fixture) with
+          # "ModuleNotFoundError: No module named 'psycopg2'".
+          DATABASE_URL: postgresql+asyncpg://postgres:postgres@localhost:5432/test_db
           REDIS_URL: redis://localhost:6379/0
         run: |
           pytest \

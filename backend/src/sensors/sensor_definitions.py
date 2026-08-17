@@ -282,7 +282,7 @@ class SensorRegistry:
             field_of_view_v=41.0,
             detection_range_max=50.0,
         ),
-        SensorType.LIDAR_3D: SensorSpec(
+        SensorType.VELODYNE_LIDAR: SensorSpec(
             sensor_id="lidar_3d_default",
             sensor_type=SensorType.VELODYNE_LIDAR,
             category=SensorCategory.LIDAR_3D,

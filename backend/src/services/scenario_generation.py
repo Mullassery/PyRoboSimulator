@@ -285,12 +285,22 @@ class AdvancedScenarioGenerator:
         self.scenario_counter += 1
         scenario_id = f"scenario_{self.scenario_counter}"
 
-        # Determine scenario class based on difficulty
-        if difficulty < 0.25:
+        # Determine scenario class based on difficulty.
+        #
+        # These thresholds must straddle DifficultyLevel's actual values
+        # (TRIVIAL=0.1, EASY=0.3, MEDIUM=0.5, HARD=0.7, EXPERT=0.9,
+        # EXTREME=1.0) or entire ScenarioClass buckets become unreachable.
+        # The previous thresholds (0.25/0.5/0.75) put NOMINAL's upper bound
+        # below EASY (0.3), so under the default difficulty_distribution
+        # (EASY/MEDIUM/HARD/EXPERT, no TRIVIAL) no scenario could ever
+        # classify as NOMINAL -- callers that filter for NOMINAL and retry
+        # until they find enough (see test_scenario_violations_by_class)
+        # would loop forever.
+        if difficulty < 0.35:
             scenario_class = ScenarioClass.NOMINAL
-        elif difficulty < 0.5:
+        elif difficulty < 0.6:
             scenario_class = ScenarioClass.DEGRADED
-        elif difficulty < 0.75:
+        elif difficulty < 0.8:
             scenario_class = ScenarioClass.CRISIS
         else:
             scenario_class = ScenarioClass.CATASTROPHIC
