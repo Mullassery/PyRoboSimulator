@@ -49,3 +49,6 @@ ENV/
 
 # Redis
 dump.rdb
+
+# MuJoCo (written to CWD by the mujoco package on GL warnings)
+MUJOCO_LOG.TXT

@@ -1,4 +1,25 @@
-"""Gazebo Backend Implementation - Structured stub for ROS 2 testing."""
+"""Gazebo Backend Implementation.
+
+**Not available in this environment.** Real Gazebo simulation requires a
+full ROS 2 installation (`rclpy`, `ros_gz`/`gazebo_ros` bridge packages)
+plus the Gazebo simulator itself (Ignition/Gazebo Sim), which are system
+packages distributed via ROS 2's apt repositories, not pip. That stack
+is not present in a typical sandboxed development environment or CI
+runner without a dedicated ROS 2 image, so this backend cannot be made
+to do real physics here the way `MuJoCoBackend` does.
+
+Rather than silently pretending to simulate (the previous behavior: every
+method below returned a plausible-looking but hardcoded/no-op result),
+`initialize()` now fails fast with a clear `EnvironmentError` explaining
+exactly what real infrastructure is missing, instead of setting
+`self._initialized = True` and letting callers believe physics is running
+when it isn't.
+
+If you need real, working physics simulation today, use
+`backend.src.simulators.mujoco_backend.MuJoCoBackend` instead: MuJoCo is
+pip-installable, requires no ROS 2/GPU, and this backend integration is
+real (see `backend/tests/test_mujoco_backend.py`).
+"""
 
 import logging
 from typing import Any, Dict, List, Optional, Tuple
@@ -26,10 +47,41 @@ class GazeboBackend(SimulatorBackend):
         logger.info("Initialized GazeboBackend")
 
     def initialize(self, config: SimulatorConfig) -> None:
-        logger.info("Initializing Gazebo backend")
-        # Real implementation: import gazebo_ros, connect ROS 2 services
-        self._config = config
-        self._initialized = True
+        """Attempt to initialize Gazebo. Always fails in this environment.
+
+        Real Gazebo requires a full ROS 2 installation (`rclpy` +
+        `ros_gz`/`gazebo_ros`) and the Gazebo simulator itself, both
+        installed as system packages via ROS 2's apt repositories rather
+        than pip. This raises `EnvironmentError` rather than pretending to
+        succeed, so callers get an honest failure instead of a backend that
+        silently does no physics.
+
+        Raises:
+            EnvironmentError: Always, in any environment lacking a ROS 2 +
+                Gazebo installation (i.e. this one). Message explains the
+                real requirement.
+        """
+        try:
+            import rclpy  # noqa: F401  (real ROS 2 Python client library)
+
+            has_ros2 = True
+        except ImportError:
+            has_ros2 = False
+
+        self._last_error = (
+            "GazeboBackend is not functional in this environment: Gazebo "
+            "simulation requires a full ROS 2 installation (`rclpy` + the "
+            "`ros_gz`/`gazebo_ros` bridge) and the Gazebo simulator itself, "
+            "installed as system packages via ROS 2's apt repositories "
+            "(not `pip install`). "
+            + ("ROS 2's `rclpy` was importable, but no Gazebo bridge "
+               "integration is implemented here." if has_ros2 else
+               "`rclpy` (ROS 2) was not importable in this environment. ")
+            + "Use MuJoCoBackend for real, working physics simulation "
+              "(pip-installable, no ROS 2 required)."
+        )
+        logger.error(self._last_error)
+        raise EnvironmentError(self._last_error)
 
     def shutdown(self) -> None:
         self._initialized = False

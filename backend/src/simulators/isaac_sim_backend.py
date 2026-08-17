@@ -1,7 +1,27 @@
 """NVIDIA Isaac Sim Backend Implementation.
 
-Adapts Isaac Sim to PyRoboSimulator's unified backend interface.
-Requires: isaac-sim Python API (pip install omni-isaac-sim)
+**Not available in this environment.** Real Isaac Sim simulation requires
+NVIDIA Omniverse (the `isaacsim`/`omni` Python packages, which are not
+distributed on PyPI and must be installed via NVIDIA's Omniverse Launcher)
+plus a CUDA-capable NVIDIA GPU for PhysX/RTX. Neither is available in a
+typical sandboxed development environment or CI runner without dedicated
+GPU infrastructure, so this backend cannot be made to do real physics here
+the way `MuJoCoBackend` does.
+
+Rather than silently pretending to simulate (the previous behavior: every
+method below returned a plausible-looking but hardcoded/no-op result),
+`initialize()` now fails fast with a clear `EnvironmentError` explaining
+exactly what real infrastructure is missing. The method bodies below are
+left in place, annotated with what a real integration would call
+(`omni.usd`, `UsdPhysics`, ...), as a concrete implementation sketch for
+whoever adds this in an environment that actually has Omniverse + a GPU —
+but they are unreachable in normal use because `initialize()` raises
+first, and none of them perform real physics.
+
+If you need real, working physics simulation today, use
+`backend.src.simulators.mujoco_backend.MuJoCoBackend` instead: MuJoCo is
+pip-installable, requires no GPU, and this backend integration is real
+(see `backend/tests/test_mujoco_backend.py`).
 """
 
 import logging
@@ -56,23 +76,38 @@ class IsaacSimBackend(SimulatorBackend):
     # ==================== INITIALIZATION ====================
 
     def initialize(self, config: SimulatorConfig) -> None:
-        """Initialize Isaac Sim with configuration."""
-        logger.info("Initializing Isaac Sim backend")
+        """Attempt to initialize Isaac Sim. Always fails in this environment.
 
+        Real Isaac Sim requires the `isaacsim`/`omni` packages (installed
+        via NVIDIA's Omniverse Launcher, not `pip install`) and a
+        CUDA-capable NVIDIA GPU for PhysX/RTX. This raises `EnvironmentError`
+        rather than pretending to succeed, so callers get an honest failure
+        instead of a backend that silently does no physics.
+
+        Raises:
+            EnvironmentError: Always, in any environment lacking Omniverse +
+                a GPU (i.e. this one). Message explains the real requirement.
+        """
         try:
-            # In real implementation: import and initialize Isaac Sim
-            # from isaacsim import SimulationApp
-            # self._isaac_sim = SimulationApp(...)
+            import omni  # noqa: F401  (real Omniverse package; not on PyPI)
 
-            self._config = config
-            self._initialized = True
+            has_omni = True
+        except ImportError:
+            has_omni = False
 
-            logger.info(f"Isaac Sim initialized: {config.physics_engine.value} physics")
-
-        except Exception as e:
-            self._last_error = f"Isaac Sim initialization failed: {str(e)}"
-            logger.error(self._last_error)
-            raise RuntimeError(self._last_error)
+        self._last_error = (
+            "IsaacSimBackend is not functional in this environment: NVIDIA "
+            "Isaac Sim requires the Omniverse runtime (`omni`/`isaacsim` "
+            "packages, installed via NVIDIA's Omniverse Launcher, not pip) "
+            "and a CUDA-capable NVIDIA GPU for PhysX/RTX rendering. "
+            + ("The `omni` package was importable, but no further Isaac Sim "
+               "integration is implemented here." if has_omni else
+               "Neither the `omni` package nor a GPU runtime was detected. ")
+            + "Use MuJoCoBackend for real, working physics simulation "
+              "(pip-installable, no GPU required)."
+        )
+        logger.error(self._last_error)
+        raise EnvironmentError(self._last_error)
 
     def shutdown(self) -> None:
         """Shutdown Isaac Sim."""

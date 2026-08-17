@@ -56,18 +56,22 @@ class PyRoboSimulatorDashboard:
         self.dashboard = get_dashboard_impl("PyRoboSimulator v0.1")
 
     def get_mock_metrics(self) -> DashboardMetrics:
+        # NOTE: these are hardcoded sample values, not a live read of any
+        # running simulation -- this CLI has no wiring to the FastAPI
+        # backend or a real World instance. Labeled "(sample data)" in the
+        # title so this can't be mistaken for real telemetry.
         return DashboardMetrics(
             datetime.now().isoformat(),
-            "PyRoboSimulator World Engine Dashboard",
+            "PyRoboSimulator World Engine Dashboard (sample data, not live)",
             {
-                "Status": "🟢 Running",
-                "World Instances": "3 active simulations",
-                "Agents": "12 robots deployed",
-                "Narratives": "47 mission scenarios",
-                "ROS 2 Nodes": "8 connected",
-                "Sensor Fidelity": "RGB/Depth/Lidar/Thermal",
-                "Physics Accuracy": "98.4%",
-                "UE5 Render FPS": "120 fps (PoC)",
+                "Status": "example only — not connected to a running simulation",
+                "World Instances": "3 (sample)",
+                "Agents": "12 (sample)",
+                "Narratives": "47 (sample)",
+                "ROS 2 Nodes": "8 (sample)",
+                "Sensor Fidelity": "RGB/Depth/Lidar/Thermal (sample)",
+                "Physics Accuracy": "98.4% (sample)",
+                "UE5 Render FPS": "120 fps (sample)",
             },
             [],
             []
