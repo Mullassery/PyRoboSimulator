@@ -5,6 +5,109 @@ All notable changes to PyRoboSimulator will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.10.0] - 2026-08-17
+
+### Corrected: the [0.9.0] Phase 4.2 entry below was inaccurate
+
+The [0.9.0] entry claims "IsaacSimBackend: High-fidelity physics (PhysX)...",
+"GazeboBackend: ROS 2 integration...", and "MuJoCoBackend: RL research
+optimization, fast simulation" as complete. At the time, all three were
+pure-Python bookkeeping stubs with zero calls into any real physics engine —
+`step()` returned a hardcoded `SimulationStep`, sensors returned empty
+bytes, contacts were always `[]`. This release fixes that gap for real
+where it's actually achievable, and is honest about where it isn't.
+
+### Added
+
+- **Real MuJoCo physics backend** (`backend/src/simulators/mujoco_backend.py`,
+  rewritten from scratch, 637 statements, 76% covered): loads real MJCF/URDF
+  models via `mujoco.MjSpec` (including MuJoCo's native URDF compiler), steps
+  real dynamics with `mujoco.mj_step`, and extracts real body/joint state,
+  contact forces, and camera/Lidar/IMU sensor data. Verified with
+  kinematics-correctness tests — e.g. a free-falling body's height matches
+  `z0 - 1/2 g t^2` within numerical-integration tolerance, contact normal
+  forces on a resting box sum to its real weight, position-servo joint
+  control converges toward commanded targets under gravity load. See
+  `backend/tests/test_mujoco_backend.py` (35 tests, all real physics, no
+  mocks). Optional dependency: `pip install -e backend[physics]`.
+- **Real ROS 2/Gazebo world export** (`pyrobosimulator-core/src/ros2.rs`):
+  `ROS2Bridge::export_world` now generates a genuine SDF 1.9 world document
+  from a `World`'s actual `Agent` data (position, orientation via
+  quaternion→Euler conversion, per-agent-type geometry), replacing a stub
+  that unconditionally returned the string `"ROS 2 world export stub"`.
+  Exposed to Python for the first time (`from pyrobosimulator import
+  ROS2Bridge`). Added `World.add_agent`/`remove_agent`/`agent_count` (there
+  was previously no way to populate `World.active_agents` at all). 8 new
+  Rust unit tests (`cargo test -p pyrobosimulator-core`).
+
+### Changed
+
+- **Gazebo and Isaac Sim backends now fail honestly.** `GazeboBackend.initialize()`
+  and `IsaacSimBackend.initialize()` raise a clear `EnvironmentError` explaining
+  the real infrastructure gap (Gazebo needs a full ROS 2 + Gazebo system
+  install; Isaac Sim needs NVIDIA Omniverse + a CUDA GPU) instead of silently
+  setting `self._initialized = True` and letting callers believe physics was
+  running. Neither is achievable in a typical sandboxed dev environment or
+  CI runner, so rather than fake it further, they now say so.
+- `NarrativeEngine.generate_from_events` (Rust core) now raises
+  `NotImplementedError` instead of returning the templated string
+  `"Narrative from {n} events"`; real Claude-backed narrative generation
+  already exists in `backend/src/narratives/` and is the supported path.
+  `WorldGenerator::from_description` and `StorageEngine` (unused,
+  `rocksdb`-backed) now return `Err` instead of silently no-op'ing.
+
+### Fixed
+
+- **Packaging bug: `pip install pyrobosimulator` shipped a broken wheel.**
+  `pyproject.toml` was missing `[tool.maturin] python-source = "python"`, so
+  maturin silently packaged an implicit-namespace `pyrobosimulator/` at the
+  repo root (no `__init__.py`) instead of `python/pyrobosimulator/` (the
+  real package, with `__init__.py` wiring up `World`/`Agent`/`Mission`/
+  `NarrativeEngine`). Confirmed the already-published 0.8.0 wheel on PyPI has
+  the same bug by unzipping it — `import pyrobosimulator; pyrobosimulator.World`
+  has never worked for anyone who `pip install`ed this package. Also added
+  the missing `m.add_class::<AgentType>()` registration (present as a type
+  but never exposed to Python) and a `pyrobosimulator = "pyrobosimulator.cli:main"`
+  console-script entry point (the Homebrew formula assumed one existed; it didn't).
+- `SensorType.LIDAR_3D` didn't exist (only `SensorCategory.LIDAR_3D` did) —
+  `SensorRegistry.DEFAULT_SPECS` referenced it as a dict key, crashing
+  `test_sensor_configuration.py`/`test_sensor_noise.py` at collection time.
+- `AdvancedScenarioGenerator`'s difficulty→`ScenarioClass` thresholds
+  (`< 0.25/0.5/0.75`) didn't align with `DifficultyLevel`'s actual enum
+  values (0.1/0.3/0.5/0.7/0.9/1.0), making `ScenarioClass.NOMINAL`
+  mathematically unreachable under the default `difficulty_distribution`.
+  A test that retried batches until it found 20 NOMINAL scenarios looped
+  forever as a result, hanging the entire test suite indefinitely. Fixed
+  the thresholds and added a bounded-retry safety net to the test.
+- `DATABASE_URL` in `.github/workflows/ci-cd.yaml` used a plain
+  `postgresql://` scheme; `create_async_engine` needs `postgresql+asyncpg://`
+  or it falls back to the sync-only `psycopg2` driver (not even a declared
+  dependency), breaking every test using the `client`/`test_db` fixtures
+  with `ModuleNotFoundError: No module named 'psycopg2'`.
+- Missing dependencies that broke imports at collection time: `anthropic`
+  (hard dependency of `narrative_converter.py`, previously undeclared),
+  `email-validator` (needed by pydantic `EmailStr`), `greenlet` (needed by
+  SQLAlchemy's async engine).
+
+### Coverage
+
+Real measured coverage (`pytest --cov=src`, run from `backend/`): **74%**
+(9475 statements, 2495 missed), up from 41% at the last audit — driven
+mostly by fixing test collection (most of the suite couldn't even import
+before the fixes above, contributing zero coverage) plus the new MuJoCo
+test suite. 925 tests total: 812 passing, 86 failing, 18 erroring, 6
+skipped, 3 xfailed. Remaining failures are pre-existing and outside this
+pass's scope (auth/session edge cases, some sensor-pipeline assertions);
+remaining 0%-coverage files are speculative/unfinished feature areas
+(`src/mission/`, `src/dashboards/`, `src/data/synthetic_data_generator.py`,
+`src/services/sensors.py`), not core simulation code.
+
+### Reconciled
+
+- Version was drifted three ways: root `pyproject.toml` (0.8.0), backend
+  `pyproject.toml` (0.5.0), this changelog's top entry (0.9.0). All package
+  manifests (root, backend, Rust workspace) now agree on 0.10.0.
+
 ## [0.9.0] - 2026-08-05
 
 ### Added - Phase 4: Multi-Backend Orchestration Platform Complete

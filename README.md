@@ -55,6 +55,30 @@ See [INSTALL.md](.github/INSTALL.md) for platform-specific installation guidance
 - **Velocity/acceleration** clamping for stability
 - **100K+ agents/second** throughput on standard hardware
 
+This lightweight custom engine (`backend/src/services/simulation_engine.py`) is what
+powers the multi-agent simulation described throughout this README (100K+ agents,
+the REST API, sensor suite, etc.).
+
+### Multi-Backend Physics (`backend/src/simulators/`)
+Separately, PyRoboSimulator defines a pluggable `SimulatorBackend` interface
+(`backend/src/simulators/backend_interface.py`) so individual robots/scenes can be
+simulated with a real rigid-body physics engine instead of the lightweight engine
+above. Backend status, honestly:
+
+| Backend | Status | Why |
+|---|---|---|
+| **MuJoCo** (`mujoco_backend.py`) | **Real, working physics.** Loads actual MJCF/URDF models via `mujoco.MjSpec`, steps real dynamics with `mujoco.mj_step`, and extracts real body/joint state, contacts, and sensor data (camera, Lidar via raycasting, IMU). Verified with kinematics-correctness tests (e.g. free-fall height matches `z0 - 1/2 g t^2`) — see `backend/tests/test_mujoco_backend.py`. Install with `pip install -e ".[physics]"` (adds `mujoco`, pip-installable, no GPU required). | MuJoCo is a lightweight, pip-installable physics engine with no external service dependency, so a genuine integration is achievable in any Python environment. |
+| **Gazebo** (`gazebo_backend.py`) | **Not available in this environment.** `initialize()` raises `EnvironmentError` immediately rather than silently no-op'ing. | Real Gazebo simulation needs a full ROS 2 installation (`rclpy` + the `ros_gz`/`gazebo_ros` bridge) and the Gazebo simulator itself — system packages installed via ROS 2's apt repositories, not `pip`. Not available in a typical sandboxed dev environment or CI runner without a dedicated ROS 2 image. |
+| **Isaac Sim** (`isaac_sim_backend.py`) | **Not available in this environment.** `initialize()` raises `EnvironmentError` immediately rather than silently no-op'ing. | Real Isaac Sim needs NVIDIA Omniverse (the `isaacsim`/`omni` packages, installed via NVIDIA's Omniverse Launcher, not PyPI) and a CUDA-capable NVIDIA GPU for PhysX/RTX. No GPU is available in a typical dev sandbox or standard CI runner. |
+
+If you need working physics today, use `MuJoCoBackend`. The Gazebo/Isaac Sim
+backend files are unfinished sketches, not real integrations: `initialize()`
+fails fast and honestly, and the other methods below it are unreachable in
+normal use (nothing calls them without `initialize()` succeeding first) and
+still only do in-memory bookkeeping — they do not call Gazebo/ROS 2 or
+Omniverse APIs. Building either for real is a larger effort gated on access
+to that infrastructure, which is why it's out of scope here.
+
 ### Sensor Suite (Phase 1C: Realistic Sensor Simulation)
 - **RGB Camera**: 1920×1080 @ 30 FPS with ISO-based noise, lens distortion, motion blur, color grading presets
 - **Depth Sensor**: 512×512 float32 @ 30 FPS, 0-300m range with quantization, range-based noise, temporal filtering, edge artifacts
@@ -407,9 +431,15 @@ See [API Documentation](backend/docs/API.md) for full reference.
 See [INSTALL.md](.github/INSTALL.md) for platform-specific installation guidance.
 
 **Test Suite**
-- 150+ tests covering unit, integration, and performance scenarios
-- 90%+ code coverage (enforced via CI/CD)
-- Performance benchmarks for common operations
+- 925 test functions across 43 files (`backend/tests/`), covering unit, integration, and performance scenarios
+- **74% measured line coverage** (`pytest --cov=src`, run from `backend/`) — up from 41% at the last audit;
+  812 passing, 86 failing, 18 erroring, 6 skipped, 3 xfailed as of this pass. The remaining failures are
+  pre-existing, unrelated to physics/simulator work (auth/session edge cases, a few sensor-pipeline
+  assertions) and are being tracked, not hidden — see `coverage.xml`/`htmlcov/` for the full per-file
+  breakdown. Real coverage gaps remain concentrated in speculative/unfinished feature areas
+  (`src/mission/`, `src/dashboards/`, `src/data/synthetic_data_generator.py`, `src/services/sensors.py`
+  are all still at or near 0%) rather than in core simulation code.
+- Performance benchmarks for common operations (`pytest --benchmark-...`, disabled by default in CI for speed)
 - Security scanning (bandit, safety)
 
 **Quality Gates**
@@ -545,7 +575,7 @@ See [INSTALL.md](.github/INSTALL.md) for platform-specific installation guidance
 - [x] Navigation & pathfinding (A*, RVO, NavMesh)
 - [x] Agent memory system (episodic, semantic, procedural, emotional)
 - [x] Multi-agent communication framework
-- [x] 190+ tests, 90%+ coverage
+- [x] 925 tests, 74% measured coverage (see Testing & Quality above)
 
 ### Phase 3-8 (Complete - v0.8.0)
 - [x] Narrative Simulation Engine (NLP→scenario conversion via Claude API)
@@ -555,7 +585,21 @@ See [INSTALL.md](.github/INSTALL.md) for platform-specific installation guidance
 - [x] Multi-Agent Coordination (6 formation types, team messaging)
 - [x] Fleet Learning (experience logging, pattern identification, knowledge transfer)
 
-### Phase 9+ (Planned - v1.0.0+)
+### Phase 9 (Complete - v0.10.0): Real Physics + Honesty Pass
+- [x] Real MuJoCo physics backend (real MJCF/URDF loading, real `mj_step` dynamics,
+      contacts, camera/Lidar/IMU sensors) — replaces a prior pure-stub implementation
+- [x] Gazebo/Isaac Sim backends now fail fast with a clear, honest `EnvironmentError`
+      instead of silently pretending to simulate
+- [x] Rust core's ROS2/Gazebo world export now generates a real SDF document from
+      actual `World`/`Agent` data, replacing a hardcoded `"ROS 2 world export stub"` string
+- [x] Fixed a packaging bug where `pip install pyrobosimulator` shipped a wheel with
+      no `__init__.py`, silently omitting the entire documented Python API
+- [x] Fixed several bugs found while getting `pytest` to run clean: a missing
+      `SensorType` enum member, an unreachable `ScenarioClass.NOMINAL` bucket that
+      caused an unbounded test loop, and a `DATABASE_URL` scheme mismatch that broke
+      every test touching the FastAPI app
+
+### Phase 10+ (Planned - v1.0.0+)
 - [ ] UE5 rendering engine integration with AAA visuals
 - [ ] Real-time 3D visualization
 - [ ] Domain randomization for ML training
