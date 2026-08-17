@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pyrobosimulator"
-version = "0.5.0"
+version = "0.10.0"
 description = "AI-native world simulation platform for robots and autonomous systems"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -22,6 +22,7 @@ dependencies = [
     "sqlalchemy==2.0.23",
     "asyncpg==0.29.0",
     "alembic==1.12.1",
+    "greenlet==3.5.5",
 
     # Caching
     "redis==5.0.1",
@@ -32,6 +33,7 @@ dependencies = [
 
     # Validation & Serialization
     "python-multipart==0.0.6",
+    "email-validator==2.3.0",
 
     # Authentication
     "python-jose[cryptography]==3.3.0",
@@ -46,6 +48,9 @@ dependencies = [
     "numpy==1.24.3",
     "scipy==1.11.4",
     "pillow==10.1.0",
+
+    # Narrative Engine (NLP -> scenario conversion)
+    "anthropic==0.122.0",
 ]
 
 [project.optional-dependencies]
@@ -73,6 +78,15 @@ dev = [
     # Documentation
     "mkdocs==1.5.3",
     "mkdocs-material==9.4.14",
+
+    # Physics backend tests (MuJoCo)
+    "mujoco>=3.5.0",
+]
+
+# MuJoCo physics backend. Real, pip-installable, no GPU/ROS2/Omniverse
+# required. See src/simulators/mujoco_backend.py.
+physics = [
+    "mujoco>=3.5.0",
 ]
 
 [tool.black]

@@ -1,0 +1,14 @@
+<mujoco model="test_pendulum">
+  <!-- Minimal real MJCF fixture: a single-link pendulum with one hinge
+       joint, used by test_mujoco_backend.py to exercise real MJCF loading
+       and joint control (not a stub/mock model). -->
+  <worldbody>
+    <body name="base" pos="0 0 0">
+      <joint name="shoulder" type="hinge" axis="0 1 0" pos="0 0 0"/>
+      <geom type="capsule" fromto="0 0 0 0 0 -0.5" size="0.02" mass="1.0"/>
+      <body name="tip" pos="0 0 -0.5">
+        <geom type="sphere" size="0.05" mass="0.2"/>
+      </body>
+    </body>
+  </worldbody>
+</mujoco>

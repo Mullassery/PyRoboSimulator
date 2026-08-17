@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+<!-- Minimal real URDF fixture used by test_mujoco_backend.py to exercise
+     MuJoCo's native URDF compiler (mujoco.MjSpec.from_file), not a stub. -->
+<robot name="simple_arm">
+  <link name="base_link">
+    <inertial>
+      <mass value="1.0"/>
+      <inertia ixx="0.01" ixy="0" ixz="0" iyy="0.01" iyz="0" izz="0.01"/>
+    </inertial>
+    <visual>
+      <geometry><cylinder radius="0.05" length="0.2"/></geometry>
+    </visual>
+    <collision>
+      <geometry><cylinder radius="0.05" length="0.2"/></geometry>
+    </collision>
+  </link>
+
+  <link name="forearm_link">
+    <inertial>
+      <mass value="0.5"/>
+      <inertia ixx="0.005" ixy="0" ixz="0" iyy="0.005" iyz="0" izz="0.005"/>
+    </inertial>
+    <visual>
+      <geometry><box size="0.05 0.05 0.3"/></geometry>
+    </visual>
+    <collision>
+      <geometry><box size="0.05 0.05 0.3"/></geometry>
+    </collision>
+  </link>
+
+  <joint name="elbow" type="revolute">
+    <parent link="base_link"/>
+    <child link="forearm_link"/>
+    <origin xyz="0 0 0.1" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
+    <limit lower="-1.57" upper="1.57" effort="10" velocity="1"/>
+  </joint>
+</robot>
