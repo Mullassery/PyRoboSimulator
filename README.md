@@ -2,58 +2,40 @@
 
 **Production-grade world simulation platform for autonomous systems, robotics, and AI research**
 
-A complete, open-source simulation engine built for developers and researchers who need accurate, scalable environments for testing autonomous vehicles, robots, and multi-agent systems. PyRoboSimulator combines physics-accurate simulation, realistic sensor modeling, and a production-ready REST API into a single integrated platform.
+A source-available simulation engine built for developers and researchers who need accurate, scalable environments for testing autonomous vehicles, robots, and multi-agent systems. PyRoboSimulator combines a lightweight multi-agent physics loop, realistic sensor modeling, a real MuJoCo physics backend, and a REST API prototype into one platform. This is two things under one name: a pip-installable Rust-backed core (`World`/`Agent`/`Mission`/`NarrativeEngine`) and a separate FastAPI backend service (`backend/`) you run from source — see "What's actually installable" below before copying any example.
 
-> **TL;DR**: Run 100K+ agents with realistic sensors (RGB, Depth, Lidar, Thermal) on your laptop. Deploy to production on Kubernetes with built-in monitoring, caching, and authentication.
+> **TL;DR**: Multi-agent physics simulation with realistic sensors (RGB, Depth, Lidar, Thermal) and a real MuJoCo backend, plus an in-development REST API with Kubernetes deployment manifests. Throughput/latency numbers below are not backed by a committed benchmark — see Known Issues.
 
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![License: Proprietary](https://img.shields.io/badge/License-Proprietary-lightgrey.svg)](LICENSE)
 [![CI/CD](https://github.com/Mullassery/PyRoboSimulator/actions/workflows/ci-cd.yaml/badge.svg)](https://github.com/Mullassery/PyRoboSimulator/actions/workflows/ci-cd.yaml)
 [![codecov](https://codecov.io/gh/Mullassery/PyRoboSimulator/branch/main/graph/badge.svg)](https://codecov.io/gh/Mullassery/PyRoboSimulator)
-[![Open Source](https://img.shields.io/badge/Open%20Source-100%25-brightgreen.svg)](backend/docs/OSS_COMPLIANCE.md)
+[![Dependencies OSS](https://img.shields.io/badge/dependencies-100%25%20OSS-brightgreen.svg)](backend/docs/OSS_COMPLIANCE.md)
 
 ---
 
 
-## Real Use Cases
-See [INSTALL.md](.github/INSTALL.md) for platform-specific installation guidance.
-
-This library is used for:
-- See examples below
-- Check GitHub issues for real-world usage
-
-## Get Started
-See [INSTALL.md](.github/INSTALL.md) for platform-specific installation guidance.
-
-```python
-# Quick example - copy and run
-# See full docs for detailed usage
-```
-
 ## Why PyRoboSimulator?
-See [INSTALL.md](.github/INSTALL.md) for platform-specific installation guidance.
 
-**Solve complex problems faster:** Simulate thousands of scenarios in parallel to test your algorithms against edge cases before deploying to real hardware.
+**Two real, working pieces today:** a Rust-backed core package (`World`, `Agent`, `Mission`, `NarrativeEngine`, `ROS2Bridge`) installable via `pip install pyrobosimulator`, and a separate FastAPI backend (run from source in `backend/`) with a lightweight multi-agent physics loop, a REST API, and a real MuJoCo physics integration.
 
-**Production-ready from day one:** Built with FastAPI, PostgreSQL, Redis, and Kubernetes. No "research project" hacks—this is infrastructure designed for real deployments.
+**Accurate sensor simulation:** RGB cameras, depth sensors, Lidar point clouds, and thermal imaging, implemented in `backend/src/sensors/` — each physically grounded and configurable per-agent.
 
-**Accurate sensor simulation:** RGB cameras, depth sensors, Lidar point clouds, and thermal imaging. Each sensor is physically grounded and configurable per-agent.
+**Real MuJoCo physics backend:** loads actual MJCF/URDF models and steps real dynamics (see "Multi-Backend Physics" below) — not a stub.
 
-**100% open source:** MIT license, 52 dependencies audited, zero proprietary components. Integrate with your stack without licensing restrictions.
+**Dependencies are 100% OSS-licensed:** 52 audited dependencies, all permissive/OSS licenses — see [OSS Compliance Audit](backend/docs/OSS_COMPLIANCE.md). The project's own license is Proprietary (see License below); this claim is about third-party dependencies, not this codebase's license.
 
-**Scales from laptop to cloud:** Run 100K+ agents on a single machine, or distribute across Kubernetes clusters for unlimited scale.
+**Kubernetes/Docker manifests exist** (`backend/k8s/`, `backend/Dockerfile`) for deploying the backend service. The backend's database and cache layers are still in-memory for simulations/users as of this pass (see Known Issues) — the PostgreSQL/Redis integration described in Architecture below is partially wired, not fully load-bearing yet.
 
 ---
 
 ## Key Capabilities
-See [INSTALL.md](.github/INSTALL.md) for platform-specific installation guidance.
 
 ### Physics Engine
 - **Euler integration** with configurable timestep (default 16ms @ 60Hz)
 - **Collision detection** via AABB (axis-aligned bounding box) radius overlap
 - **Boundary conditions** with elastic bounce or clipping
 - **Velocity/acceleration** clamping for stability
-- **100K+ agents/second** throughput on standard hardware
 
 This lightweight custom engine (`backend/src/services/simulation_engine.py`) is what
 powers the multi-agent simulation described throughout this README (100K+ agents,
@@ -206,7 +188,6 @@ to that infrastructure, which is why it's out of scope here.
 ---
 
 ## Getting Started (5 Minutes)
-See [INSTALL.md](.github/INSTALL.md) for platform-specific installation guidance.
 
 ### 1. Install
 
@@ -260,7 +241,6 @@ curl -X POST http://localhost:8000/api/v1/simulations \
 ---
 
 ## Real-World Examples
-See [INSTALL.md](.github/INSTALL.md) for platform-specific installation guidance.
 
 ### Autonomous Vehicles
 ```python
@@ -332,7 +312,6 @@ for frame in engine.get_sensor_frames(agent_id=0):
 ---
 
 ## Architecture
-See [INSTALL.md](.github/INSTALL.md) for platform-specific installation guidance.
 
 ```
 ┌────────────────────────────────────────────┐
@@ -374,7 +353,6 @@ See [INSTALL.md](.github/INSTALL.md) for platform-specific installation guidance
 ---
 
 ## Performance Benchmarks
-See [INSTALL.md](.github/INSTALL.md) for platform-specific installation guidance.
 
 All benchmarks run on a 2023 MacBook Pro (Apple Silicon M2, 8GB RAM):
 
@@ -398,7 +376,6 @@ All benchmarks run on a 2023 MacBook Pro (Apple Silicon M2, 8GB RAM):
 ---
 
 ## API Overview
-See [INSTALL.md](.github/INSTALL.md) for platform-specific installation guidance.
 
 ### Core Endpoints
 
@@ -428,7 +405,6 @@ See [API Documentation](backend/docs/API.md) for full reference.
 ---
 
 ## Testing & Quality
-See [INSTALL.md](.github/INSTALL.md) for platform-specific installation guidance.
 
 **Test Suite**
 - 925 test functions across 43 files (`backend/tests/`), covering unit, integration, and performance scenarios
@@ -459,7 +435,6 @@ pytest -v --cov=src
 ---
 
 ## Deployment
-See [INSTALL.md](.github/INSTALL.md) for platform-specific installation guidance.
 
 ### Docker
 
@@ -494,7 +469,6 @@ See [Deployment Guide](backend/docs/DEPLOYMENT.md) for detailed instructions.
 ---
 
 ## Technology Stack
-See [INSTALL.md](.github/INSTALL.md) for platform-specific installation guidance.
 
 **Language & Framework**
 - Python 3.10+
@@ -532,7 +506,6 @@ See [INSTALL.md](.github/INSTALL.md) for platform-specific installation guidance
 ---
 
 ## Comparison with Alternatives
-See [INSTALL.md](.github/INSTALL.md) for platform-specific installation guidance.
 
 | Feature | PyRoboSimulator | CARLA | Gazebo | AirSim |
 |---------|---|---|---|---|
@@ -551,7 +524,6 @@ See [INSTALL.md](.github/INSTALL.md) for platform-specific installation guidance
 ---
 
 ## Documentation
-See [INSTALL.md](.github/INSTALL.md) for platform-specific installation guidance.
 
 - **[Full API Reference](backend/docs/API.md)** — REST endpoints, request/response schemas
 - **[Deployment Guide](backend/docs/DEPLOYMENT.md)** — Docker, Kubernetes, local development
@@ -563,7 +535,6 @@ See [INSTALL.md](.github/INSTALL.md) for platform-specific installation guidance
 ---
 
 ## Roadmap
-See [INSTALL.md](.github/INSTALL.md) for platform-specific installation guidance.
 
 ### Phase 0-2 (Complete - v0.1-v0.5.0)
 - [x] Core simulation engine with physics
@@ -611,7 +582,6 @@ See [INSTALL.md](.github/INSTALL.md) for platform-specific installation guidance
 ---
 
 ## Contributing
-See [INSTALL.md](.github/INSTALL.md) for platform-specific installation guidance.
 
 We welcome contributions! Check out our [Contributing Guide](CONTRIBUTING.md).
 
@@ -633,7 +603,6 @@ pytest  # Run tests
 ---
 
 ## Support & Community
-See [INSTALL.md](.github/INSTALL.md) for platform-specific installation guidance.
 
 **Get Help**
 - [Documentation](backend/docs/) — Comprehensive guides
@@ -649,7 +618,6 @@ See [INSTALL.md](.github/INSTALL.md) for platform-specific installation guidance
 ---
 
 ## License
-See [INSTALL.md](.github/INSTALL.md) for platform-specific installation guidance.
 
 **MIT License** — See [LICENSE](LICENSE) file
 
@@ -658,7 +626,6 @@ PyRoboSimulator is open source and free for commercial use, modification, and di
 ---
 
 ## Citation
-See [INSTALL.md](.github/INSTALL.md) for platform-specific installation guidance.
 
 If you use PyRoboSimulator in your research, please cite:
 
@@ -675,7 +642,6 @@ If you use PyRoboSimulator in your research, please cite:
 ---
 
 ## Acknowledgments
-See [INSTALL.md](.github/INSTALL.md) for platform-specific installation guidance.
 
 Built with Python, FastAPI, PostgreSQL, Redis, Kubernetes, and the open source community.
 
@@ -684,7 +650,6 @@ Built with Python, FastAPI, PostgreSQL, Redis, Kubernetes, and the open source c
 **PyRoboSimulator v0.8.0** | [GitHub](https://github.com/Mullassery/PyRoboSimulator) | [PyPI](https://pypi.org/project/pyrobosimulator/) | [Issues](https://github.com/Mullassery/PyRoboSimulator/issues)
 
 ## Dashboard
-See [INSTALL.md](.github/INSTALL.md) for platform-specific installation guidance.
 
 Real-time metrics with keyboard shortcuts:
 - `bash scripts/setup_shortcuts.sh` (one-time setup)
@@ -695,13 +660,11 @@ Real-time metrics with keyboard shortcuts:
 See `DASHBOARD_SHORTCUTS.md`.
 
 ## OpenTelemetry
-See [INSTALL.md](.github/INSTALL.md) for platform-specific installation guidance.
 
 Export metrics to 6 backends: Prometheus, Datadog, Honeycomb, New Relic, Jaeger, X-Ray.
 
 See `OTEL_SETUP_GUIDE.md`.
 
 ## Production Deployment
-See [INSTALL.md](.github/INSTALL.md) for platform-specific installation guidance.
 
 Kubernetes and Docker ready. See `PRODUCTION_DEPLOYMENT.md`.
