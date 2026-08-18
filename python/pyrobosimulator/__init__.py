@@ -8,8 +8,8 @@ except PackageNotFoundError:  # pragma: no cover - only when running from source
     __version__ = "0.0.0+unknown"
 
 try:
-    from ._core import World, Agent, AgentType, Mission, NarrativeEngine, ROS2Bridge
+    from ._core import World, Agent, AgentType, Mission, NarrativeEngine, ROS2Bridge, StorageEngine
 except ImportError:
     pass
 
-__all__ = ["World", "Agent", "AgentType", "Mission", "NarrativeEngine", "ROS2Bridge"]
+__all__ = ["World", "Agent", "AgentType", "Mission", "NarrativeEngine", "ROS2Bridge", "StorageEngine"]

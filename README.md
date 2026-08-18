@@ -2,7 +2,7 @@
 
 **Production-grade world simulation platform for autonomous systems, robotics, and AI research**
 
-A source-available simulation engine built for developers and researchers who need accurate, scalable environments for testing autonomous vehicles, robots, and multi-agent systems. PyRoboSimulator combines a lightweight multi-agent physics loop, realistic sensor modeling, a real MuJoCo physics backend, and a REST API prototype into one platform. This is two things under one name: a pip-installable Rust-backed core (`World`/`Agent`/`Mission`/`NarrativeEngine`) and a separate FastAPI backend service (`backend/`) you run from source — see "What's actually installable" below before copying any example.
+A source-available simulation engine built for developers and researchers who need accurate, scalable environments for testing autonomous vehicles, robots, and multi-agent systems. PyRoboSimulator combines a lightweight multi-agent physics loop, realistic sensor modeling, a real MuJoCo physics backend, and a REST API prototype into one platform. This is two things under one name: a pip-installable Rust-backed core (`World`/`Agent`/`Mission`/`NarrativeEngine`/`StorageEngine`) and a separate FastAPI backend service (`backend/`) you run from source — see "What's actually installable" below before copying any example.
 
 > **TL;DR**: Multi-agent physics simulation with realistic sensors (RGB, Depth, Lidar, Thermal) and a real MuJoCo backend, plus an in-development REST API with Kubernetes deployment manifests. Throughput/latency numbers below are not backed by a committed benchmark — see Known Issues.
 
@@ -17,7 +17,9 @@ A source-available simulation engine built for developers and researchers who ne
 
 ## Why PyRoboSimulator?
 
-**Two real, working pieces today:** a Rust-backed core package (`World`, `Agent`, `Mission`, `NarrativeEngine`, `ROS2Bridge`) installable via `pip install pyrobosimulator`, and a separate FastAPI backend (run from source in `backend/`) with a lightweight multi-agent physics loop, a REST API, and a real MuJoCo physics integration.
+**Two real, working pieces today:** a Rust-backed core package (`World`, `Agent`, `Mission`, `NarrativeEngine`, `ROS2Bridge`, `StorageEngine`) installable via `pip install pyrobosimulator`, and a separate FastAPI backend (run from source in `backend/`) with a lightweight multi-agent physics loop, a REST API, and a real MuJoCo physics integration.
+
+`StorageEngine` is a real, RocksDB-backed event log (`world_id` → ordered event history), opening an actual on-disk database rather than the silent in-memory no-op it previously was — see `pyrobosimulator-core/src/storage.rs`. `NarrativeEngine.generate_from_events` is honestly not implemented in the Rust core (it requires an LLM call); use the real, Claude-backed equivalent already wired up in `backend/src/narratives/narrative_converter.py` instead.
 
 **Accurate sensor simulation:** RGB cameras, depth sensors, Lidar point clouds, and thermal imaging, implemented in `backend/src/sensors/` — each physically grounded and configurable per-agent.
 
