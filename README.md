@@ -31,6 +31,45 @@ A source-available simulation engine built for developers and researchers who ne
 
 ---
 
+## What's Actually Installable
+
+`pip install pyrobosimulator` gets you the Rust-backed core only. As of this pass, `import pyrobosimulator`
+exposes exactly: `World`, `Agent`, `AgentType`, `Mission`, `NarrativeEngine`, `ROS2Bridge`, `StorageEngine`
+(see `python/pyrobosimulator/__init__.py`). `NarrativeEngine.generate_from_events` raises
+`NotImplementedError` by design (see above); everything else is real.
+
+**`SimulationEngine` and `ScenarioBuilder` — used throughout "Getting Started" and "Real-World Examples"
+below — are not part of the pip package.** They're defined in `backend/src/services/simulation_engine.py`
+and `backend/src/services/scenario_generator.py`, i.e. the FastAPI backend service, which you run from
+source (see step 3 of Getting Started and `backend/README.md`). `pip install pyrobosimulator` alone will
+not make `from pyrobosimulator import SimulationEngine` work. This has not yet been reconciled — treat the
+code blocks below as backend-service examples, not pip-package examples, until it is.
+
+---
+
+## Known Issues
+
+- **Performance Benchmarks below are not backed by a committed, reproducible benchmark suite.** They are
+  not verified as part of this audit pass; treat them as unverified until a benchmark script lands in the
+  repo.
+- **Backend database/cache are still in-memory.** The PostgreSQL/Redis integration described in
+  Architecture is partially wired, not fully load-bearing for simulations/users as of this pass.
+- **CI has been red for at least the last 10 pushes to `main`**, including the commit that added the real
+  `StorageEngine` — checked via `gh run list --repo Mullassery/PyRoboSimulator`. The failure is in the
+  "Code Quality" job's dependency-install step (`pip install`: `ResolutionImpossible` — conflicting pinned
+  versions), not a test failure; the `Tests`/`Build`/`Deploy` jobs never run because that step blocks them.
+  A separate, unrelated failure in the same workflow (`Notify Slack`) is just a missing bot token/webhook
+  secret. The CI badge above reflects this live — it is not currently green.
+- **`NarrativeEngine.generate_from_events` is not implemented in the Rust core** — it raises
+  `NotImplementedError` by design; use the real, Claude-backed equivalent in
+  `backend/src/narratives/narrative_converter.py` instead (see "Why PyRoboSimulator?" above).
+- **Gazebo and Isaac Sim physics backends are unfinished sketches**, not real integrations — see
+  "Multi-Backend Physics" below.
+- **Backend test suite has known failures**, tracked not hidden — see "Testing & Quality" below for the
+  current pass/fail breakdown.
+
+---
+
 ## Key Capabilities
 
 ### Physics Engine
@@ -194,10 +233,13 @@ to that infrastructure, which is why it's out of scope here.
 ### 1. Install
 
 ```bash
-pip install pyrobosimulator==0.8.0
+pip install pyrobosimulator==0.11.0
 ```
 
-### 2. Run Your First Simulation
+This gives you the Rust-backed core (`World`, `Agent`, `Mission`, `NarrativeEngine`, `ROS2Bridge`,
+`StorageEngine`). See "What's Actually Installable" above.
+
+### 2. Run Your First Simulation (backend service, run from source — see step 3)
 
 ```python
 from pyrobosimulator import SimulationEngine
@@ -221,12 +263,18 @@ print(f"Total events: {summary['total_events']}")
 
 ### 3. Start the Backend API
 
+There is no `pyrobosimulator[backend]` extra — the backend is a separate FastAPI service you run from
+source:
+
 ```bash
-pip install pyrobosimulator[backend]
-uvicorn pyrobosimulator.api.main:app --reload
+git clone https://github.com/Mullassery/PyRoboSimulator.git
+cd PyRoboSimulator/backend
+pip install -e ".[dev]"
+uvicorn src.main:app --reload
 ```
 
-Then visit `http://localhost:8000/docs` to see interactive API documentation.
+(Full setup incl. PostgreSQL/Redis: see `backend/README.md`.) Then visit `http://localhost:8000/docs` to
+see interactive API documentation.
 
 ### 4. Create a Simulation via REST API
 
@@ -243,6 +291,9 @@ curl -X POST http://localhost:8000/api/v1/simulations \
 ---
 
 ## Real-World Examples
+
+*The examples below use `SimulationEngine`/`ScenarioBuilder` from the backend service (run from source —
+see "What's Actually Installable" above), not the pip-installed `pyrobosimulator` package.*
 
 ### Autonomous Vehicles
 ```python
@@ -442,8 +493,8 @@ pytest -v --cov=src
 
 ```bash
 cd backend
-docker build -t pyrobosimulator:0.8.0 .
-docker run -p 8000:8000 pyrobosimulator:0.8.0
+docker build -t pyrobosimulator:0.11.0 .
+docker run -p 8000:8000 pyrobosimulator:0.11.0
 ```
 
 ### Kubernetes
@@ -519,9 +570,9 @@ See [Deployment Guide](backend/docs/DEPLOYMENT.md) for detailed instructions.
 | **Database Integration** | Yes (PostgreSQL) | No | No | No |
 | **Caching Layer** | Yes (Redis) | No | No | No |
 | **Multi-Modal Sensors** | RGB, Depth, Lidar, Thermal | RGB, Depth, Lidar | Camera, IMU, GPS | RGB, Depth, Lidar |
-| **License** | MIT | MIT | Apache 2.0 | MIT |
+| **License** | Proprietary (source-available) | MIT | Apache 2.0 | MIT |
 | **Production Monitoring** | Prometheus/Grafana | No | No | No |
-| **Open Source** | 100% | Partial | Yes | Partial |
+| **Open Source** | No (Proprietary, source-available; 100% of *dependencies* are OSS-licensed) | Partial | Yes | Partial |
 
 ---
 
@@ -572,6 +623,12 @@ See [Deployment Guide](backend/docs/DEPLOYMENT.md) for detailed instructions.
       caused an unbounded test loop, and a `DATABASE_URL` scheme mismatch that broke
       every test touching the FastAPI app
 
+### Phase 9.1 (Complete - v0.11.0): Real StorageEngine
+- [x] `StorageEngine` is now a real, RocksDB-backed event log (`pyrobosimulator-core/src/storage.rs`) —
+      replaces the prior silent in-memory no-op
+- [x] Deleted the dead Rust `world_gen.rs` stub (unused, superseded by the Python-side world generation
+      described above)
+
 ### Phase 10+ (Planned - v1.0.0+)
 - [ ] UE5 rendering engine integration with AAA visuals
 - [ ] Real-time 3D visualization
@@ -621,9 +678,12 @@ pytest  # Run tests
 
 ## License
 
-**MIT License** — See [LICENSE](LICENSE) file
+**Proprietary License** — See [LICENSE](LICENSE) file
 
-PyRoboSimulator is open source and free for commercial use, modification, and distribution.
+PyRoboSimulator is source-available: free to use, copy, modify, and distribute, provided explicit
+attribution to the original author is preserved in documentation and significant code comments. It is
+not MIT/Apache-licensed open source, despite what some other sections of this README (Comparison table,
+Citation) previously said — that was inaccurate and has been corrected.
 
 ---
 
@@ -637,7 +697,7 @@ If you use PyRoboSimulator in your research, please cite:
   title = {PyRoboSimulator: Production-Grade World Simulation for Autonomous Systems},
   year = {2024},
   url = {https://github.com/Mullassery/PyRoboSimulator},
-  license = {MIT}
+  license = {Proprietary}
 }
 ```
 
@@ -649,7 +709,7 @@ Built with Python, FastAPI, PostgreSQL, Redis, Kubernetes, and the open source c
 
 ---
 
-**PyRoboSimulator v0.8.0** | [GitHub](https://github.com/Mullassery/PyRoboSimulator) | [PyPI](https://pypi.org/project/pyrobosimulator/) | [Issues](https://github.com/Mullassery/PyRoboSimulator/issues)
+**PyRoboSimulator v0.11.0** | [GitHub](https://github.com/Mullassery/PyRoboSimulator) | [PyPI](https://pypi.org/project/pyrobosimulator/) | [Issues](https://github.com/Mullassery/PyRoboSimulator/issues)
 
 ## Dashboard
 
