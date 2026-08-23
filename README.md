@@ -585,6 +585,18 @@ See [Deployment Guide](backend/docs/DEPLOYMENT.md) for detailed instructions.
 - **[OSS Compliance](backend/docs/OSS_COMPLIANCE.md)** — Complete license audit
 - **[Performance Tuning](backend/docs/PERFORMANCE.md)** — Optimization strategies
 
+## Cross-repo compatibility
+
+This repo is one of several independently-published robotics packages by
+the same author (`pyroboreplay`, `PyRoboFrames`, `PyRoboVision`,
+`PyTerrainMap`). Verified by reading every `Cargo.toml`/`pyproject.toml` in
+that group: **none of them have a Cargo or pip dependency on this repo, or
+on each other, except one purely conceptual (non-code) reference** —
+`pyroboreplay`'s README mentions a "PyTerrainMap Integration" phase that
+turned out to be self-contained internal modeling, not real code-level
+interop (see `pyroboreplay`'s own README for the corrected framing). This
+repo does not import or link against any of those siblings.
+
 ---
 
 ## Roadmap
