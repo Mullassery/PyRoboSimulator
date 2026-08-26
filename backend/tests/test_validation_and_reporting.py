@@ -4,7 +4,7 @@ import time
 
 import pytest
 
-from backend.src.services.validation_and_reporting import (
+from src.services.validation_and_reporting import (
     ComprehensiveReportGenerator,
     MetricType,
     PerformanceMetric,

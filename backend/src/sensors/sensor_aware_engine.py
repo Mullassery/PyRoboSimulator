@@ -7,11 +7,11 @@ Only generates data for configured sensors. Optimizes compute accordingly.
 import logging
 from typing import Any, Dict, List, Optional, Set
 
-from backend.src.sensors.sensor_definitions import (
+from src.sensors.sensor_definitions import (
     SensorCategory,
     SensorType,
 )
-from backend.src.sensors.sensor_configuration import (
+from src.sensors.sensor_configuration import (
     SensorConfigurationManager,
     SensorSuite,
 )

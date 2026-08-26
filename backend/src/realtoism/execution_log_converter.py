@@ -7,7 +7,7 @@ replay, analysis, and simulation validation.
 import logging
 from typing import Any, Dict, List, Optional, Tuple
 
-from backend.src.narratives.narrative_definitions import (
+from src.narratives.narrative_definitions import (
     Narrative,
     NarrativeType,
     NarrativeEntity,
@@ -18,13 +18,13 @@ from backend.src.narratives.narrative_definitions import (
     NarrativeConstraint,
     AgentRole,
 )
-from backend.src.realtoism.rosbag_parser import (
+from src.realtoism.rosbag_parser import (
     RosBagParser,
     RosPose,
     RosImage,
     RosPointCloud,
 )
-from backend.src.realtoism.trajectory_extractor import (
+from src.realtoism.trajectory_extractor import (
     TrajectoryExtractor,
     TrajectorySegment,
     TrajectoryMetrics,

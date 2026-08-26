@@ -7,7 +7,7 @@ import logging
 from typing import List, Dict, Optional, Any, Tuple
 from random import Random
 
-from backend.src.narratives import (
+from src.narratives import (
     Narrative,
     NarrativeType,
     NarrativeEntity,
@@ -15,7 +15,7 @@ from backend.src.narratives import (
     NarrativeConstraint,
     AgentRole,
 )
-from backend.src.curriculum.difficulty_model import DifficultyFactors, DifficultyLevel
+from src.curriculum.difficulty_model import DifficultyFactors, DifficultyLevel
 
 logger = logging.getLogger(__name__)
 

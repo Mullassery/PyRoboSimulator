@@ -3,7 +3,7 @@
 Multi-robot orchestration with formation control and collective intelligence.
 """
 
-from backend.src.multiagent.agent_coordinator import (
+from src.multiagent.agent_coordinator import (
     AgentCommunicationType,
     FormationType,
     AgentState,
@@ -11,7 +11,7 @@ from backend.src.multiagent.agent_coordinator import (
     CollectiveKnowledge,
     AgentCoordinator,
 )
-from backend.src.multiagent.fleet_learning import (
+from src.multiagent.fleet_learning import (
     ExperienceRecord,
     LearningPattern,
     FleetLearningEngine,

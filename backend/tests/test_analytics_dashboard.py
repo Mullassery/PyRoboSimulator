@@ -3,7 +3,7 @@
 import pytest
 from unittest.mock import Mock, patch, MagicMock
 
-from backend.src.analytics import (
+from src.analytics import (
     MetricsCollector,
     SimulationMetrics,
     PerformanceMetrics,

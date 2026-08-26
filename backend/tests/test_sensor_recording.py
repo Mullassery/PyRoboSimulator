@@ -7,7 +7,7 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-from backend.src.services.sensor_recording import (
+from src.services.sensor_recording import (
     RingBuffer,
     RecordingConfig,
     SensorFrame,

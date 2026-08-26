@@ -3,7 +3,7 @@
 import math
 import pytest
 
-from backend.src.services.pathfinding import (
+from src.services.pathfinding import (
     AStarPathfinder,
     NavigationMesh,
     PathfindingCache,

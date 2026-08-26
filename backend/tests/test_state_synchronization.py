@@ -2,7 +2,7 @@
 
 import pytest
 
-from backend.src.services.state_synchronization import (
+from src.services.state_synchronization import (
     ConflictResolutionStrategy,
     ConflictResolver,
     StateSnapshot,

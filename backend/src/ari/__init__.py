@@ -15,18 +15,18 @@ Example:
     >>> ari.save_knowledge("regions.json")
 """
 
-from backend.src.ari.ari_discovery import (
+from src.ari.ari_discovery import (
     ARIDiscoveryEngine,
     DiscoveryQuery,
     DiscoveredAsset,
     DiscoverySource,
     LearningPhase,
 )
-from backend.src.ari.ari_orchestrator import (
+from src.ari.ari_orchestrator import (
     ARIConfig,
     ARIOrchestrator,
 )
-from backend.src.ari.regional_knowledge import (
+from src.ari.regional_knowledge import (
     EnvironmentType,
     KnowledgeStore,
     RegionalKnowledge,

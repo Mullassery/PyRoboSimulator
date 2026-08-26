@@ -7,7 +7,7 @@ Implements dependency injection and factory patterns for clean architecture.
 import logging
 from typing import Dict, Optional, Type
 
-from backend.src.simulators.backend_interface import (
+from src.simulators.backend_interface import (
     SimulatorBackend,
     SimulatorConfig,
     SimulatorType,

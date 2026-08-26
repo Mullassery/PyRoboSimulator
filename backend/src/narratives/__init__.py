@@ -3,7 +3,7 @@
 AI-native narrative-driven simulation with branching story logic.
 """
 
-from backend.src.narratives.narrative_definitions import (
+from src.narratives.narrative_definitions import (
     Narrative,
     NarrativeType,
     NarrativeEntity,
@@ -17,21 +17,21 @@ from backend.src.narratives.narrative_definitions import (
     AgentRole,
     NarrativeBranch,
 )
-from backend.src.narratives.narrative_converter import NarrativeConverter
-from backend.src.narratives.narrative_executor import NarrativeExecutor
-from backend.src.narratives.agent_interpreter import (
+from src.narratives.narrative_converter import NarrativeConverter
+from src.narratives.narrative_executor import NarrativeExecutor
+from src.narratives.agent_interpreter import (
     AgentBehaviorInterpreter,
     BehaviorPrimitive,
     BehaviorPlan,
     AgentBehaviorType,
 )
-from backend.src.narratives.story_branching_engine import (
+from src.narratives.story_branching_engine import (
     StoryBranchingEngine,
     BranchCondition,
     BranchPath,
     BranchingDecision,
 )
-from backend.src.narratives.narrative_validator import (
+from src.narratives.narrative_validator import (
     NarrativeValidator,
     ValidationResult,
     ValidationError,

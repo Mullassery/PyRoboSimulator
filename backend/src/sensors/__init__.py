@@ -26,16 +26,16 @@ Example:
     >>> engine.initialize_simulation("robot_1")
 """
 
-from backend.src.sensors.sensor_definitions import (
+from src.sensors.sensor_definitions import (
     SensorCategory, SensorType, SensorSpec, SensorRegistry, SENSOR_REGISTRY,
 )
-from backend.src.sensors.sensor_configuration import (
+from src.sensors.sensor_configuration import (
     SensorSuite, SensorConfigurationManager,
 )
-from backend.src.sensors.sensor_aware_engine import (
+from src.sensors.sensor_aware_engine import (
     SensorAwarenessConstraint, SensorAwareSimulationEngine,
 )
-from backend.src.sensors.robot_knowledge_base import (
+from src.sensors.robot_knowledge_base import (
     RobotProfile, RobotHardwareKnowledgeBase, DocumentationParser,
     AutomaticRobotDiscovery,
 )

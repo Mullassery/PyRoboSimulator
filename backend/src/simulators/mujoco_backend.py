@@ -37,7 +37,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
 
-from backend.src.simulators.backend_interface import (
+from src.simulators.backend_interface import (
     ContactInfo,
     ObjectState,
     RobotConfig,

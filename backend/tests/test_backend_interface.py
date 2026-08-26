@@ -2,7 +2,7 @@
 
 import pytest
 
-from backend.src.simulators.backend_interface import (
+from src.simulators.backend_interface import (
     CameraConfig,
     ContactInfo,
     IMUConfig,
@@ -21,8 +21,8 @@ from backend.src.simulators.backend_interface import (
     SimulatorType,
     WorldConfig,
 )
-from backend.src.simulators.backend_manager import BackendFactory, BackendManager
-from backend.src.simulators.mock_backend import MockBackend
+from src.simulators.backend_manager import BackendFactory, BackendManager
+from src.simulators.mock_backend import MockBackend
 
 
 class TestSimulatorConfig:

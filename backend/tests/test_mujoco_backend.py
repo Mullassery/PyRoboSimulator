@@ -17,7 +17,7 @@ import pytest
 
 mujoco = pytest.importorskip("mujoco")
 
-from backend.src.simulators.backend_interface import (  # noqa: E402
+from src.simulators.backend_interface import (  # noqa: E402
     CameraConfig,
     IMUConfig,
     LidarConfig,
@@ -30,7 +30,7 @@ from backend.src.simulators.backend_interface import (  # noqa: E402
     SimulatorType,
     WorldConfig,
 )
-from backend.src.simulators.mujoco_backend import MuJoCoBackend  # noqa: E402
+from src.simulators.mujoco_backend import MuJoCoBackend  # noqa: E402
 
 FIXTURES_DIR = os.path.join(os.path.dirname(__file__), "fixtures", "mujoco")
 PENDULUM_XML = os.path.join(FIXTURES_DIR, "pendulum.xml")

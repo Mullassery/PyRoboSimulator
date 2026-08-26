@@ -8,7 +8,7 @@ import logging
 from typing import Any, Dict, List, Optional, Callable
 from datetime import datetime
 
-from backend.src.analytics.metrics_collector import (
+from src.analytics.metrics_collector import (
     MetricsCollector,
     SimulationMetrics,
     PerformanceMetrics,

@@ -3,7 +3,7 @@
 import pytest
 import yaml
 
-from backend.src.services.behavior_tree import (
+from src.services.behavior_tree import (
     Action,
     BehaviorNode,
     BehaviorStatus,

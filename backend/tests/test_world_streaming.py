@@ -3,7 +3,7 @@
 import json
 import pytest
 
-from backend.src.services.world_streaming import (
+from src.services.world_streaming import (
     Mesh,
     Obstacle,
     Vector3,

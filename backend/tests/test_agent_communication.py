@@ -3,7 +3,7 @@
 import time
 import pytest
 
-from backend.src.services.agent_communication import (
+from src.services.agent_communication import (
     CommunicationNetwork,
     CoordinationPrimitive,
     LeaderElection,

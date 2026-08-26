@@ -10,7 +10,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 from anthropic import Anthropic
 
-from backend.src.narratives.narrative_definitions import (
+from src.narratives.narrative_definitions import (
     Narrative,
     NarrativeType,
     NarrativeEntity,

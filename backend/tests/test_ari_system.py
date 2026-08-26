@@ -3,13 +3,13 @@
 import json
 import pytest
 
-from backend.src.ari.ari_discovery import (
+from src.ari.ari_discovery import (
     ARIDiscoveryEngine,
     DiscoverySource,
     LearningPhase,
 )
-from backend.src.ari.ari_orchestrator import ARIConfig, ARIOrchestrator
-from backend.src.ari.regional_knowledge import (
+from src.ari.ari_orchestrator import ARIConfig, ARIOrchestrator
+from src.ari.regional_knowledge import (
     EnvironmentType,
     KnowledgeStore,
     RegionalKnowledge,

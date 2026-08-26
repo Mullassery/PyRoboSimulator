@@ -3,7 +3,7 @@
 import time
 import pytest
 
-from backend.src.services.agent_memory import (
+from src.services.agent_memory import (
     AgentMemory,
     Emotion,
     MemoryEntry,

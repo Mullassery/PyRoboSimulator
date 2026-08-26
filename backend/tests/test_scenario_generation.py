@@ -2,7 +2,7 @@
 
 import pytest
 
-from backend.src.services.scenario_generation import (
+from src.services.scenario_generation import (
     AdvancedScenarioGenerator,
     CurriculumLesson,
     DifficultyLevel,

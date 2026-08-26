@@ -8,7 +8,7 @@ import logging
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional
 
-from backend.src.realtoism.rosbag_parser import (
+from src.realtoism.rosbag_parser import (
     RosBagParser,
     RosImage,
     RosPointCloud,

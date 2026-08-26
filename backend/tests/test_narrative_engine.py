@@ -3,7 +3,7 @@
 import pytest
 from unittest.mock import Mock, patch, MagicMock
 
-from backend.src.narratives import (
+from src.narratives import (
     Narrative,
     NarrativeType,
     NarrativeEntity,

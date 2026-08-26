@@ -7,7 +7,7 @@ Manages event sequencing, goal progress, and constraint monitoring.
 import logging
 from typing import Any, Dict, List, Optional, Tuple
 
-from backend.src.narratives.narrative_definitions import (
+from src.narratives.narrative_definitions import (
     Narrative,
     NarrativeEvent,
     NarrativeExecutionContext,

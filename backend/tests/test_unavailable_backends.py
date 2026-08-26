@@ -9,14 +9,14 @@ someone re-introducing the old silent-success stub behavior.
 
 import pytest
 
-from backend.src.simulators.backend_interface import (
+from src.simulators.backend_interface import (
     PhysicsEngineType,
     RenderingBackend,
     SimulatorConfig,
     SimulatorType,
 )
-from backend.src.simulators.gazebo_backend import GazeboBackend
-from backend.src.simulators.isaac_sim_backend import IsaacSimBackend
+from src.simulators.gazebo_backend import GazeboBackend
+from src.simulators.isaac_sim_backend import IsaacSimBackend
 
 
 class TestGazeboBackendHonesty:

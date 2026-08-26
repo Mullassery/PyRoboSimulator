@@ -9,7 +9,7 @@ import logging
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional, Tuple
 
-from backend.src.sensors.sensor_definitions import (
+from src.sensors.sensor_definitions import (
     SensorSpec,
     SensorType,
     SensorCategory,

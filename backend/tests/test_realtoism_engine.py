@@ -3,7 +3,7 @@
 import pytest
 from unittest.mock import Mock, patch, MagicMock
 
-from backend.src.realtoism import (
+from src.realtoism import (
     RosBagParser,
     RosPose,
     RosImage,

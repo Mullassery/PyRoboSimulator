@@ -8,8 +8,8 @@ import logging
 from dataclasses import dataclass
 from typing import Any, Dict, Optional, Tuple
 
-from backend.src.ari.ari_discovery import ARIDiscoveryEngine, DiscoverySource
-from backend.src.ari.regional_knowledge import (
+from src.ari.ari_discovery import ARIDiscoveryEngine, DiscoverySource
+from src.ari.regional_knowledge import (
     EnvironmentType,
     KnowledgeStore,
     RegionalKnowledge,

@@ -3,7 +3,7 @@
 import time
 import pytest
 
-from backend.src.services.environment_expectations import (
+from src.services.environment_expectations import (
     EnvironmentProfile,
     EnvironmentType,
     Expectation,

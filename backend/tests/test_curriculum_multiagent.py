@@ -1,7 +1,7 @@
 """Tests for Curriculum (Phase 8) and Multi-Agent (Phase 9) systems."""
 
 import pytest
-from backend.src.curriculum import (
+from src.curriculum import (
     DifficultyLevel,
     DifficultyFactors,
     LearnerProfile,
@@ -9,7 +9,7 @@ from backend.src.curriculum import (
     DifficultyModel,
     CurriculumScenarioGenerator,
 )
-from backend.src.multiagent import (
+from src.multiagent import (
     FormationType,
     AgentState,
     AgentCoordinator,

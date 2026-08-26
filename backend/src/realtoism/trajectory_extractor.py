@@ -12,7 +12,7 @@ from dataclasses import dataclass, field
 from typing import List, Optional, Tuple
 from math import sqrt
 
-from backend.src.realtoism.rosbag_parser import RosPose
+from src.realtoism.rosbag_parser import RosPose
 
 logger = logging.getLogger(__name__)
 

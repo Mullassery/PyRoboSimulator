@@ -24,7 +24,7 @@ real (see `backend/tests/test_mujoco_backend.py`).
 import logging
 from typing import Any, Dict, List, Optional, Tuple
 
-from backend.src.simulators.backend_interface import (
+from src.simulators.backend_interface import (
     ContactInfo, ObjectState, RobotConfig, RobotState, SensorConfig, SensorData,
     SimulationStep, SimulatorBackend, SimulatorConfig, SimulatorType, WorldConfig,
 )

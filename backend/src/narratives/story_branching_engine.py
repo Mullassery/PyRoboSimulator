@@ -8,7 +8,7 @@ import logging
 import random
 from typing import Any, Callable, Dict, List, Optional, Set, Tuple
 
-from backend.src.narratives.narrative_definitions import (
+from src.narratives.narrative_definitions import (
     Narrative,
     NarrativeBranch,
     NarrativeBranchPoint,

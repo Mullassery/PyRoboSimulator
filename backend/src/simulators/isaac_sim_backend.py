@@ -27,7 +27,7 @@ pip-installable, requires no GPU, and this backend integration is real
 import logging
 from typing import Any, Dict, List, Optional, Tuple
 
-from backend.src.simulators.backend_interface import (
+from src.simulators.backend_interface import (
     ContactInfo,
     ObjectState,
     PhysicsEngineType,

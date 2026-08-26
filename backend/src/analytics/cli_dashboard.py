@@ -18,7 +18,7 @@ from rich.table import Table
 from rich.console import Console
 from rich.live import Live
 
-from backend.src.analytics.metrics_collector import MetricsCollector
+from src.analytics.metrics_collector import MetricsCollector
 
 logger = logging.getLogger(__name__)
 

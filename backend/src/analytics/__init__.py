@@ -3,7 +3,7 @@
 Real-time metrics visualization and simulation monitoring using Textual.
 """
 
-from backend.src.analytics.metrics_collector import (
+from src.analytics.metrics_collector import (
     MetricsCollector,
     SimulationMetrics,
     PerformanceMetrics,
@@ -11,7 +11,7 @@ from backend.src.analytics.metrics_collector import (
     SensorMetrics,
     ValidationMetrics,
 )
-from backend.src.analytics.analytics_engine import AnalyticsEngine
+from src.analytics.analytics_engine import AnalyticsEngine
 
 # Optional CLI dashboard (requires textual)
 try:
