@@ -690,12 +690,7 @@ pytest  # Run tests
 
 ## License
 
-**Proprietary License** — See [LICENSE](LICENSE) file
-
-PyRoboSimulator is source-available: free to use, copy, modify, and distribute, provided explicit
-attribution to the original author is preserved in documentation and significant code comments. It is
-not MIT/Apache-licensed open source, despite what some other sections of this README (Comparison table,
-Citation) previously said — that was inaccurate and has been corrected.
+This project is licensed under the [Apache License 2.0](LICENSE).
 
 ---
 
