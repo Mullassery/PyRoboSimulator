@@ -67,6 +67,19 @@ code blocks below as backend-service examples, not pip-package examples, until i
   "Multi-Backend Physics" below.
 - **Backend test suite has known failures**, tracked not hidden — see "Testing & Quality" below for the
   current pass/fail breakdown.
+- **`isort`'s own config was broken** — `[tool.isort]` in `backend/pyproject.toml` set
+  `multi_line_mode = 3`, which isn't a real isort setting (the real one is `multi_line_output`); recent
+  isort versions raise `UnsupportedSettings` and refuse to run at all rather than silently ignoring it.
+  Fixed by removing the invalid key (`profile = "black"` already implies compatible wrapping). Running
+  isort for real afterward finds genuine sorting violations in ~15 test files — not fixed in this pass,
+  left as real, visible debt rather than auto-applied blind.
+- **`black --check` currently fails on 72 of 134 backend files** (`src/` + `tests/`) — verified directly,
+  not fixed in this pass. This is a large, mechanical-but-risky change to make without also re-running the
+  full test suite afterward to confirm nothing broke; left as disclosed debt rather than rushed.
+- **This README had a leftover "Dashboard"/"OpenTelemetry"/"Production Deployment" section cluster**
+  pointing at `DASHBOARD_SHORTCUTS.md`/`OTEL_SETUP_GUIDE.md`/`PRODUCTION_DEPLOYMENT.md` — none of which
+  exist in this repo. Same cross-repo template contamination (unfilled `dash-[package]-*` placeholders)
+  found and removed from several sibling repos during an org-wide audit; removed here too.
 
 ---
 
@@ -717,23 +730,3 @@ Built with Python, FastAPI, PostgreSQL, Redis, Kubernetes, and the open source c
 ---
 
 **PyRoboSimulator v0.11.0** | [GitHub](https://github.com/Mullassery/PyRoboSimulator) | [PyPI](https://pypi.org/project/pyrobosimulator/) | [Issues](https://github.com/Mullassery/PyRoboSimulator/issues)
-
-## Dashboard
-
-Real-time metrics with keyboard shortcuts:
-- `bash scripts/setup_shortcuts.sh` (one-time setup)
-- `dash-[package]` - Static snapshot
-- `dash-[package]-live` - Live monitoring
-- `dash-[package]-export` - Export to JSON
-
-See `DASHBOARD_SHORTCUTS.md`.
-
-## OpenTelemetry
-
-Export metrics to 6 backends: Prometheus, Datadog, Honeycomb, New Relic, Jaeger, X-Ray.
-
-See `OTEL_SETUP_GUIDE.md`.
-
-## Production Deployment
-
-Kubernetes and Docker ready. See `PRODUCTION_DEPLOYMENT.md`.

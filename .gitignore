@@ -52,3 +52,6 @@ dump.rdb
 
 # MuJoCo (written to CWD by the mujoco package on GL warnings)
 MUJOCO_LOG.TXT
+
+# pytest-cov artifact, shouldn't be committed
+coverage.xml

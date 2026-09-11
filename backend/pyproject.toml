@@ -105,7 +105,6 @@ exclude = '''
 [tool.isort]
 profile = "black"
 line_length = 100
-multi_line_mode = 3
 include_trailing_comma = true
 
 [tool.mypy]
