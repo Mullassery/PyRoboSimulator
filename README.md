@@ -7,7 +7,7 @@ A source-available simulation engine built for developers and researchers who ne
 > **TL;DR**: Multi-agent physics simulation with realistic sensors (RGB, Depth, Lidar, Thermal) and a real MuJoCo backend, plus an in-development REST API with Kubernetes deployment manifests. Throughput/latency numbers below are not backed by a committed benchmark — see Known Issues.
 
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
-[![License: Proprietary](https://img.shields.io/badge/License-Proprietary-lightgrey.svg)](LICENSE)
+[![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 [![CI/CD](https://github.com/Mullassery/PyRoboSimulator/actions/workflows/ci-cd.yaml/badge.svg)](https://github.com/Mullassery/PyRoboSimulator/actions/workflows/ci-cd.yaml)
 [![codecov](https://codecov.io/gh/Mullassery/PyRoboSimulator/branch/main/graph/badge.svg)](https://codecov.io/gh/Mullassery/PyRoboSimulator)
 [![Dependencies OSS](https://img.shields.io/badge/dependencies-100%25%20OSS-brightgreen.svg)](backend/docs/OSS_COMPLIANCE.md)
@@ -25,7 +25,7 @@ A source-available simulation engine built for developers and researchers who ne
 
 **Real MuJoCo physics backend:** loads actual MJCF/URDF models and steps real dynamics (see "Multi-Backend Physics" below) — not a stub.
 
-**Dependencies are 100% OSS-licensed:** 52 audited dependencies, all permissive/OSS licenses — see [OSS Compliance Audit](backend/docs/OSS_COMPLIANCE.md). The project's own license is Proprietary (see License below); this claim is about third-party dependencies, not this codebase's license.
+**Dependencies are 100% OSS-licensed:** 52 audited dependencies, all permissive/OSS licenses — see [OSS Compliance Audit](backend/docs/OSS_COMPLIANCE.md). This codebase itself is Apache License 2.0 (see License below).
 
 **Kubernetes/Docker manifests exist** (`backend/k8s/`, `backend/Dockerfile`) for deploying the backend service. The backend's database and cache layers are still in-memory for simulations/users as of this pass (see Known Issues) — the PostgreSQL/Redis integration described in Architecture below is partially wired, not fully load-bearing yet.
 
@@ -570,9 +570,9 @@ See [Deployment Guide](backend/docs/DEPLOYMENT.md) for detailed instructions.
 | **Database Integration** | Yes (PostgreSQL) | No | No | No |
 | **Caching Layer** | Yes (Redis) | No | No | No |
 | **Multi-Modal Sensors** | RGB, Depth, Lidar, Thermal | RGB, Depth, Lidar | Camera, IMU, GPS | RGB, Depth, Lidar |
-| **License** | Proprietary (source-available) | MIT | Apache 2.0 | MIT |
+| **License** | Apache 2.0 | MIT | Apache 2.0 | MIT |
 | **Production Monitoring** | Prometheus/Grafana | No | No | No |
-| **Open Source** | No (Proprietary, source-available; 100% of *dependencies* are OSS-licensed) | Partial | Yes | Partial |
+| **Open Source** | Yes (Apache 2.0) | Partial | Yes | Partial |
 
 ---
 
@@ -704,7 +704,7 @@ If you use PyRoboSimulator in your research, please cite:
   title = {PyRoboSimulator: Production-Grade World Simulation for Autonomous Systems},
   year = {2024},
   url = {https://github.com/Mullassery/PyRoboSimulator},
-  license = {Proprietary}
+  license = {Apache-2.0}
 }
 ```
 
