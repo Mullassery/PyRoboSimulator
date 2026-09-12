@@ -1,7 +1,6 @@
 """Tests for Environment Expectation Modeling Framework (Phase 3)."""
 
 import time
-import pytest
 
 from src.services.environment_expectations import (
     EnvironmentProfile,

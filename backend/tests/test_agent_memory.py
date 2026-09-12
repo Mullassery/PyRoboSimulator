@@ -1,15 +1,8 @@
 """Tests for Phase 2.3: Agent Memory & State."""
 
 import time
-import pytest
 
-from src.services.agent_memory import (
-    AgentMemory,
-    Emotion,
-    MemoryEntry,
-    MemoryType,
-    Relationship,
-)
+from src.services.agent_memory import AgentMemory, Emotion, MemoryEntry, MemoryType, Relationship
 
 
 class TestMemoryEntry:

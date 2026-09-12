@@ -1,6 +1,6 @@
 """Tests for authentication and token management."""
 
-import pytest
+
 from src.services.auth import AuthService
 
 

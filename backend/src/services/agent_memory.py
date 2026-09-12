@@ -8,7 +8,7 @@ import logging
 import time
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Dict, List, Optional, Set, Tuple
+from typing import Any, Dict, List, Optional, Set
 
 logger = logging.getLogger(__name__)
 
@@ -511,9 +511,7 @@ class AgentMemory:
         """
         if len(store) > self.memory_capacity:
             # Remove least important accessible memories
-            removable = [
-                (mem_id, mem) for mem_id, mem in store.items() if mem.is_accessible()
-            ]
+            removable = [(mem_id, mem) for mem_id, mem in store.items() if mem.is_accessible()]
             removable.sort(key=lambda x: x[1].get_strength())
 
             for mem_id, _ in removable[: len(store) - self.memory_capacity]:

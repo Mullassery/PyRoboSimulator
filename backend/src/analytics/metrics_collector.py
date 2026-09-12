@@ -8,10 +8,10 @@ Collects and aggregates metrics from:
 """
 
 import logging
-from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional
 from collections import deque
+from dataclasses import dataclass, field
 from datetime import datetime
+from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -19,6 +19,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class SimulationMetrics:
     """Instantaneous simulation metrics."""
+
     timestamp_sec: float
     elapsed_time_sec: float
     current_position: tuple  # (x, y, z)
@@ -35,6 +36,7 @@ class SimulationMetrics:
 @dataclass
 class PerformanceMetrics:
     """Performance and efficiency metrics."""
+
     simulation_fps: float
     average_frame_time_ms: float
     cpu_usage_pct: float
@@ -46,6 +48,7 @@ class PerformanceMetrics:
 @dataclass
 class NarrativeMetrics:
     """Narrative execution metrics."""
+
     narrative_id: str
     narrative_type: str
     current_sequence: int
@@ -60,6 +63,7 @@ class NarrativeMetrics:
 @dataclass
 class SensorMetrics:
     """Sensor data metrics."""
+
     sensor_name: str
     sensor_type: str  # "camera", "lidar", "imu", "gps"
     total_frames: int
@@ -72,6 +76,7 @@ class SensorMetrics:
 @dataclass
 class ValidationMetrics:
     """Validation and error metrics."""
+
     real_vs_sim_distance_error: float  # %
     real_vs_sim_velocity_error: float  # %
     real_vs_sim_time_error: float  # %
@@ -175,7 +180,11 @@ class MetricsCollector:
             Dictionary of sensor metrics
         """
         if sensor_name:
-            return {sensor_name: self._sensor_metrics[sensor_name]} if sensor_name in self._sensor_metrics else {}
+            return (
+                {sensor_name: self._sensor_metrics[sensor_name]}
+                if sensor_name in self._sensor_metrics
+                else {}
+            )
 
         return self._sensor_metrics
 
@@ -187,7 +196,9 @@ class MetricsCollector:
         """
         return self._validation_metrics
 
-    def get_simulation_history(self, duration_sec: Optional[float] = None) -> List[SimulationMetrics]:
+    def get_simulation_history(
+        self, duration_sec: Optional[float] = None
+    ) -> List[SimulationMetrics]:
         """Get simulation metrics history.
 
         Args:

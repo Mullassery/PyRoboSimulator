@@ -9,8 +9,8 @@ Parses ROS bag recordings of real robot executions to extract:
 
 import logging
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, Tuple
 from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -18,6 +18,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class RosMessage:
     """Single ROS message from bag."""
+
     topic: str
     timestamp_sec: float
     message_type: str
@@ -28,6 +29,7 @@ class RosMessage:
 @dataclass
 class RosPose:
     """Robot pose from TF or Odometry."""
+
     timestamp_sec: float
     frame_id: str
     position: Tuple[float, float, float]  # x, y, z
@@ -40,6 +42,7 @@ class RosPose:
 @dataclass
 class RosImage:
     """Image message from camera."""
+
     timestamp_sec: float
     frame_id: str
     camera_name: str
@@ -53,6 +56,7 @@ class RosImage:
 @dataclass
 class RosPointCloud:
     """Point cloud from LiDAR."""
+
     timestamp_sec: float
     frame_id: str
     lidar_name: str
@@ -65,6 +69,7 @@ class RosPointCloud:
 @dataclass
 class RosImu:
     """Inertial measurement unit data."""
+
     timestamp_sec: float
     frame_id: str
     imu_name: str
@@ -78,6 +83,7 @@ class RosImu:
 @dataclass
 class RosGps:
     """GPS/GNSS data."""
+
     timestamp_sec: float
     frame_id: str
     gps_name: str
@@ -91,6 +97,7 @@ class RosGps:
 @dataclass
 class RosBagMetadata:
     """Metadata about a ROS bag file."""
+
     filename: str
     duration_sec: float
     message_count: int
@@ -129,6 +136,7 @@ class RosBagParser:
 
         try:
             import rosbag
+
             bag = rosbag.Bag(bag_path)
         except ImportError:
             logger.warning("rosbag not available, using mock parser")
@@ -181,7 +189,7 @@ class RosBagParser:
     def _parse_pose_message(self, topic: str, msg: Any, timestamp: float) -> None:
         """Parse pose/odometry message."""
         try:
-            if hasattr(msg, 'pose'):
+            if hasattr(msg, "pose"):
                 # Odometry message
                 pose = msg.pose.pose
                 position = (pose.position.x, pose.position.y, pose.position.z)
@@ -193,7 +201,7 @@ class RosBagParser:
                 )
 
                 velocity = None
-                if hasattr(msg, 'twist'):
+                if hasattr(msg, "twist"):
                     velocity = (
                         msg.twist.twist.linear.x,
                         msg.twist.twist.linear.y,
@@ -202,14 +210,14 @@ class RosBagParser:
 
                 ros_pose = RosPose(
                     timestamp_sec=timestamp,
-                    frame_id=msg.header.frame_id if hasattr(msg, 'header') else "base_link",
+                    frame_id=msg.header.frame_id if hasattr(msg, "header") else "base_link",
                     position=position,
                     orientation=orientation,
                     velocity=velocity,
                 )
 
                 self._poses.append(ros_pose)
-            elif hasattr(msg, 'transform'):
+            elif hasattr(msg, "transform"):
                 # TF message
                 tf = msg.transform
                 position = (tf.translation.x, tf.translation.y, tf.translation.z)
@@ -217,7 +225,7 @@ class RosBagParser:
 
                 ros_pose = RosPose(
                     timestamp_sec=timestamp,
-                    frame_id=msg.child_frame_id if hasattr(msg, 'child_frame_id') else "base_link",
+                    frame_id=msg.child_frame_id if hasattr(msg, "child_frame_id") else "base_link",
                     position=position,
                     orientation=orientation,
                 )
@@ -233,12 +241,12 @@ class RosBagParser:
 
             image = RosImage(
                 timestamp_sec=timestamp,
-                frame_id=msg.header.frame_id if hasattr(msg, 'header') else camera_name,
+                frame_id=msg.header.frame_id if hasattr(msg, "header") else camera_name,
                 camera_name=camera_name,
                 width=msg.width,
                 height=msg.height,
-                encoding=msg.encoding if hasattr(msg, 'encoding') else "bgr8",
-                data=msg.data if hasattr(msg, 'data') else None,
+                encoding=msg.encoding if hasattr(msg, "encoding") else "bgr8",
+                data=msg.data if hasattr(msg, "data") else None,
             )
 
             self._images.append(image)
@@ -252,17 +260,17 @@ class RosBagParser:
 
             # Extract field names
             fields = []
-            if hasattr(msg, 'fields'):
+            if hasattr(msg, "fields"):
                 fields = [f.name for f in msg.fields]
 
             cloud = RosPointCloud(
                 timestamp_sec=timestamp,
-                frame_id=msg.header.frame_id if hasattr(msg, 'header') else lidar_name,
+                frame_id=msg.header.frame_id if hasattr(msg, "header") else lidar_name,
                 lidar_name=lidar_name,
-                point_count=msg.width * msg.height if hasattr(msg, 'width') else len(msg.data) // 4,
+                point_count=msg.width * msg.height if hasattr(msg, "width") else len(msg.data) // 4,
                 fields=fields,
-                data=msg.data if hasattr(msg, 'data') else None,
-                is_dense=msg.is_dense if hasattr(msg, 'is_dense') else True,
+                data=msg.data if hasattr(msg, "data") else None,
+                is_dense=msg.is_dense if hasattr(msg, "is_dense") else True,
             )
 
             self._point_clouds.append(cloud)
@@ -275,19 +283,19 @@ class RosBagParser:
             imu_name = topic.split("/")[-2] if "/" in topic else "imu"
 
             linear_acc = (
-                msg.linear_acceleration.x if hasattr(msg, 'linear_acceleration') else 0.0,
-                msg.linear_acceleration.y if hasattr(msg, 'linear_acceleration') else 0.0,
-                msg.linear_acceleration.z if hasattr(msg, 'linear_acceleration') else 0.0,
+                msg.linear_acceleration.x if hasattr(msg, "linear_acceleration") else 0.0,
+                msg.linear_acceleration.y if hasattr(msg, "linear_acceleration") else 0.0,
+                msg.linear_acceleration.z if hasattr(msg, "linear_acceleration") else 0.0,
             )
 
             angular_vel = (
-                msg.angular_velocity.x if hasattr(msg, 'angular_velocity') else 0.0,
-                msg.angular_velocity.y if hasattr(msg, 'angular_velocity') else 0.0,
-                msg.angular_velocity.z if hasattr(msg, 'angular_velocity') else 0.0,
+                msg.angular_velocity.x if hasattr(msg, "angular_velocity") else 0.0,
+                msg.angular_velocity.y if hasattr(msg, "angular_velocity") else 0.0,
+                msg.angular_velocity.z if hasattr(msg, "angular_velocity") else 0.0,
             )
 
             orientation = None
-            if hasattr(msg, 'orientation'):
+            if hasattr(msg, "orientation"):
                 orientation = (
                     msg.orientation.x,
                     msg.orientation.y,
@@ -297,7 +305,7 @@ class RosBagParser:
 
             imu = RosImu(
                 timestamp_sec=timestamp,
-                frame_id=msg.header.frame_id if hasattr(msg, 'header') else imu_name,
+                frame_id=msg.header.frame_id if hasattr(msg, "header") else imu_name,
                 imu_name=imu_name,
                 linear_acceleration=linear_acc,
                 angular_velocity=angular_vel,
@@ -313,13 +321,13 @@ class RosBagParser:
         try:
             gps_name = topic.split("/")[-2] if "/" in topic else "gps"
 
-            latitude = msg.latitude if hasattr(msg, 'latitude') else 0.0
-            longitude = msg.longitude if hasattr(msg, 'longitude') else 0.0
-            altitude = msg.altitude if hasattr(msg, 'altitude') else 0.0
+            latitude = msg.latitude if hasattr(msg, "latitude") else 0.0
+            longitude = msg.longitude if hasattr(msg, "longitude") else 0.0
+            altitude = msg.altitude if hasattr(msg, "altitude") else 0.0
 
             gps = RosGps(
                 timestamp_sec=timestamp,
-                frame_id=msg.header.frame_id if hasattr(msg, 'header') else gps_name,
+                frame_id=msg.header.frame_id if hasattr(msg, "header") else gps_name,
                 gps_name=gps_name,
                 latitude=latitude,
                 longitude=longitude,
@@ -344,10 +352,10 @@ class RosBagParser:
 
             # Try to extract basic attributes
             for attr in dir(msg):
-                if not attr.startswith('_') and not callable(getattr(msg, attr)):
+                if not attr.startswith("_") and not callable(getattr(msg, attr)):
                     try:
                         ros_msg.data[attr] = str(getattr(msg, attr))
-                    except:
+                    except Exception:
                         pass
 
             self._messages.append(ros_msg)
@@ -378,7 +386,7 @@ class RosBagParser:
         for i in range(100):
             t = i * 0.6
             x = t * 0.5
-            y = 0.2 * (t ** 0.5)
+            y = 0.2 * (t**0.5)
             z = 0.0
 
             pose = RosPose(
@@ -453,7 +461,6 @@ class RosBagParser:
         """
         if topic:
             return sorted(
-                [m for m in self._messages if m.topic == topic],
-                key=lambda m: m.timestamp_sec
+                [m for m in self._messages if m.topic == topic], key=lambda m: m.timestamp_sec
             )
         return sorted(self._messages, key=lambda m: m.timestamp_sec)

@@ -7,11 +7,7 @@ Implements dependency injection and factory patterns for clean architecture.
 import logging
 from typing import Dict, Optional, Type
 
-from src.simulators.backend_interface import (
-    SimulatorBackend,
-    SimulatorConfig,
-    SimulatorType,
-)
+from src.simulators.backend_interface import SimulatorBackend, SimulatorConfig, SimulatorType
 
 logger = logging.getLogger(__name__)
 
@@ -36,9 +32,7 @@ class BackendFactory:
             ValueError: If backend_class is not a SimulatorBackend subclass
         """
         if not issubclass(backend_class, SimulatorBackend):
-            raise ValueError(
-                f"{backend_class} must be a subclass of SimulatorBackend"
-            )
+            raise ValueError(f"{backend_class} must be a subclass of SimulatorBackend")
 
         self._backends[simulator_type] = backend_class
         logger.info(f"Registered backend: {simulator_type.value} -> {backend_class.__name__}")
@@ -263,9 +257,7 @@ class BackendContext:
             backend.step()
     """
 
-    def __init__(
-        self, config: SimulatorConfig, factory: Optional[BackendFactory] = None
-    ):
+    def __init__(self, config: SimulatorConfig, factory: Optional[BackendFactory] = None):
         """Initialize context.
 
         Args:

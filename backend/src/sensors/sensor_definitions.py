@@ -225,11 +225,13 @@ class SensorSpec:
     detection_range_max: float = 100.0
 
     # Mounting
-    mount_point: SensorMountPoint = field(default_factory=lambda: SensorMountPoint(
-        frame="base_link",
-        position=(0.0, 0.0, 0.0),
-        orientation=(0.0, 0.0, 0.0, 1.0),
-    ))
+    mount_point: SensorMountPoint = field(
+        default_factory=lambda: SensorMountPoint(
+            frame="base_link",
+            position=(0.0, 0.0, 0.0),
+            orientation=(0.0, 0.0, 0.0, 1.0),
+        )
+    )
 
     # Noise and degradation
     noise_model: SensorNoiseModel = field(default_factory=SensorNoiseModel)
@@ -303,6 +305,130 @@ class SensorRegistry:
             description="9-DoF IMU (accel, gyro, mag)",
             frequency_hz=100.0,
             detection_range_max=0.0,  # N/A for IMU
+        ),
+        SensorType.GPS: SensorSpec(
+            sensor_id="gps_default",
+            sensor_type=SensorType.GPS,
+            category=SensorCategory.GNSS,
+            name="GPS",
+            description="Standard single-frequency GNSS receiver (u-blox M8N class)",
+            frequency_hz=10.0,
+            detection_range_max=0.0,  # N/A for GNSS
+            noise_model=SensorNoiseModel(
+                gaussian_noise=2.5,  # ~2.5m CEP horizontal accuracy, autonomous mode
+                dropout_probability=0.01,  # occasional fix loss (urban canyon, foliage)
+            ),
+        ),
+        SensorType.RTK_GPS: SensorSpec(
+            sensor_id="rtk_gps_default",
+            sensor_type=SensorType.RTK_GPS,
+            category=SensorCategory.GNSS,
+            name="RTK GPS",
+            description="Real-Time Kinematic GNSS receiver with correction stream",
+            frequency_hz=10.0,
+            detection_range_max=0.0,  # N/A for GNSS
+            noise_model=SensorNoiseModel(
+                gaussian_noise=0.02,  # ~2cm accuracy with RTK fixed solution
+                dropout_probability=0.03,  # RTK fix loss reverts to float/autonomous
+            ),
+        ),
+        SensorType.STEREO_CAMERA: SensorSpec(
+            sensor_id="stereo_camera_default",
+            sensor_type=SensorType.STEREO_CAMERA,
+            category=SensorCategory.VISION,
+            name="Stereo Camera",
+            description="Stereo camera pair with depth-from-disparity output",
+            frequency_hz=30.0,
+            resolution_x=1280,
+            resolution_y=720,
+            field_of_view_h=90.0,
+            field_of_view_v=60.0,
+            detection_range_min=0.3,
+            detection_range_max=20.0,
+        ),
+        SensorType.TIME_OF_FLIGHT: SensorSpec(
+            sensor_id="time_of_flight_default",
+            sensor_type=SensorType.TIME_OF_FLIGHT,
+            category=SensorCategory.DEPTH,
+            name="Time-of-Flight Camera",
+            description="ToF depth camera (Azure Kinect / PMD class)",
+            frequency_hz=30.0,
+            resolution_x=640,
+            resolution_y=480,
+            field_of_view_h=70.0,
+            field_of_view_v=60.0,
+            detection_range_min=0.5,
+            detection_range_max=5.0,
+        ),
+        SensorType.WHEEL_ENCODER: SensorSpec(
+            sensor_id="wheel_encoder_default",
+            sensor_type=SensorType.WHEEL_ENCODER,
+            category=SensorCategory.WHEEL_ENCODER,
+            name="Wheel Encoder",
+            description="Incremental rotary encoder for wheel odometry",
+            frequency_hz=100.0,
+            detection_range_max=0.0,  # N/A for encoders
+        ),
+        SensorType.STEERING_ENCODER: SensorSpec(
+            sensor_id="steering_encoder_default",
+            sensor_type=SensorType.STEERING_ENCODER,
+            category=SensorCategory.STEERING_ENCODER,
+            name="Steering Encoder",
+            description="Absolute rotary encoder for steering angle feedback",
+            frequency_hz=100.0,
+            detection_range_max=0.0,  # N/A for encoders
+        ),
+        SensorType.FORCE_TORQUE_SENSOR: SensorSpec(
+            sensor_id="force_torque_sensor_default",
+            sensor_type=SensorType.FORCE_TORQUE_SENSOR,
+            category=SensorCategory.FORCE_TORQUE,
+            name="Force/Torque Sensor",
+            description="6-axis end-effector force/torque sensor (ATI Mini class)",
+            frequency_hz=500.0,
+            detection_range_max=0.0,  # N/A - reports force/torque, not distance
+            noise_model=SensorNoiseModel(gaussian_noise=0.05),
+        ),
+        SensorType.TACTILE_SENSOR: SensorSpec(
+            sensor_id="tactile_sensor_default",
+            sensor_type=SensorType.TACTILE_SENSOR,
+            category=SensorCategory.TACTILE,
+            name="Tactile Sensor",
+            description="Contact pressure array (fingertip/gripper skin)",
+            frequency_hz=100.0,
+            detection_range_max=0.0,  # N/A - contact sensor, not ranging
+        ),
+        SensorType.WIND_SENSOR: SensorSpec(
+            sensor_id="wind_sensor_default",
+            sensor_type=SensorType.WIND_SENSOR,
+            category=SensorCategory.ENVIRONMENTAL,
+            name="Wind Sensor",
+            description="Anemometer for airspeed/wind estimation",
+            frequency_hz=10.0,
+            detection_range_max=0.0,  # N/A - reports speed, not distance
+            noise_model=SensorNoiseModel(gaussian_noise=0.2),
+        ),
+        SensorType.SONAR: SensorSpec(
+            sensor_id="sonar_default",
+            sensor_type=SensorType.SONAR,
+            category=SensorCategory.SPECIALIZED,
+            name="Sonar",
+            description="Mechanical scanning sonar for underwater ranging",
+            frequency_hz=10.0,
+            field_of_view_h=20.0,
+            field_of_view_v=20.0,
+            detection_range_min=0.5,
+            detection_range_max=50.0,
+        ),
+        SensorType.DVL: SensorSpec(
+            sensor_id="dvl_default",
+            sensor_type=SensorType.DVL,
+            category=SensorCategory.SPECIALIZED,
+            name="Doppler Velocity Log",
+            description="Acoustic Doppler velocity/altitude sensor for underwater dead reckoning",
+            frequency_hz=5.0,
+            detection_range_min=0.5,
+            detection_range_max=100.0,  # bottom-lock altitude range
+            noise_model=SensorNoiseModel(gaussian_noise=0.01),  # ~1cm/s velocity accuracy
         ),
         SensorType.THERMAL_CAMERA: SensorSpec(
             sensor_id="thermal_camera_default",

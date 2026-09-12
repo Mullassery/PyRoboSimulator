@@ -1,15 +1,8 @@
 """Tests for Phase 1C.8: World Streaming from Python to UE5."""
 
 import json
-import pytest
 
-from src.services.world_streaming import (
-    Mesh,
-    Obstacle,
-    Vector3,
-    WorldChunk,
-    WorldStreamingService,
-)
+from src.services.world_streaming import Mesh, Obstacle, Vector3, WorldChunk, WorldStreamingService
 
 
 class TestVector3:

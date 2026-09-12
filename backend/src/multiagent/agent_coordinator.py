@@ -5,33 +5,36 @@ Coordinates multiple robots/agents in simulation with shared learning.
 
 import logging
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, Set, Tuple
 from enum import Enum
+from typing import Any, Dict, List, Optional, Set, Tuple
 
 logger = logging.getLogger(__name__)
 
 
 class AgentCommunicationType(Enum):
     """Types of inter-agent communication."""
+
     BROADCAST = "broadcast"  # One-to-all
-    TARGETED = "targeted"    # One-to-one
+    TARGETED = "targeted"  # One-to-one
     HIERARCHICAL = "hierarchical"  # Through leader
     CONSENSUS = "consensus"  # Vote-based decision
 
 
 class FormationType(Enum):
     """Formation types for multi-agent coordination."""
-    SWARM = "swarm"          # Distributed collective
-    LINE = "line"            # Linear arrangement
-    CIRCLE = "circle"        # Circular arrangement
-    GRID = "grid"            # Grid pattern
+
+    SWARM = "swarm"  # Distributed collective
+    LINE = "line"  # Linear arrangement
+    CIRCLE = "circle"  # Circular arrangement
+    GRID = "grid"  # Grid pattern
     HIERARCHY = "hierarchy"  # Leader-follower
-    SCOUT = "scout"          # Leader with scouts
+    SCOUT = "scout"  # Leader with scouts
 
 
 @dataclass
 class AgentState:
     """State of a single agent in multi-agent system."""
+
     agent_id: str
     position: Tuple[float, float, float]
     velocity: Tuple[float, float, float]
@@ -46,6 +49,7 @@ class AgentState:
 @dataclass
 class AgentMessage:
     """Message between agents."""
+
     sender_id: str
     recipient_id: str
     message_type: str  # "goal", "observation", "request", "response"
@@ -56,6 +60,7 @@ class AgentMessage:
 @dataclass
 class CollectiveKnowledge:
     """Shared knowledge pool for fleet learning."""
+
     team_id: str
     visited_locations: Set[Tuple[float, float]] = field(default_factory=set)
     detected_obstacles: List[Tuple[float, float, float]] = field(default_factory=list)
@@ -149,9 +154,7 @@ class AgentCoordinator:
                 self._collective_knowledge.visited_locations.add((loc[0], loc[1]))
 
             if "obstacles" in observations:
-                self._collective_knowledge.detected_obstacles.extend(
-                    observations["obstacles"]
-                )
+                self._collective_knowledge.detected_obstacles.extend(observations["obstacles"])
 
         # Record path
         agent.path_taken.append(position)
@@ -316,9 +319,7 @@ class AgentCoordinator:
             agent_id: Agent that failed
             action: Action that failed
         """
-        self._collective_knowledge.failed_actions.append(
-            {"agent_id": agent_id, "action": action}
-        )
+        self._collective_knowledge.failed_actions.append({"agent_id": agent_id, "action": action})
 
     def get_collective_knowledge(self) -> CollectiveKnowledge:
         """Get collective knowledge pool.
@@ -346,10 +347,7 @@ class AgentCoordinator:
                 sum(p[2] for p in positions) / len(positions),
             )
 
-            distances = [
-                sum((p[i] - avg_pos[i]) ** 2 for i in range(3)) ** 0.5
-                for p in positions
-            ]
+            distances = [sum((p[i] - avg_pos[i]) ** 2 for i in range(3)) ** 0.5 for p in positions]
             max_dist = max(distances)
             cohesion = 1.0 / (1.0 + max_dist)
         else:

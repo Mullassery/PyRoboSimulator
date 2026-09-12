@@ -144,7 +144,9 @@ def apply_color_grading(image: np.ndarray, preset: str) -> np.ndarray:
     return np.clip(result, 0, 255).astype(image.dtype)
 
 
-def add_gaussian_noise(array: np.ndarray, sigma: float, value_min: float, value_max: float) -> np.ndarray:
+def add_gaussian_noise(
+    array: np.ndarray, sigma: float, value_min: float, value_max: float
+) -> np.ndarray:
     """Add Gaussian noise to an array, clipped to range.
 
     Args:

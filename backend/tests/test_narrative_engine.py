@@ -1,29 +1,30 @@
 """Tests for Narrative Simulation Engine - Phase 6."""
 
+from unittest.mock import MagicMock, Mock, patch
+
 import pytest
-from unittest.mock import Mock, patch, MagicMock
 
 from src.narratives import (
-    Narrative,
-    NarrativeType,
-    NarrativeEntity,
-    NarrativeGoal,
-    NarrativeEvent,
-    NarrativeEventType,
-    NarrativeSequence,
-    NarrativeConstraint,
-    NarrativeExecutionContext,
-    AgentRole,
-    NarrativeBranch,
-    NarrativeConverter,
-    NarrativeExecutor,
     AgentBehaviorInterpreter,
-    BehaviorPrimitive,
+    AgentRole,
     BehaviorPlan,
-    StoryBranchingEngine,
+    BehaviorPrimitive,
     BranchCondition,
     BranchPath,
+    Narrative,
+    NarrativeBranch,
+    NarrativeConstraint,
+    NarrativeConverter,
+    NarrativeEntity,
+    NarrativeEvent,
+    NarrativeEventType,
+    NarrativeExecutionContext,
+    NarrativeExecutor,
+    NarrativeGoal,
+    NarrativeSequence,
+    NarrativeType,
     NarrativeValidator,
+    StoryBranchingEngine,
 )
 
 
@@ -94,7 +95,11 @@ class TestNarrativeDefinitions:
 
         sequence.add_event(event)
 
-        assert sequence.get_sensor_count() if hasattr(sequence, 'get_sensor_count') else len(sequence.events) == 1
+        assert (
+            sequence.get_sensor_count()
+            if hasattr(sequence, "get_sensor_count")
+            else len(sequence.events) == 1
+        )
         assert sequence.duration_sec >= 0.0
 
     def test_narrative_constraint_creation(self):
@@ -189,9 +194,11 @@ class TestNarrativeConverter:
         # Mock the API response
         mock_response = MagicMock()
         mock_response.content = [MagicMock()]
-        mock_response.content[0].text = '{"title": "Test", "type": "delivery_mission", "difficulty": 0.5}'
+        mock_response.content[
+            0
+        ].text = '{"title": "Test", "type": "delivery_mission", "difficulty": 0.5}'
 
-        with patch.object(converter._client.messages, 'create', return_value=mock_response):
+        with patch.object(converter._client.messages, "create", return_value=mock_response):
             metadata = converter._extract_metadata("test narrative")
 
             assert metadata["title"] == "Test"
@@ -206,7 +213,7 @@ class TestNarrativeConverter:
         mock_response.content = [MagicMock()]
         mock_response.content[0].text = "invalid json"
 
-        with patch.object(converter._client.messages, 'create', return_value=mock_response):
+        with patch.object(converter._client.messages, "create", return_value=mock_response):
             metadata = converter._extract_metadata("test narrative")
 
             assert "title" in metadata
@@ -344,12 +351,14 @@ class TestAgentBehaviorInterpreter:
         plan = BehaviorPlan("robot_0", "plan_0")
 
         for i in range(3):
-            plan.add_primitive(BehaviorPrimitive(
-                behavior_id=f"action_{i}",
-                behavior_type="action",
-                description=f"Action {i}",
-                parameters={},
-            ))
+            plan.add_primitive(
+                BehaviorPrimitive(
+                    behavior_id=f"action_{i}",
+                    behavior_type="action",
+                    description=f"Action {i}",
+                    parameters={},
+                )
+            )
 
         assert not plan.is_complete()
 
@@ -459,7 +468,9 @@ class TestStoryBranchingEngine:
         seq = NarrativeSequence("seq_0", "Test", "")
         paths = [BranchPath("path_0", "Path 0", seq)]
 
-        engine.add_branch_point("narr_0", Mock(branch_id="branch_0", branch_type=NarrativeBranch.LINEAR), paths)
+        engine.add_branch_point(
+            "narr_0", Mock(branch_id="branch_0", branch_type=NarrativeBranch.LINEAR), paths
+        )
         engine.evaluate_branch("narr_0", "branch_0", {}, 0.0)
 
         history = engine.get_decision_history()
@@ -474,8 +485,12 @@ class TestStoryBranchingEngine:
         seq = NarrativeSequence("seq_0", "Test", "")
         paths = [BranchPath("path_0", "Path 0", seq)]
 
-        engine.add_branch_point("narr_0", Mock(branch_id="b1", branch_type=NarrativeBranch.LINEAR), paths)
-        engine.add_branch_point("narr_0", Mock(branch_id="b2", branch_type=NarrativeBranch.LINEAR), paths)
+        engine.add_branch_point(
+            "narr_0", Mock(branch_id="b1", branch_type=NarrativeBranch.LINEAR), paths
+        )
+        engine.add_branch_point(
+            "narr_0", Mock(branch_id="b2", branch_type=NarrativeBranch.LINEAR), paths
+        )
 
         engine.evaluate_branch("narr_0", "b1", {}, 0.0)
         engine.evaluate_branch("narr_0", "b2", {}, 1.0)

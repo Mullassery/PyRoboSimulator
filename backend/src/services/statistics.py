@@ -2,16 +2,16 @@
 Real-time simulation statistics calculation and tracking.
 """
 
-from dataclasses import dataclass, asdict
-from typing import Dict, List, Optional
-from collections import defaultdict, deque
-from datetime import datetime, timedelta
 import time
+from collections import deque
+from dataclasses import asdict, dataclass
+from typing import Dict, List
 
 
 @dataclass
 class AgentStateDistribution:
     """Distribution of agent states."""
+
     moving: int = 0
     idle: int = 0
     goal_reached: int = 0
@@ -26,6 +26,7 @@ class AgentStateDistribution:
 @dataclass
 class EventRates:
     """Event rates per second."""
+
     collisions_per_sec: float = 0.0
     goals_reached_per_sec: float = 0.0
     state_changes_per_sec: float = 0.0
@@ -34,6 +35,7 @@ class EventRates:
 @dataclass
 class SimulationStats:
     """Complete simulation statistics snapshot."""
+
     timestamp_ms: int
     active_agents: int
     total_agents: int
@@ -154,9 +156,13 @@ class StatisticsCalculator:
                 state_dist.other += 1
 
         # Event rates
-        collision_rate = len(self.collision_events) / self.window_size if self.window_size > 0 else 0
+        collision_rate = (
+            len(self.collision_events) / self.window_size if self.window_size > 0 else 0
+        )
         goal_rate = len(self.goal_events) / self.window_size if self.window_size > 0 else 0
-        state_change_rate = len(self.state_change_events) / self.window_size if self.window_size > 0 else 0
+        state_change_rate = (
+            len(self.state_change_events) / self.window_size if self.window_size > 0 else 0
+        )
 
         event_rates = EventRates(
             collisions_per_sec=collision_rate,
@@ -185,8 +191,8 @@ class StatisticsCalculator:
         """
         stats = self.get_statistics()
         result = asdict(stats)
-        result['agent_state_distribution'] = asdict(stats.agent_state_distribution)
-        result['event_rates'] = asdict(stats.event_rates)
+        result["agent_state_distribution"] = asdict(stats.agent_state_distribution)
+        result["event_rates"] = asdict(stats.event_rates)
         return result
 
 
@@ -264,7 +270,7 @@ class StatisticsAggregator:
         result = []
         for stats in self.history:
             data = asdict(stats)
-            data['agent_state_distribution'] = asdict(stats.agent_state_distribution)
-            data['event_rates'] = asdict(stats.event_rates)
+            data["agent_state_distribution"] = asdict(stats.agent_state_distribution)
+            data["event_rates"] = asdict(stats.event_rates)
             result.append(data)
         return result

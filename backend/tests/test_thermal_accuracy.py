@@ -97,12 +97,14 @@ class TestThermalViewFactor:
         center = thermal_map[100:150, 100:150]
 
         # Edge regions (off-axis, reduced view factor)
-        edges = np.concatenate([
-            thermal_map[0:10, :],
-            thermal_map[-10:, :],
-            thermal_map[:, 0:10],
-            thermal_map[:, -10:],
-        ])
+        edges = np.concatenate(
+            [
+                thermal_map[0:10, :],
+                thermal_map[-10:, :],
+                thermal_map[:, 0:10],
+                thermal_map[:, -10:],
+            ]
+        )
 
         # Center should be warmer on average due to view factor
         assert np.mean(center) > np.mean(edges)
@@ -199,7 +201,9 @@ class TestThermalNoise:
         frames = []
         for _ in range(10):
             thermal_b64 = agent.generate_thermal_image(calibration_error=0.0)
-            thermal = np.frombuffer(base64.b64decode(thermal_b64), dtype=np.float32).reshape(256, 256)
+            thermal = np.frombuffer(base64.b64decode(thermal_b64), dtype=np.float32).reshape(
+                256, 256
+            )
             frames.append(thermal)
 
         # Calculate variance between frames
@@ -248,7 +252,7 @@ class TestThermalIntegration:
 
         # All values should be within expected range
         assert np.min(thermal_map) >= -20 - 2  # min_temp - calibration error margin
-        assert np.max(thermal_map) <= 60 + 2   # max_temp + calibration error margin
+        assert np.max(thermal_map) <= 60 + 2  # max_temp + calibration error margin
 
     def test_thermal_material_ordering(self):
         """Test that thermal images show material emissivity ordering."""
@@ -271,10 +275,10 @@ class TestThermalIntegration:
         asphalt = np.mean(thermal_map[:, 0:patch_width])
 
         # Metal patch (index 2)
-        metal = np.mean(thermal_map[:, 2*patch_width:3*patch_width])
+        metal = np.mean(thermal_map[:, 2 * patch_width : 3 * patch_width])
 
         # Water patch (index 4)
-        water = np.mean(thermal_map[:, 4*patch_width:5*patch_width])
+        water = np.mean(thermal_map[:, 4 * patch_width : 5 * patch_width])
 
         # Asphalt (0.95) should be warmer than metal (0.15)
         assert asphalt > metal

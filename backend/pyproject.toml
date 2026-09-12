@@ -38,6 +38,11 @@ dependencies = [
     # Authentication
     "python-jose[cryptography]==3.3.0",
     "passlib[bcrypt]==1.7.4",
+    # passlib 1.7.4 (unmaintained) self-tests bcrypt at import time using an
+    # input that bcrypt>=4.1 rejects with ValueError instead of the silent
+    # truncation older bcrypt did - breaks all password hashing/verification.
+    # Pin to the last compatible release until passlib is replaced/fixed.
+    "bcrypt<4.1",
     "python-dotenv==1.0.0",
 
     # Logging & Monitoring
@@ -88,6 +93,12 @@ dev = [
 # required. See src/simulators/mujoco_backend.py.
 physics = [
     "mujoco>=3.5.0",
+]
+
+# CLI analytics dashboard (Textual TUI). Optional: src/analytics/__init__.py
+# degrades gracefully to plain MetricsCollector-only usage without it.
+dashboard = [
+    "textual>=0.47.0",
 ]
 
 [tool.black]

@@ -3,27 +3,27 @@
 Real-time metrics visualization and simulation monitoring using Textual.
 """
 
+from src.analytics.analytics_engine import AnalyticsEngine
 from src.analytics.metrics_collector import (
     MetricsCollector,
-    SimulationMetrics,
-    PerformanceMetrics,
     NarrativeMetrics,
+    PerformanceMetrics,
     SensorMetrics,
+    SimulationMetrics,
     ValidationMetrics,
 )
-from src.analytics.analytics_engine import AnalyticsEngine
 
 # Optional CLI dashboard (requires textual)
 try:
-    from backend.src.analytics.cli_dashboard import (
-        SimulationDashboard,
+    from src.analytics.cli_dashboard import (
         AnalyticsDashboardApp,
         MetricsPanel,
         NarrativePanel,
         PerformancePanel,
-        SensorPanel,
-        ValidationPanel,
         ProgressPanel,
+        SensorPanel,
+        SimulationDashboard,
+        ValidationPanel,
     )
 except ImportError:
     # Textual not installed, CLI dashboard not available

@@ -3,20 +3,12 @@
 import asyncio
 import json
 import logging
-from typing import Dict, List, Set
+from typing import Dict, Set
 
-from fastapi import APIRouter, WebSocketDisconnect, WebSocketException, status
+from fastapi import APIRouter, WebSocketDisconnect, status
 from fastapi.websockets import WebSocket
 
-from services.frame_streaming import (
-    AgentFrame,
-    ControlCommand,
-    EventFrame,
-    FrameBuffer,
-    SensorData,
-    Vector3,
-    WorldFrame,
-)
+from services.frame_streaming import ControlCommand, FrameBuffer, WorldFrame
 
 logger = logging.getLogger(__name__)
 router = APIRouter()

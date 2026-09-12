@@ -1,8 +1,8 @@
 """Redis caching layer."""
 
 import json
-from typing import Any, Optional, TypeVar, Callable
 from functools import wraps
+from typing import Any, Callable, Optional, TypeVar
 
 import redis.asyncio as redis
 

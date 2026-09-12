@@ -5,7 +5,7 @@ Manages event sequencing, goal progress, and constraint monitoring.
 """
 
 import logging
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List
 
 from src.narratives.narrative_definitions import (
     Narrative,
@@ -54,11 +54,14 @@ class NarrativeExecutor:
 
         # Initialize entity states
         for entity_id, entity in self._narrative.entities.items():
-            self._context.update_entity_state(entity_id, {
-                "position": entity.initial_position,
-                "orientation": entity.initial_orientation,
-                "status": "active",
-            })
+            self._context.update_entity_state(
+                entity_id,
+                {
+                    "position": entity.initial_position,
+                    "orientation": entity.initial_orientation,
+                    "status": "active",
+                },
+            )
 
         # Initialize goal progress
         for goal_id in self._narrative.goals.keys():
@@ -133,7 +136,9 @@ class NarrativeExecutor:
         # Execute event effects
         self._execute_event_effects(event, simulation_state)
 
-    def _execute_event_effects(self, event: NarrativeEvent, simulation_state: Dict[str, Any]) -> None:
+    def _execute_event_effects(
+        self, event: NarrativeEvent, simulation_state: Dict[str, Any]
+    ) -> None:
         """Execute effects of an event."""
         params = event.parameters
 
@@ -148,7 +153,9 @@ class NarrativeExecutor:
         # Update affected entity states
         for entity_id in event.affected_entities:
             if "position_delta" in params:
-                current_pos = self._context.entity_states.get(entity_id, {}).get("position", [0, 0, 0])
+                current_pos = self._context.entity_states.get(entity_id, {}).get(
+                    "position", [0, 0, 0]
+                )
                 delta = params["position_delta"]
                 new_pos = tuple(current_pos[i] + delta[i] for i in range(3))
                 self._context.update_entity_state(entity_id, {"position": new_pos})
@@ -171,7 +178,9 @@ class NarrativeExecutor:
                 for callback in self._callbacks.get("goal_progress", []):
                     callback(goal_id, progress)
 
-    def _compute_goal_progress(self, goal: NarrativeGoal, simulation_state: Dict[str, Any]) -> float:
+    def _compute_goal_progress(
+        self, goal: NarrativeGoal, simulation_state: Dict[str, Any]
+    ) -> float:
         """Compute progress toward a goal (0-1)."""
         goal_type = goal.goal_type
 
@@ -180,7 +189,7 @@ class NarrativeExecutor:
             target_pos = goal.target.get("position", [0, 0, 0])
             agent_pos = simulation_state.get("agent_position", [0, 0, 0])
 
-            distance = sum((agent_pos[i] - target_pos[i])**2 for i in range(3))**0.5
+            distance = sum((agent_pos[i] - target_pos[i]) ** 2 for i in range(3)) ** 0.5
             max_distance = goal.target.get("tolerance", 10.0)
 
             return max(0.0, 1.0 - (distance / max_distance))
@@ -194,7 +203,7 @@ class NarrativeExecutor:
 
         elif goal_type == "avoid_obstacle":
             # Compute minimum distance to obstacles
-            min_distance = simulation_state.get("min_obstacle_distance", float('inf'))
+            min_distance = simulation_state.get("min_obstacle_distance", float("inf"))
             safety_distance = goal.target.get("min_distance", 2.0)
 
             return 1.0 if min_distance >= safety_distance else 0.0
@@ -216,7 +225,7 @@ class NarrativeExecutor:
 
         if constraint_type == "safety":
             # Check collision/safety distances
-            min_distance = simulation_state.get("min_obstacle_distance", float('inf'))
+            min_distance = simulation_state.get("min_obstacle_distance", float("inf"))
             return min_distance < 1.0  # Too close
 
         elif constraint_type == "efficiency":
@@ -290,8 +299,10 @@ class NarrativeExecutor:
             "decisions_made": len(self._context.decisions_made),
         }
 
-        logger.info(f"Narrative execution finished: {outcome} " +
-                   f"({completed_goals}/{total_goals} goals, " +
-                   f"{len(self._context.constraint_violations)} violations)")
+        logger.info(
+            f"Narrative execution finished: {outcome} "
+            + f"({completed_goals}/{total_goals} goals, "
+            + f"{len(self._context.constraint_violations)} violations)"
+        )
 
         return summary

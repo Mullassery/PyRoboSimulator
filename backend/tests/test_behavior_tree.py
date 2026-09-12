@@ -1,11 +1,8 @@
 """Tests for Phase 2.1: Behavior Tree System."""
 
-import pytest
-import yaml
 
 from src.services.behavior_tree import (
     Action,
-    BehaviorNode,
     BehaviorStatus,
     BehaviorTree,
     BehaviorTreeBuilder,
@@ -615,10 +612,13 @@ root:
 
     def test_tree_to_dict(self):
         """Test converting tree to dict."""
-        root = Sequence("root", [
-            Action("act1", lambda c: BehaviorStatus.SUCCESS),
-            Action("act2", lambda c: BehaviorStatus.SUCCESS),
-        ])
+        root = Sequence(
+            "root",
+            [
+                Action("act1", lambda c: BehaviorStatus.SUCCESS),
+                Action("act2", lambda c: BehaviorStatus.SUCCESS),
+            ],
+        )
         tree = BehaviorTree(root, name="test")
 
         tree.tick({})

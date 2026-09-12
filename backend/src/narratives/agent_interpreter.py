@@ -5,7 +5,7 @@ Interprets narrative descriptions as executable agent behaviors and motion plans
 
 import json
 import logging
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional
 
 from anthropic import Anthropic
 
@@ -14,6 +14,7 @@ logger = logging.getLogger(__name__)
 
 class AgentBehaviorType:
     """Enumeration of agent behavior types."""
+
     NAVIGATE = "navigate"
     PICK = "pick_object"
     PLACE = "place_object"
@@ -160,9 +161,7 @@ class AgentBehaviorInterpreter:
         parameters = self._extract_parameters(action_description, action_type, agent_type, context)
 
         # Step 3: Decompose into primitives
-        primitives = self._decompose_to_primitives(
-            action_type, parameters, agent_type, context
-        )
+        primitives = self._decompose_to_primitives(action_type, parameters, agent_type, context)
 
         # Step 4: Assemble plan
         plan = BehaviorPlan(agent_id, f"plan_{agent_id}_{id(action_description)}")
@@ -194,15 +193,20 @@ Respond with ONE of:
 Respond with only the category."""
 
         response = self._client.messages.create(
-            model=self._model,
-            max_tokens=50,
-            messages=[{"role": "user", "content": prompt}]
+            model=self._model, max_tokens=50, messages=[{"role": "user", "content": prompt}]
         )
 
         classification = response.content[0].text.strip().lower()
         valid_types = [
-            "navigate", "pick", "place", "inspect", "wait",
-            "follow", "avoid", "track", "collaborate"
+            "navigate",
+            "pick",
+            "place",
+            "inspect",
+            "wait",
+            "follow",
+            "avoid",
+            "track",
+            "collaborate",
         ]
 
         return classification if classification in valid_types else "navigate"
@@ -235,9 +239,7 @@ Return JSON with relevant parameters for {action_type}:
 Return only valid JSON."""
 
         response = self._client.messages.create(
-            model=self._model,
-            max_tokens=500,
-            messages=[{"role": "user", "content": prompt}]
+            model=self._model, max_tokens=500, messages=[{"role": "user", "content": prompt}]
         )
 
         try:
@@ -259,112 +261,130 @@ Return only valid JSON."""
         if action_type == "navigate":
             # Navigation: move to position
             target = parameters.get("target_position", [0, 0, 0])
-            primitives.append(BehaviorPrimitive(
-                behavior_id=f"nav_{primitive_id}",
-                behavior_type=AgentBehaviorType.NAVIGATE,
-                description=f"Navigate to {target}",
-                parameters={
-                    "target_position": target,
-                    "max_speed": parameters.get("max_speed", 1.0),
-                    "path_type": parameters.get("path_type", "optimal"),
-                },
-                duration_sec=parameters.get("duration_sec"),
-                success_criteria={"distance_to_goal": 0.5},
-            ))
+            primitives.append(
+                BehaviorPrimitive(
+                    behavior_id=f"nav_{primitive_id}",
+                    behavior_type=AgentBehaviorType.NAVIGATE,
+                    description=f"Navigate to {target}",
+                    parameters={
+                        "target_position": target,
+                        "max_speed": parameters.get("max_speed", 1.0),
+                        "path_type": parameters.get("path_type", "optimal"),
+                    },
+                    duration_sec=parameters.get("duration_sec"),
+                    success_criteria={"distance_to_goal": 0.5},
+                )
+            )
 
         elif action_type == "pick":
             # Pick: approach + grasp + retract
             object_id = parameters.get("object_id", "object_0")
-            primitives.append(BehaviorPrimitive(
-                behavior_id=f"approach_{primitive_id}",
-                behavior_type="approach",
-                description=f"Approach {object_id}",
-                parameters={
-                    "target_object": object_id,
-                    "approach_distance": 0.3,
-                },
-                duration_sec=2.0,
-            ))
+            primitives.append(
+                BehaviorPrimitive(
+                    behavior_id=f"approach_{primitive_id}",
+                    behavior_type="approach",
+                    description=f"Approach {object_id}",
+                    parameters={
+                        "target_object": object_id,
+                        "approach_distance": 0.3,
+                    },
+                    duration_sec=2.0,
+                )
+            )
             primitive_id += 1
-            primitives.append(BehaviorPrimitive(
-                behavior_id=f"grasp_{primitive_id}",
-                behavior_type="grasp",
-                description=f"Grasp {object_id}",
-                parameters={
-                    "target_object": object_id,
-                    "gripper_type": parameters.get("gripper_type", "parallel"),
-                    "grasp_force": 50.0,
-                },
-                duration_sec=1.0,
-                success_criteria={"object_grasped": True},
-            ))
+            primitives.append(
+                BehaviorPrimitive(
+                    behavior_id=f"grasp_{primitive_id}",
+                    behavior_type="grasp",
+                    description=f"Grasp {object_id}",
+                    parameters={
+                        "target_object": object_id,
+                        "gripper_type": parameters.get("gripper_type", "parallel"),
+                        "grasp_force": 50.0,
+                    },
+                    duration_sec=1.0,
+                    success_criteria={"object_grasped": True},
+                )
+            )
             primitive_id += 1
-            primitives.append(BehaviorPrimitive(
-                behavior_id=f"retract_{primitive_id}",
-                behavior_type="retract",
-                description=f"Retract with {object_id}",
-                parameters={"retract_distance": 0.2},
-                duration_sec=1.0,
-            ))
+            primitives.append(
+                BehaviorPrimitive(
+                    behavior_id=f"retract_{primitive_id}",
+                    behavior_type="retract",
+                    description=f"Retract with {object_id}",
+                    parameters={"retract_distance": 0.2},
+                    duration_sec=1.0,
+                )
+            )
 
         elif action_type == "inspect":
             # Inspect: move to position + scan + analyze
             target = parameters.get("target_location", [0, 0, 0])
-            primitives.append(BehaviorPrimitive(
-                behavior_id=f"move_to_inspect_{primitive_id}",
-                behavior_type="navigate",
-                description=f"Move to inspection point {target}",
-                parameters={
-                    "target_position": target,
-                    "precision_required": True,
-                },
-                duration_sec=3.0,
-            ))
+            primitives.append(
+                BehaviorPrimitive(
+                    behavior_id=f"move_to_inspect_{primitive_id}",
+                    behavior_type="navigate",
+                    description=f"Move to inspection point {target}",
+                    parameters={
+                        "target_position": target,
+                        "precision_required": True,
+                    },
+                    duration_sec=3.0,
+                )
+            )
             primitive_id += 1
-            primitives.append(BehaviorPrimitive(
-                behavior_id=f"scan_{primitive_id}",
-                behavior_type="scan",
-                description=f"Scan area at {target}",
-                parameters={
-                    "scan_type": parameters.get("inspection_type", "visual"),
-                    "scan_duration_sec": 5.0,
-                },
-                duration_sec=5.0,
-            ))
+            primitives.append(
+                BehaviorPrimitive(
+                    behavior_id=f"scan_{primitive_id}",
+                    behavior_type="scan",
+                    description=f"Scan area at {target}",
+                    parameters={
+                        "scan_type": parameters.get("inspection_type", "visual"),
+                        "scan_duration_sec": 5.0,
+                    },
+                    duration_sec=5.0,
+                )
+            )
 
         elif action_type == "wait":
             # Wait: pause for duration
             duration = parameters.get("duration_sec", 5.0)
-            primitives.append(BehaviorPrimitive(
-                behavior_id=f"wait_{primitive_id}",
-                behavior_type=AgentBehaviorType.WAIT,
-                description=f"Wait for {duration} seconds",
-                parameters={"duration_sec": duration},
-                duration_sec=duration,
-            ))
+            primitives.append(
+                BehaviorPrimitive(
+                    behavior_id=f"wait_{primitive_id}",
+                    behavior_type=AgentBehaviorType.WAIT,
+                    description=f"Wait for {duration} seconds",
+                    parameters={"duration_sec": duration},
+                    duration_sec=duration,
+                )
+            )
 
         elif action_type == "follow":
             # Follow: track entity
             target_entity = parameters.get("target_entity_id", "entity_0")
-            primitives.append(BehaviorPrimitive(
-                behavior_id=f"follow_{primitive_id}",
-                behavior_type=AgentBehaviorType.FOLLOW,
-                description=f"Follow {target_entity}",
-                parameters={
-                    "target_entity": target_entity,
-                    "maintain_distance": parameters.get("maintain_distance", 2.0),
-                    "max_speed": 1.0,
-                },
-                success_criteria={"distance_maintained": True},
-            ))
+            primitives.append(
+                BehaviorPrimitive(
+                    behavior_id=f"follow_{primitive_id}",
+                    behavior_type=AgentBehaviorType.FOLLOW,
+                    description=f"Follow {target_entity}",
+                    parameters={
+                        "target_entity": target_entity,
+                        "maintain_distance": parameters.get("maintain_distance", 2.0),
+                        "max_speed": 1.0,
+                    },
+                    success_criteria={"distance_maintained": True},
+                )
+            )
 
         else:
             # Generic action
-            primitives.append(BehaviorPrimitive(
-                behavior_id=f"action_{primitive_id}",
-                behavior_type=action_type,
-                description=parameters.get("description", description),
-                parameters=parameters,
-            ))
+            primitives.append(
+                BehaviorPrimitive(
+                    behavior_id=f"action_{primitive_id}",
+                    behavior_type=action_type,
+                    description=parameters.get("description", f"Perform {action_type}"),
+                    parameters=parameters,
+                )
+            )
 
         return primitives

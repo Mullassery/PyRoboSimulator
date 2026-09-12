@@ -1,14 +1,7 @@
 """Pydantic data models for PyRoboSimulator API."""
 
 from .agents import Agent, AgentCreate, AgentResponse, AgentState
-from .events import (
-    Event,
-    EventBatch,
-    EventCreate,
-    EventResponse,
-    EventType,
-    SimulationSummary,
-)
+from .events import Event, EventBatch, EventCreate, EventResponse, EventType, SimulationSummary
 from .scenarios import Scenario, ScenarioCreate, ScenarioResponse
 from .simulations import (
     Simulation,

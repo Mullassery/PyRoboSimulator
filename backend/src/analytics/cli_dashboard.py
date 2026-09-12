@@ -4,19 +4,16 @@ Interactive terminal UI for simulation monitoring and control.
 """
 
 import logging
-from typing import Optional, Dict, Any
-from datetime import datetime
+from typing import Optional
 
-from textual.app import ComposeResult, RenderableType
-from textual.containers import Container, Horizontal, Vertical, ScrollableContainer
-from textual.widgets import Header, Footer, Static, Label, Button, ProgressBar
-from textual.binding import Binding
-from textual.screen import Screen
-from rich.panel import Panel
-from rich.text import Text
-from rich.table import Table
 from rich.console import Console
-from rich.live import Live
+from rich.panel import Panel
+from rich.table import Table
+from textual.app import ComposeResult, RenderableType
+from textual.binding import Binding
+from textual.containers import Horizontal, Vertical
+from textual.screen import Screen
+from textual.widgets import Footer, Header, Static
 
 from src.analytics.metrics_collector import MetricsCollector
 
@@ -43,7 +40,10 @@ class MetricsPanel(Static):
         table.add_column("Value", style="green")
 
         table.add_row("Time", f"{latest_sim.elapsed_time_sec:.2f}s")
-        table.add_row("Position", f"({latest_sim.current_position[0]:.2f}, {latest_sim.current_position[1]:.2f}, {latest_sim.current_position[2]:.2f})")
+        table.add_row(
+            "Position",
+            f"({latest_sim.current_position[0]:.2f}, {latest_sim.current_position[1]:.2f}, {latest_sim.current_position[2]:.2f})",
+        )
         table.add_row("Velocity", f"{latest_sim.current_velocity:.2f} m/s")
         table.add_row("Acceleration", f"{latest_sim.current_acceleration:.2f} m/s²")
         table.add_row("Distance", f"{latest_sim.distance_traveled:.2f} m")
@@ -70,7 +70,11 @@ class NarrativePanel(Static):
             return Panel("No narrative loaded", title="Narrative")
 
         # Create narrative table
-        table = Table(title=f"Narrative: {narrative.narrative_type}", show_header=True, header_style="bold blue")
+        table = Table(
+            title=f"Narrative: {narrative.narrative_type}",
+            show_header=True,
+            header_style="bold blue",
+        )
         table.add_column("Item", style="cyan")
         table.add_column("Value", style="green")
 
@@ -168,7 +172,6 @@ class ValidationPanel(Static):
             return Panel("No validation data", title="Validation")
 
         # Color code based on validity
-        validity_color = "green" if validation.is_valid else "red"
         validity_text = "✓ VALID" if validation.is_valid else "✗ INVALID"
 
         # Create validation table
@@ -180,9 +183,6 @@ class ValidationPanel(Static):
         table.add_row("Velocity Error", f"{validation.real_vs_sim_velocity_error:.1f}%")
         table.add_row("Time Error", f"{validation.real_vs_sim_time_error:.1f}%")
         table.add_row("Overall Similarity", f"{validation.overall_similarity:.1%}")
-
-        text_validity = Text(validity_text, style=validity_color)
-        panel_content = f"{table}\n{validity_text}"
 
         return Panel(table, title=f"Validation [{validity_text}]", expand=True)
 
@@ -204,17 +204,23 @@ class ProgressPanel(Static):
         # Simulation progress
         if latest_sim and narrative and narrative.goals_total > 0:
             goal_progress = (latest_sim.goals_completed / narrative.goals_total) * 100
-            progress_lines.append(f"Goals:        [{goal_progress:5.1f}%] {'█' * int(goal_progress / 5)}{'░' * (20 - int(goal_progress / 5))}")
+            progress_lines.append(
+                f"Goals:        [{goal_progress:5.1f}%] {'█' * int(goal_progress / 5)}{'░' * (20 - int(goal_progress / 5))}"
+            )
 
         # Sequence progress
         if narrative and narrative.total_sequences > 0:
             seq_progress = narrative.sequence_progress_pct
-            progress_lines.append(f"Sequence:     [{seq_progress:5.1f}%] {'█' * int(seq_progress / 5)}{'░' * (20 - int(seq_progress / 5))}")
+            progress_lines.append(
+                f"Sequence:     [{seq_progress:5.1f}%] {'█' * int(seq_progress / 5)}{'░' * (20 - int(seq_progress / 5))}"
+            )
 
         # Event progress
         if narrative and narrative.total_events > 0:
             event_progress = (narrative.events_triggered / narrative.total_events) * 100
-            progress_lines.append(f"Events:       [{event_progress:5.1f}%] {'█' * int(event_progress / 5)}{'░' * (20 - int(event_progress / 5))}")
+            progress_lines.append(
+                f"Events:       [{event_progress:5.1f}%] {'█' * int(event_progress / 5)}{'░' * (20 - int(event_progress / 5))}"
+            )
 
         if not progress_lines:
             return Panel("No progress data", title="Progress")
@@ -333,8 +339,6 @@ class AnalyticsDashboardApp:
 
     def print_summary(self) -> None:
         """Print metrics summary to console."""
-        from rich.console import Console
-
         console = Console()
         summary = self._collector.get_summary()
 

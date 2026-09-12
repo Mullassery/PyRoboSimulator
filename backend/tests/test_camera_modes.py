@@ -2,8 +2,8 @@
 
 import pytest
 
+from services.frame_streaming import AgentFrame, Vector3, WorldFrame
 from services.simulation_engine import SimulationEngine
-from services.frame_streaming import WorldFrame, AgentFrame, Vector3
 
 
 class TestCameraModesDataSupport:

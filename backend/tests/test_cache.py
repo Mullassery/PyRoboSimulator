@@ -8,7 +8,6 @@ class TestCacheDecorator:
 
     def test_cache_key_generation(self) -> None:
         """Test cache key generation from arguments."""
-        from src.services.cache import CacheManager
 
         # Test that different args produce different keys
         key1 = "scenario:get:args:(1,):kwargs:{}"
@@ -21,7 +20,6 @@ class TestCacheDecorator:
         """Test cache manager basic methods."""
         # Test basic cache manager methods without actual Redis
         # This is a mock test to verify interface
-        pass
 
 
 class TestCacheMetrics:

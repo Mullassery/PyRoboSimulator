@@ -6,20 +6,20 @@ using Claude AI for semantic understanding.
 
 import json
 import logging
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional
 
 from anthropic import Anthropic
 
 from src.narratives.narrative_definitions import (
+    AgentRole,
     Narrative,
-    NarrativeType,
+    NarrativeConstraint,
     NarrativeEntity,
-    NarrativeGoal,
-    NarrativeSequence,
     NarrativeEvent,
     NarrativeEventType,
-    NarrativeConstraint,
-    AgentRole,
+    NarrativeGoal,
+    NarrativeSequence,
+    NarrativeType,
 )
 
 logger = logging.getLogger(__name__)
@@ -93,9 +93,11 @@ class NarrativeConverter:
         for constraint in constraints:
             narrative.add_constraint(constraint)
 
-        logger.info(f"Parsed narrative: {narrative.title} " +
-                   f"({len(entities)} entities, {len(goals)} goals, " +
-                   f"{len(sequences)} sequences)")
+        logger.info(
+            f"Parsed narrative: {narrative.title} "
+            + f"({len(entities)} entities, {len(goals)} goals, "
+            + f"{len(sequences)} sequences)"
+        )
 
         return narrative
 
@@ -118,9 +120,7 @@ Extract and return JSON with:
 Return only valid JSON."""
 
         response = self._client.messages.create(
-            model=self._model,
-            max_tokens=500,
-            messages=[{"role": "user", "content": prompt}]
+            model=self._model, max_tokens=500, messages=[{"role": "user", "content": prompt}]
         )
 
         try:
@@ -157,9 +157,7 @@ For each entity, return JSON array with:
 Return only valid JSON array."""
 
         response = self._client.messages.create(
-            model=self._model,
-            max_tokens=2000,
-            messages=[{"role": "user", "content": prompt}]
+            model=self._model, max_tokens=2000, messages=[{"role": "user", "content": prompt}]
         )
 
         try:
@@ -203,9 +201,7 @@ For each goal, return JSON array with:
 Return only valid JSON array."""
 
         response = self._client.messages.create(
-            model=self._model,
-            max_tokens=1500,
-            messages=[{"role": "user", "content": prompt}]
+            model=self._model, max_tokens=1500, messages=[{"role": "user", "content": prompt}]
         )
 
         try:
@@ -267,9 +263,7 @@ Return JSON object:
 }}"""
 
         response = self._client.messages.create(
-            model=self._model,
-            max_tokens=3000,
-            messages=[{"role": "user", "content": prompt}]
+            model=self._model, max_tokens=3000, messages=[{"role": "user", "content": prompt}]
         )
 
         try:
@@ -304,7 +298,9 @@ Return JSON object:
             logger.warning(f"Failed to extract sequences: {e}")
             return []
 
-    def _extract_constraints(self, narrative_text: str, metadata: Dict) -> List[NarrativeConstraint]:
+    def _extract_constraints(
+        self, narrative_text: str, metadata: Dict
+    ) -> List[NarrativeConstraint]:
         """Extract constraints from narrative."""
         prompt = f"""From this narrative, extract all constraints, rules, or safety requirements:
 
@@ -321,9 +317,7 @@ For each constraint, return JSON array with:
 Return only valid JSON array."""
 
         response = self._client.messages.create(
-            model=self._model,
-            max_tokens=1000,
-            messages=[{"role": "user", "content": prompt}]
+            model=self._model, max_tokens=1000, messages=[{"role": "user", "content": prompt}]
         )
 
         try:

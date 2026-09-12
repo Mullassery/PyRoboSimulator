@@ -2,7 +2,7 @@
 
 import asyncio
 import time
-from typing import List, Optional
+from typing import Optional
 
 from services.frame_streaming import (
     AgentFrame,
@@ -89,7 +89,9 @@ class VisualizationStreamer:
         event_frames = []
         for event in self.engine.events[-10:]:  # Last 10 events only
             agent_id = event.agent_ids[0] if event.agent_ids else -1
-            event_pos_data = event.data.get("position", {"x": 0, "y": 0}) if event.data else {"x": 0, "y": 0}
+            event_pos_data = (
+                event.data.get("position", {"x": 0, "y": 0}) if event.data else {"x": 0, "y": 0}
+            )
             event_frame = EventFrame(
                 id=event.id,
                 type=event.event_type,

@@ -2,7 +2,7 @@
 
 import time
 from dataclasses import dataclass, field
-from typing import Optional, Dict, List, Tuple
+from typing import Dict, List, Optional, Tuple
 
 import numpy as np
 
@@ -217,9 +217,7 @@ class SensorFusionPipeline:
 
         # 1. Timestamp synchronization check
         timestamps = [
-            reading.timestamp_ms
-            for reading in self.sensor_buffers.values()
-            if reading is not None
+            reading.timestamp_ms for reading in self.sensor_buffers.values() if reading is not None
         ]
 
         if not timestamps:

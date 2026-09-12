@@ -56,7 +56,6 @@ class BehaviorNode(ABC):
         Returns:
             Status of execution
         """
-        pass
 
     def reset(self) -> None:
         """Reset node state."""
@@ -198,8 +197,13 @@ class Parallel(BehaviorNode):
     Returns RUNNING if any child is running.
     """
 
-    def __init__(self, name: str, children: Optional[List[BehaviorNode]] = None,
-                 success_policy: str = "all", failure_policy: str = "one"):
+    def __init__(
+        self,
+        name: str,
+        children: Optional[List[BehaviorNode]] = None,
+        success_policy: str = "all",
+        failure_policy: str = "one",
+    ):
         """Initialize parallel node.
 
         Args:
@@ -409,8 +413,9 @@ class BehaviorTree:
         }
 
     @staticmethod
-    def from_yaml(yaml_str: str, actions: Dict[str, Callable],
-                  conditions: Dict[str, Callable]) -> "BehaviorTree":
+    def from_yaml(
+        yaml_str: str, actions: Dict[str, Callable], conditions: Dict[str, Callable]
+    ) -> "BehaviorTree":
         """Load behavior tree from YAML.
 
         Args:
@@ -520,9 +525,13 @@ class BehaviorTreeBuilder:
         """
         return Selector(name, list(children))
 
-    def parallel(self, name: str, *children: BehaviorNode,
-                 success_policy: str = "all",
-                 failure_policy: str = "one") -> "Parallel":
+    def parallel(
+        self,
+        name: str,
+        *children: BehaviorNode,
+        success_policy: str = "all",
+        failure_policy: str = "one",
+    ) -> "Parallel":
         """Create parallel node.
 
         Args:
@@ -572,8 +581,7 @@ class BehaviorTreeBuilder:
         """
         return Inverter(name, child)
 
-    def repeater(self, name: str, child: BehaviorNode,
-                 max_repetitions: int = 1) -> "Repeater":
+    def repeater(self, name: str, child: BehaviorNode, max_repetitions: int = 1) -> "Repeater":
         """Create repeater decorator.
 
         Args:
@@ -586,8 +594,7 @@ class BehaviorTreeBuilder:
         """
         return Repeater(name, child, max_repetitions)
 
-    def limiter(self, name: str, child: BehaviorNode,
-                max_executions: int = 1) -> "Limiter":
+    def limiter(self, name: str, child: BehaviorNode, max_executions: int = 1) -> "Limiter":
         """Create limiter decorator.
 
         Args:

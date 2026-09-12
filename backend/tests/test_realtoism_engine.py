@@ -1,25 +1,22 @@
 """Tests for Real-to-Sim Bridge Engine - Phase 7."""
 
+from unittest.mock import Mock
+
 import pytest
-from unittest.mock import Mock, patch, MagicMock
 
 from src.realtoism import (
-    RosBagParser,
-    RosPose,
-    RosImage,
-    RosPointCloud,
-    RosImu,
-    RosGps,
-    TrajectoryExtractor,
-    TrajectorySegment,
-    TrajectoryMetrics,
-    Waypoint,
     ExecutionLogConverter,
-    SensorReplayEngine,
-    SensorReplayState,
-    SimRealValidator,
     ExecutionMetrics,
-    ValidationMetric,
+    RosBagParser,
+    RosGps,
+    RosImage,
+    RosImu,
+    RosPointCloud,
+    RosPose,
+    SensorReplayEngine,
+    SimRealValidator,
+    TrajectoryExtractor,
+    TrajectoryMetrics,
 )
 
 
@@ -203,14 +200,16 @@ class TestExecutionLogConverter:
 
         narrative_type = converter._infer_narrative_type("delivery", metrics)
 
-        from backend.src.narratives import NarrativeType
+        from src.narratives import NarrativeType
+
         assert narrative_type == NarrativeType.DELIVERY_MISSION
 
     def test_infer_sensor_suite(self):
         """Test sensor suite inference."""
         converter = ExecutionLogConverter()
 
-        from backend.src.realtoism import RosBagMetadata
+        from src.realtoism import RosBagMetadata
+
         metadata = RosBagMetadata(
             filename="test.bag",
             duration_sec=10.0,
@@ -369,8 +368,8 @@ class TestSimRealValidator:
             execution_id="sim_1",
             execution_type="simulated",
             total_distance_m=15.0,  # Different
-            total_time_sec=20.0,   # Different
-            avg_velocity=0.75,     # Different
+            total_time_sec=20.0,  # Different
+            avg_velocity=0.75,  # Different
             max_velocity=1.5,
         )
 

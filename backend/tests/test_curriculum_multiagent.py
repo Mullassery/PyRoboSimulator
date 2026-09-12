@@ -1,21 +1,13 @@
 """Tests for Curriculum (Phase 8) and Multi-Agent (Phase 9) systems."""
 
-import pytest
+
 from src.curriculum import (
-    DifficultyLevel,
-    DifficultyFactors,
-    LearnerProfile,
-    CurriculumPlan,
-    DifficultyModel,
     CurriculumScenarioGenerator,
+    DifficultyFactors,
+    DifficultyModel,
+    LearnerProfile,
 )
-from src.multiagent import (
-    FormationType,
-    AgentState,
-    AgentCoordinator,
-    ExperienceRecord,
-    FleetLearningEngine,
-)
+from src.multiagent import AgentCoordinator, FleetLearningEngine, FormationType
 
 
 class TestDifficultyModel:
@@ -90,7 +82,7 @@ class TestDifficultyModel:
         """Test recording performance."""
         model = DifficultyModel()
 
-        plan = model.generate_curriculum("learner_1")
+        model.generate_curriculum("learner_1")
 
         model.record_lesson_performance(
             "learner_1",
@@ -362,13 +354,11 @@ class TestCurriculumMultiAgentIntegration:
 
         # Simulate learning progression
         for i, lesson in enumerate(plan.lessons):
-            scenario = gen.generate_scenario("curriculum_1", i, lesson.difficulty)
+            gen.generate_scenario("curriculum_1", i, lesson.difficulty)
 
             # Simulate performance
             success_rate = 0.7 + (i * 0.05)  # Improving over time
-            model.record_lesson_performance(
-                "learner_1", lesson.lesson_id, success_rate, 0.8, 0.85
-            )
+            model.record_lesson_performance("learner_1", lesson.lesson_id, success_rate, 0.8, 0.85)
 
         profile = model.get_learner_profile("learner_1")
         assert profile.scenarios_completed == 5

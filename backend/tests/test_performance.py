@@ -1,7 +1,8 @@
 """Performance and load testing."""
 
-import pytest
 import asyncio
+
+import pytest
 from httpx import AsyncClient
 
 
@@ -53,9 +54,7 @@ class TestAPIPerformance:
         assert all(r.status_code == 201 for r in responses)
 
     @pytest.mark.asyncio
-    async def test_pagination_performance(
-        self, client: AsyncClient, auth_headers: dict
-    ) -> None:
+    async def test_pagination_performance(self, client: AsyncClient, auth_headers: dict) -> None:
         """Test pagination efficiency."""
         # Create 100 simulations
         for i in range(100):
@@ -66,15 +65,9 @@ class TestAPIPerformance:
             )
 
         # Fetch different pages
-        response1 = await client.get(
-            "/api/v1/simulations?limit=20&offset=0", headers=auth_headers
-        )
-        response2 = await client.get(
-            "/api/v1/simulations?limit=20&offset=20", headers=auth_headers
-        )
-        response3 = await client.get(
-            "/api/v1/simulations?limit=20&offset=80", headers=auth_headers
-        )
+        response1 = await client.get("/api/v1/simulations?limit=20&offset=0", headers=auth_headers)
+        response2 = await client.get("/api/v1/simulations?limit=20&offset=20", headers=auth_headers)
+        response3 = await client.get("/api/v1/simulations?limit=20&offset=80", headers=auth_headers)
 
         assert response1.status_code == 200
         assert response2.status_code == 200

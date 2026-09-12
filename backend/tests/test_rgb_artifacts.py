@@ -7,13 +7,13 @@ import numpy as np
 import pytest
 from PIL import Image
 
-from services.simulation_engine import Agent, SimulationEngine, Vector3
 from services.sensor_effects import (
     add_gaussian_noise,
-    apply_radial_distortion,
-    apply_motion_blur,
     apply_color_grading,
+    apply_motion_blur,
+    apply_radial_distortion,
 )
+from services.simulation_engine import Agent, SimulationEngine, Vector3
 
 
 class TestGaussianNoise:

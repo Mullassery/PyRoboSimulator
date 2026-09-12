@@ -9,8 +9,8 @@ Extracts robot movement patterns from pose data:
 
 import logging
 from dataclasses import dataclass, field
-from typing import List, Optional, Tuple
 from math import sqrt
+from typing import List, Tuple
 
 from src.realtoism.rosbag_parser import RosPose
 
@@ -20,6 +20,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class Waypoint:
     """Navigation waypoint along trajectory."""
+
     waypoint_id: str
     timestamp_sec: float
     position: Tuple[float, float, float]
@@ -31,6 +32,7 @@ class Waypoint:
 @dataclass
 class TrajectorySegment:
     """Contiguous trajectory segment."""
+
     segment_id: str
     start_time_sec: float
     end_time_sec: float
@@ -47,6 +49,7 @@ class TrajectorySegment:
 @dataclass
 class TrajectoryMetrics:
     """Statistics about entire trajectory."""
+
     total_distance_m: float = 0.0
     total_time_sec: float = 0.0
     avg_velocity: float = 0.0
@@ -71,7 +74,9 @@ class TrajectoryExtractor:
         self._velocity_threshold = velocity_threshold
         self._smoothness_window = smoothness_window
 
-    def extract_trajectory(self, poses: List[RosPose]) -> Tuple[List[TrajectorySegment], TrajectoryMetrics]:
+    def extract_trajectory(
+        self, poses: List[RosPose]
+    ) -> Tuple[List[TrajectorySegment], TrajectoryMetrics]:
         """Extract trajectory from pose sequence.
 
         Args:
@@ -98,9 +103,11 @@ class TrajectoryExtractor:
         # Compute metrics
         metrics = self._compute_metrics(poses_with_velocity, segments)
 
-        logger.info(f"Extracted {len(segments)} segments, " +
-                   f"total distance {metrics.total_distance_m:.1f}m, " +
-                   f"avg velocity {metrics.avg_velocity:.2f}m/s")
+        logger.info(
+            f"Extracted {len(segments)} segments, "
+            + f"total distance {metrics.total_distance_m:.1f}m, "
+            + f"avg velocity {metrics.avg_velocity:.2f}m/s"
+        )
 
         return segments, metrics
 
@@ -238,7 +245,8 @@ class TrajectoryExtractor:
 
                 # Find poses in this segment
                 segment_poses = [
-                    (p, v) for p, v in poses_with_velocity
+                    (p, v)
+                    for p, v in poses_with_velocity
                     if wp1.timestamp_sec <= p.timestamp_sec <= wp2.timestamp_sec
                 ]
 
@@ -283,7 +291,7 @@ class TrajectoryExtractor:
         for i in range(1, len(poses)):
             p1 = poses[i - 1].position
             p2 = poses[i].position
-            dist = sqrt((p2[0] - p1[0])**2 + (p2[1] - p1[1])**2 + (p2[2] - p1[2])**2)
+            dist = sqrt((p2[0] - p1[0]) ** 2 + (p2[1] - p1[1]) ** 2 + (p2[2] - p1[2]) ** 2)
             total_distance += dist
 
         duration = poses[-1].timestamp_sec - poses[0].timestamp_sec
@@ -305,7 +313,7 @@ class TrajectoryExtractor:
 
         if accelerations:
             avg_accel = sum(accelerations) / len(accelerations)
-            variance = sum((a - avg_accel)**2 for a in accelerations) / len(accelerations)
+            variance = sum((a - avg_accel) ** 2 for a in accelerations) / len(accelerations)
             # Smoothness: lower acceleration variance = smoother
             smoothness = 1.0 / (1.0 + variance)
         else:
@@ -345,7 +353,9 @@ class TrajectoryExtractor:
             return TrajectoryMetrics()
 
         total_distance = sum(seg.distance_m for seg in segments)
-        total_time = poses_with_velocity[-1][0].timestamp_sec - poses_with_velocity[0][0].timestamp_sec
+        total_time = (
+            poses_with_velocity[-1][0].timestamp_sec - poses_with_velocity[0][0].timestamp_sec
+        )
 
         velocities = [v for _, v in poses_with_velocity]
         max_velocity = max(velocities, default=0.0)
@@ -358,8 +368,14 @@ class TrajectoryExtractor:
             p_curr, v_curr = poses_with_velocity[i]
             _, v_next = poses_with_velocity[i + 1]
 
-            dt_prev = poses_with_velocity[i][0].timestamp_sec - poses_with_velocity[i - 1][0].timestamp_sec
-            dt_next = poses_with_velocity[i + 1][0].timestamp_sec - poses_with_velocity[i][0].timestamp_sec
+            dt_prev = (
+                poses_with_velocity[i][0].timestamp_sec
+                - poses_with_velocity[i - 1][0].timestamp_sec
+            )
+            dt_next = (
+                poses_with_velocity[i + 1][0].timestamp_sec
+                - poses_with_velocity[i][0].timestamp_sec
+            )
 
             if dt_prev > 0 and dt_next > 0:
                 a = (v_next - v_prev) / (dt_prev + dt_next)
@@ -368,10 +384,16 @@ class TrajectoryExtractor:
         avg_acceleration = sum(accelerations) / len(accelerations) if accelerations else 0.0
         max_acceleration = max(accelerations, default=0.0)
 
-        stop_count = sum(1 for seg in segments if seg.end_position != seg.start_position and seg.avg_velocity < 0.1)
+        stop_count = sum(
+            1
+            for seg in segments
+            if seg.end_position != seg.start_position and seg.avg_velocity < 0.1
+        )
 
         # Path smoothness: average of segment smoothness
-        avg_smoothness = sum(seg.smoothness for seg in segments) / len(segments) if segments else 1.0
+        avg_smoothness = (
+            sum(seg.smoothness for seg in segments) / len(segments) if segments else 1.0
+        )
 
         return TrajectoryMetrics(
             total_distance_m=total_distance,

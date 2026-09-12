@@ -8,18 +8,8 @@ import logging
 from dataclasses import dataclass
 from typing import Any, Dict, Optional, Tuple
 
-from src.ari.ari_discovery import ARIDiscoveryEngine, DiscoverySource
-from src.ari.regional_knowledge import (
-    EnvironmentType,
-    KnowledgeStore,
-    RegionalKnowledge,
-    RoadCharacteristics,
-    VehicleDistribution,
-    PedestrianCharacteristics,
-    TerrainCharacteristics,
-    InfrastructureCharacteristics,
-    WeatherCharacteristics,
-)
+from src.ari.ari_discovery import ARIDiscoveryEngine
+from src.ari.regional_knowledge import EnvironmentType, KnowledgeStore, RegionalKnowledge
 
 logger = logging.getLogger(__name__)
 
@@ -49,7 +39,9 @@ class ARIOrchestrator:
     characteristics.
     """
 
-    def __init__(self, config: Optional[ARIConfig] = None, knowledge_store: Optional[KnowledgeStore] = None):
+    def __init__(
+        self, config: Optional[ARIConfig] = None, knowledge_store: Optional[KnowledgeStore] = None
+    ):
         """Initialize ARI orchestrator.
 
         Args:
@@ -261,9 +253,7 @@ class ARIOrchestrator:
         if self._config.enable_traffic_learning:
             logger.info("ARI Discovery Phase: Traffic patterns")
 
-            traffic_data = self._discovery_engine.discover_traffic_patterns(
-                region_name, country
-            )
+            traffic_data = self._discovery_engine.discover_traffic_patterns(region_name, country)
 
             learning_results["discoveries"]["traffic"] = True
 
@@ -325,9 +315,7 @@ class ARIOrchestrator:
 
         return knowledge
 
-    def refine_knowledge(
-        self, region_name: str, country: str
-    ) -> Optional[RegionalKnowledge]:
+    def refine_knowledge(self, region_name: str, country: str) -> Optional[RegionalKnowledge]:
         """Refine existing knowledge through additional learning.
 
         Performs another iteration of discovery to improve confidence.

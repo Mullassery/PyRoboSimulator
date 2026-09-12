@@ -93,9 +93,7 @@ class TestSimulationAPI:
     """Simulation API integration tests."""
 
     @pytest.mark.asyncio
-    async def test_full_simulation_workflow(
-        self, client: AsyncClient, auth_headers: dict
-    ) -> None:
+    async def test_full_simulation_workflow(self, client: AsyncClient, auth_headers: dict) -> None:
         """Test complete simulation workflow: create, start, stop, delete."""
         # Create
         create_response = await client.post(
@@ -112,9 +110,7 @@ class TestSimulationAPI:
         sim_id = create_response.json()["id"]
 
         # Get
-        get_response = await client.get(
-            f"/api/v1/simulations/{sim_id}", headers=auth_headers
-        )
+        get_response = await client.get(f"/api/v1/simulations/{sim_id}", headers=auth_headers)
         assert get_response.status_code == 200
 
         # Update
@@ -141,15 +137,11 @@ class TestSimulationAPI:
         assert stop_response.json()["status"] == SimulationStatus.CANCELLED
 
         # Delete
-        delete_response = await client.delete(
-            f"/api/v1/simulations/{sim_id}", headers=auth_headers
-        )
+        delete_response = await client.delete(f"/api/v1/simulations/{sim_id}", headers=auth_headers)
         assert delete_response.status_code == 204
 
     @pytest.mark.asyncio
-    async def test_invalid_agent_count(
-        self, client: AsyncClient, auth_headers: dict
-    ) -> None:
+    async def test_invalid_agent_count(self, client: AsyncClient, auth_headers: dict) -> None:
         """Test validation: invalid agent count."""
         response = await client.post(
             "/api/v1/simulations",
@@ -164,9 +156,7 @@ class TestSimulationAPI:
         assert response.status_code == 422  # Validation error
 
     @pytest.mark.asyncio
-    async def test_invalid_duration(
-        self, client: AsyncClient, auth_headers: dict
-    ) -> None:
+    async def test_invalid_duration(self, client: AsyncClient, auth_headers: dict) -> None:
         """Test validation: invalid duration.
 
         SimulationCreate's own Field(gt=0, le=3600) rejects this at the
@@ -201,9 +191,7 @@ class TestSimulationAPI:
         await client.post(f"/api/v1/simulations/{sim_id}/start", headers=auth_headers)
 
         # Try to start again
-        response = await client.post(
-            f"/api/v1/simulations/{sim_id}/start", headers=auth_headers
-        )
+        response = await client.post(f"/api/v1/simulations/{sim_id}/start", headers=auth_headers)
 
         assert response.status_code == 400
 
@@ -220,9 +208,7 @@ class TestSimulationAPI:
         sim_id = create_response.json()["id"]
 
         # Try to stop without starting
-        response = await client.post(
-            f"/api/v1/simulations/{sim_id}/stop", headers=auth_headers
-        )
+        response = await client.post(f"/api/v1/simulations/{sim_id}/stop", headers=auth_headers)
 
         assert response.status_code == 400
 

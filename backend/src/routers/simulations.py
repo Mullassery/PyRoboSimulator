@@ -184,9 +184,7 @@ async def update_simulation(
 
 
 @router.delete("/{sim_id}", status_code=204)
-async def delete_simulation(
-    sim_id: int, user_id: int = Depends(get_current_user_id)
-) -> None:
+async def delete_simulation(sim_id: int, user_id: int = Depends(get_current_user_id)) -> None:
     """Delete simulation by ID.
 
     Args:
@@ -271,9 +269,7 @@ async def stop_simulation(
 
 
 @router.get("/{sim_id}/status", response_model=dict)
-async def get_simulation_status(
-    sim_id: int, user_id: int = Depends(get_current_user_id)
-) -> dict:
+async def get_simulation_status(sim_id: int, user_id: int = Depends(get_current_user_id)) -> dict:
     """Get simulation status.
 
     Args:

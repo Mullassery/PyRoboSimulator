@@ -1,13 +1,12 @@
 """Tests for Phase 1C.9: State Synchronization."""
 
-import pytest
 
 from src.services.state_synchronization import (
     ConflictResolutionStrategy,
     ConflictResolver,
     StateSnapshot,
-    StateSyncMessage,
     StateSynchronizationService,
+    StateSyncMessage,
     StateValidator,
     SyncDirection,
     SyncTelemetry,
@@ -144,9 +143,7 @@ class TestConflictResolver:
         def custom(backend, ue5):
             return {"x": max(backend["x"], ue5["x"])}
 
-        resolver = ConflictResolver(
-            ConflictResolutionStrategy.CUSTOM, custom_resolver=custom
-        )
+        resolver = ConflictResolver(ConflictResolutionStrategy.CUSTOM, custom_resolver=custom)
         resolved, strategy = resolver.resolve({"x": 20}, 999.0, {"x": 30}, 1000.0)
         assert resolved == {"x": 30}
 
@@ -276,9 +273,7 @@ class TestStateSynchronizationService:
 
     def test_synchronize_with_conflicts(self):
         """Test synchronization with conflicts."""
-        service = StateSynchronizationService(
-            ConflictResolutionStrategy.BACKEND_WINS
-        )
+        service = StateSynchronizationService(ConflictResolutionStrategy.BACKEND_WINS)
         service.add_validation_rule("x", lambda v: True)
         service.add_validation_rule("y", lambda v: True)
 

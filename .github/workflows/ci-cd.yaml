@@ -56,6 +56,27 @@ jobs:
         working-directory: backend
         run: mypy src/
 
+  # Security checks (bandit + safety) - independent of Code Quality so a lint
+  # failure never hides whether the code has a real security finding.
+  security-audit:
+    name: Security Audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+          cache: 'pip'
+
+      - name: Install dependencies
+        working-directory: backend
+        run: |
+          python -m pip install -e ".[dev]"
+
       - name: Security scan (bandit)
         working-directory: backend
         run: bandit -r src/ -ll
@@ -64,12 +85,13 @@ jobs:
         working-directory: backend
         run: safety check
 
-  # Unit and integration tests
+  # Unit and integration tests - independent of Code Quality/Security so a
+  # lint or dependency-audit failure never hides whether the tests actually
+  # pass.
   test:
     name: Tests
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    needs: quality
 
     services:
       postgres:
@@ -151,6 +173,7 @@ jobs:
     timeout-minutes: 30
     needs:
       - quality
+      - security-audit
       - test
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
 
@@ -303,6 +326,7 @@ jobs:
     if: failure()
     needs:
       - quality
+      - security-audit
       - test
       - build
       - scan
@@ -311,6 +335,7 @@ jobs:
 
     steps:
       - name: Send Slack notification
+        if: ${{ vars.SLACK_WEBHOOK_URL != '' || secrets.SLACK_WEBHOOK_URL != '' }}
         uses: slackapi/slack-github-action@v1.24.0
         with:
           payload: |

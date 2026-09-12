@@ -9,11 +9,11 @@ from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional
 
 from src.sensors.sensor_definitions import (
-    SensorCategory,
-    SensorType,
-    SensorSpec,
-    SensorRegistry,
     SENSOR_REGISTRY,
+    SensorCategory,
+    SensorRegistry,
+    SensorSpec,
+    SensorType,
 )
 
 logger = logging.getLogger(__name__)
@@ -123,10 +123,7 @@ class SensorSuite:
             "robot_name": self.robot_name,
             "sensor_count": self.get_sensor_count(),
             "recording_count": self.get_active_sensor_count(),
-            "sensors": {
-                sid: spec.to_dict()
-                for sid, spec in self.sensors.items()
-            },
+            "sensors": {sid: spec.to_dict() for sid, spec in self.sensors.items()},
             "categories": {
                 category.value: len(self.get_sensors_by_category(category))
                 for category in SensorCategory
@@ -164,9 +161,7 @@ class SensorConfigurationManager:
         logger.info(f"Created empty sensor suite for {robot_name}")
         return suite
 
-    def create_standard_suite(
-        self, robot_name: str, platform_type: str = "mobile"
-    ) -> SensorSuite:
+    def create_standard_suite(self, robot_name: str, platform_type: str = "mobile") -> SensorSuite:
         """Create standard sensor suite based on platform type.
 
         Args:
@@ -180,81 +175,75 @@ class SensorConfigurationManager:
 
         # Mobile robot: RGB camera, LiDAR, IMU, GPS, wheel encoders
         if platform_type == "mobile":
-            suite.add_sensor("rgb_front", self._create_sensor_instance(
-                SensorType.RGB_CAMERA, "rgb_front"
-            ))
-            suite.add_sensor("lidar_main", self._create_sensor_instance(
-                SensorType.VELODYNE_LIDAR, "lidar_main"
-            ))
-            suite.add_sensor("imu", self._create_sensor_instance(
-                SensorType.IMU, "imu"
-            ))
-            suite.add_sensor("gps", self._create_sensor_instance(
-                SensorType.GPS, "gps"
-            ))
-            suite.add_sensor("wheel_encoders", self._create_sensor_instance(
-                SensorType.WHEEL_ENCODER, "wheel_encoders"
-            ))
+            suite.add_sensor(
+                "rgb_front", self._create_sensor_instance(SensorType.RGB_CAMERA, "rgb_front")
+            )
+            suite.add_sensor(
+                "lidar_main", self._create_sensor_instance(SensorType.VELODYNE_LIDAR, "lidar_main")
+            )
+            suite.add_sensor("imu", self._create_sensor_instance(SensorType.IMU, "imu"))
+            suite.add_sensor("gps", self._create_sensor_instance(SensorType.GPS, "gps"))
+            suite.add_sensor(
+                "wheel_encoders",
+                self._create_sensor_instance(SensorType.WHEEL_ENCODER, "wheel_encoders"),
+            )
 
         # Aerial robot: RGB camera, thermal, IMU, GPS, wind sensor
         elif platform_type == "aerial":
-            suite.add_sensor("rgb_main", self._create_sensor_instance(
-                SensorType.RGB_CAMERA, "rgb_main"
-            ))
-            suite.add_sensor("thermal", self._create_sensor_instance(
-                SensorType.THERMAL_CAMERA, "thermal"
-            ))
-            suite.add_sensor("imu", self._create_sensor_instance(
-                SensorType.IMU, "imu"
-            ))
-            suite.add_sensor("gps", self._create_sensor_instance(
-                SensorType.GPS, "gps"
-            ))
-            suite.add_sensor("wind_sensor", self._create_sensor_instance(
-                SensorType.WIND_SENSOR, "wind_sensor"
-            ))
+            suite.add_sensor(
+                "rgb_main", self._create_sensor_instance(SensorType.RGB_CAMERA, "rgb_main")
+            )
+            suite.add_sensor(
+                "thermal", self._create_sensor_instance(SensorType.THERMAL_CAMERA, "thermal")
+            )
+            suite.add_sensor("imu", self._create_sensor_instance(SensorType.IMU, "imu"))
+            suite.add_sensor("gps", self._create_sensor_instance(SensorType.GPS, "gps"))
+            suite.add_sensor(
+                "wind_sensor", self._create_sensor_instance(SensorType.WIND_SENSOR, "wind_sensor")
+            )
 
         # Humanoid robot: stereo, IMU, force-torque sensors, tactile
         elif platform_type == "humanoid":
-            suite.add_sensor("stereo_vision", self._create_sensor_instance(
-                SensorType.STEREO_CAMERA, "stereo_vision"
-            ))
-            suite.add_sensor("imu_torso", self._create_sensor_instance(
-                SensorType.IMU, "imu_torso"
-            ))
-            suite.add_sensor("ft_left_hand", self._create_sensor_instance(
-                SensorType.FORCE_TORQUE_SENSOR, "ft_left_hand"
-            ))
-            suite.add_sensor("ft_right_hand", self._create_sensor_instance(
-                SensorType.FORCE_TORQUE_SENSOR, "ft_right_hand"
-            ))
-            suite.add_sensor("tactile_hands", self._create_sensor_instance(
-                SensorType.TACTILE_SENSOR, "tactile_hands"
-            ))
+            suite.add_sensor(
+                "stereo_vision",
+                self._create_sensor_instance(SensorType.STEREO_CAMERA, "stereo_vision"),
+            )
+            suite.add_sensor("imu_torso", self._create_sensor_instance(SensorType.IMU, "imu_torso"))
+            suite.add_sensor(
+                "ft_left_hand",
+                self._create_sensor_instance(SensorType.FORCE_TORQUE_SENSOR, "ft_left_hand"),
+            )
+            suite.add_sensor(
+                "ft_right_hand",
+                self._create_sensor_instance(SensorType.FORCE_TORQUE_SENSOR, "ft_right_hand"),
+            )
+            suite.add_sensor(
+                "tactile_hands",
+                self._create_sensor_instance(SensorType.TACTILE_SENSOR, "tactile_hands"),
+            )
 
         # Manipulator: force-torque, joint encoders, tactile
         elif platform_type == "manipulator":
-            suite.add_sensor("ft_wrist", self._create_sensor_instance(
-                SensorType.FORCE_TORQUE_SENSOR, "ft_wrist"
-            ))
-            suite.add_sensor("joint_encoders", self._create_sensor_instance(
-                SensorType.STEERING_ENCODER, "joint_encoders"
-            ))
-            suite.add_sensor("tactile_gripper", self._create_sensor_instance(
-                SensorType.TACTILE_SENSOR, "tactile_gripper"
-            ))
+            suite.add_sensor(
+                "ft_wrist", self._create_sensor_instance(SensorType.FORCE_TORQUE_SENSOR, "ft_wrist")
+            )
+            suite.add_sensor(
+                "joint_encoders",
+                self._create_sensor_instance(SensorType.STEERING_ENCODER, "joint_encoders"),
+            )
+            suite.add_sensor(
+                "tactile_gripper",
+                self._create_sensor_instance(SensorType.TACTILE_SENSOR, "tactile_gripper"),
+            )
 
         # Aquatic robot: sonar, depth sensor, DVL
         elif platform_type == "aquatic":
-            suite.add_sensor("sonar", self._create_sensor_instance(
-                SensorType.SONAR, "sonar"
-            ))
-            suite.add_sensor("depth_sensor", self._create_sensor_instance(
-                SensorType.TIME_OF_FLIGHT, "depth_sensor"
-            ))
-            suite.add_sensor("dvl", self._create_sensor_instance(
-                SensorType.DVL, "dvl"
-            ))
+            suite.add_sensor("sonar", self._create_sensor_instance(SensorType.SONAR, "sonar"))
+            suite.add_sensor(
+                "depth_sensor",
+                self._create_sensor_instance(SensorType.TIME_OF_FLIGHT, "depth_sensor"),
+            )
+            suite.add_sensor("dvl", self._create_sensor_instance(SensorType.DVL, "dvl"))
 
         logger.info(f"Created standard {platform_type} sensor suite for {robot_name}")
         return suite
@@ -308,7 +297,9 @@ class SensorConfigurationManager:
         if errors:
             logger.warning(f"Sensor suite validation warnings: {errors}")
 
-        logger.info(f"Registered sensor suite for {suite.robot_name}: {suite.get_sensor_count()} sensors")
+        logger.info(
+            f"Registered sensor suite for {suite.robot_name}: {suite.get_sensor_count()} sensors"
+        )
 
     def get_suite(self, robot_name: str) -> Optional[SensorSuite]:
         """Get registered sensor suite.
@@ -373,8 +364,7 @@ class SensorConfigurationManager:
             "total_sensors": suite.get_sensor_count(),
             "recording_sensors": suite.get_active_sensor_count(),
             "categories": {
-                cat.value: len(suite.get_sensors_by_category(cat))
-                for cat in SensorCategory
+                cat.value: len(suite.get_sensors_by_category(cat)) for cat in SensorCategory
             },
             "sensors": suite.to_dict()["sensors"],
         }

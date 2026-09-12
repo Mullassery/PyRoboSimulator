@@ -11,7 +11,7 @@ import struct
 import time
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
 
@@ -19,12 +19,14 @@ logger = logging.getLogger(__name__)
 
 try:
     import h5py
+
     HAS_H5PY = True
 except ImportError:
     HAS_H5PY = False
 
 try:
     import zarr
+
     HAS_ZARR = True
 except ImportError:
     HAS_ZARR = False
@@ -185,7 +187,9 @@ class SensorRecordingService:
 
         self.recording_active = False
         self.ring_buffer = RingBuffer()
-        self.frame_index: Dict[str, List[Tuple[float, int]]] = {}  # agent_id -> [(timestamp, frame_idx)]
+        self.frame_index: Dict[
+            str, List[Tuple[float, int]]
+        ] = {}  # agent_id -> [(timestamp, frame_idx)]
         self.current_file: Optional[str] = None
         self.frames_written = 0
         self.start_time: Optional[float] = None
@@ -426,6 +430,7 @@ class SensorRecordingService:
                 try:
                     if filepath.is_dir():
                         import shutil
+
                         shutil.rmtree(filepath)
                     else:
                         filepath.unlink()

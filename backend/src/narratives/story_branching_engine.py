@@ -9,7 +9,6 @@ import random
 from typing import Any, Callable, Dict, List, Optional, Set, Tuple
 
 from src.narratives.narrative_definitions import (
-    Narrative,
     NarrativeBranch,
     NarrativeBranchPoint,
     NarrativeSequence,

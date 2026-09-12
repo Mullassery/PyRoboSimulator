@@ -5,30 +5,21 @@ replay, analysis, and simulation validation.
 """
 
 import logging
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, List
 
 from src.narratives.narrative_definitions import (
+    AgentRole,
     Narrative,
-    NarrativeType,
+    NarrativeConstraint,
     NarrativeEntity,
-    NarrativeGoal,
     NarrativeEvent,
     NarrativeEventType,
+    NarrativeGoal,
     NarrativeSequence,
-    NarrativeConstraint,
-    AgentRole,
+    NarrativeType,
 )
-from src.realtoism.rosbag_parser import (
-    RosBagParser,
-    RosPose,
-    RosImage,
-    RosPointCloud,
-)
-from src.realtoism.trajectory_extractor import (
-    TrajectoryExtractor,
-    TrajectorySegment,
-    TrajectoryMetrics,
-)
+from src.realtoism.rosbag_parser import RosBagParser, RosPose
+from src.realtoism.trajectory_extractor import TrajectoryExtractor, TrajectorySegment
 
 logger = logging.getLogger(__name__)
 
@@ -89,8 +80,10 @@ class ExecutionLogConverter:
             mission_type=mission_type,
         )
 
-        logger.info(f"Converted to narrative: {narrative.title} " +
-                   f"({len(narrative.entities)} entities, {len(narrative.sequences)} sequences)")
+        logger.info(
+            f"Converted to narrative: {narrative.title} "
+            + f"({len(narrative.entities)} entities, {len(narrative.sequences)} sequences)"
+        )
 
         return narrative
 
@@ -333,7 +326,7 @@ class ExecutionLogConverter:
         Returns:
             Sensor suite name
         """
-        topics = metadata.topics.keys() if hasattr(metadata, 'topics') else []
+        topics = metadata.topics.keys() if hasattr(metadata, "topics") else []
         topics_str = str(topics).lower()
 
         if "lidar" in topics_str and "camera" in topics_str:

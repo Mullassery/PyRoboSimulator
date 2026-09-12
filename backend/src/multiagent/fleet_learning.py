@@ -4,9 +4,9 @@ Agents learn from each other's experiences to improve collective performance.
 """
 
 import logging
-from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, Set, Tuple
 from collections import defaultdict
+from dataclasses import dataclass, field
+from typing import Any, Dict, List, Optional, Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -14,6 +14,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class ExperienceRecord:
     """Single learning experience from an agent."""
+
     agent_id: str
     scenario_id: str
     action_type: str
@@ -27,6 +28,7 @@ class ExperienceRecord:
 @dataclass
 class LearningPattern:
     """Identified pattern from fleet experience."""
+
     pattern_id: str
     pattern_type: str  # "successful_path", "obstacle_avoidance", "efficiency_technique"
     description: str
@@ -99,11 +101,13 @@ class FleetLearningEngine:
         if agent_id not in self._agent_performances:
             self._agent_performances[agent_id] = 0.0
 
-        self._agent_performances[agent_id] = (
-            0.7 * self._agent_performances[agent_id] + 0.3 * (1.0 if success else 0.0)
+        self._agent_performances[agent_id] = 0.7 * self._agent_performances[agent_id] + 0.3 * (
+            1.0 if success else 0.0
         )
 
-        logger.debug(f"Recorded experience: {agent_id} {action_type} {'success' if success else 'failed'}")
+        logger.debug(
+            f"Recorded experience: {agent_id} {action_type} {'success' if success else 'failed'}"
+        )
 
     def identify_patterns(self) -> List[LearningPattern]:
         """Identify successful patterns from experience log.
@@ -156,9 +160,8 @@ class FleetLearningEngine:
                     pattern_id=f"technique_{technique}",
                     pattern_type="obstacle_avoidance",
                     description=f"Obstacle avoidance: {technique}",
-                    success_rate=len(techniques) / max(
-                        len([e for e in self._experience_log if e.action_type == technique]), 1
-                    ),
+                    success_rate=len(techniques)
+                    / max(len([e for e in self._experience_log if e.action_type == technique]), 1),
                     adoption_count=len(set(t.agent_id for t in techniques)),
                     confidence=0.75,
                     metadata={"technique": technique},
@@ -168,7 +171,9 @@ class FleetLearningEngine:
 
         self._patterns = {p.pattern_id: p for p in patterns}
 
-        logger.info(f"Identified {len(patterns)} patterns from {len(self._experience_log)} experiences")
+        logger.info(
+            f"Identified {len(patterns)} patterns from {len(self._experience_log)} experiences"
+        )
 
         return patterns
 
@@ -207,14 +212,12 @@ class FleetLearningEngine:
 
         # Get best practices
         if self._agent_performances:
-            top_agents = sorted(
-                self._agent_performances.items(), key=lambda x: x[1], reverse=True
-            )[:3]
+            top_agents = sorted(self._agent_performances.items(), key=lambda x: x[1], reverse=True)[
+                :3
+            ]
 
             for top_agent, perf in top_agents:
-                transferred["best_practices"].append(
-                    {"agent_id": top_agent, "performance": perf}
-                )
+                transferred["best_practices"].append({"agent_id": top_agent, "performance": perf})
 
         # Get learned scenarios
         learned_scenarios = set(e.scenario_id for e in self._experience_log if e.success)
@@ -263,7 +266,9 @@ class FleetLearningEngine:
             "overall_success_rate": success_rate,
             "total_experiences": total,
             "patterns_identified": len(self._patterns),
-            "unique_scenarios_solved": len(set(e.scenario_id for e in self._experience_log if e.success)),
+            "unique_scenarios_solved": len(
+                set(e.scenario_id for e in self._experience_log if e.success)
+            ),
         }
 
     def get_agent_recommendation(self, agent_id: str) -> Dict[str, Any]:
@@ -295,7 +300,9 @@ class FleetLearningEngine:
             recommendation["recommended_actions"].append("Apply learned patterns to improve")
 
         else:
-            recommendation["recommended_actions"].append("Agent performing well, maintain current strategy")
+            recommendation["recommended_actions"].append(
+                "Agent performing well, maintain current strategy"
+            )
 
         # Find most similar successful agent
         if agent_exps:

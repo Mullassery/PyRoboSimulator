@@ -7,7 +7,7 @@ import logging
 import time
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional, Set
+from typing import Any, Dict, List, Optional, Set
 
 logger = logging.getLogger(__name__)
 
@@ -427,7 +427,7 @@ class CommunicationNetwork:
 
             dx = pos[0] - sender_pos[0]
             dy = pos[1] - sender_pos[1]
-            dist = (dx ** 2 + dy ** 2) ** 0.5
+            dist = (dx**2 + dy**2) ** 0.5
 
             if dist <= range_m:
                 nearby.append(agent_id)

@@ -1,30 +1,35 @@
 """Tests for Analytics & Monitoring Dashboard - Phase 10."""
 
+from unittest.mock import Mock
+
 import pytest
-from unittest.mock import Mock, patch, MagicMock
 
 from src.analytics import (
-    MetricsCollector,
-    SimulationMetrics,
-    PerformanceMetrics,
-    NarrativeMetrics,
-    SensorMetrics,
-    ValidationMetrics,
     AnalyticsEngine,
+    MetricsCollector,
+    NarrativeMetrics,
+    PerformanceMetrics,
+    SensorMetrics,
+    SimulationMetrics,
+    ValidationMetrics,
 )
 
 # Try to import dashboard app (requires textual)
 try:
-    from backend.src.analytics.cli_dashboard import AnalyticsDashboardApp
+    from src.analytics.cli_dashboard import AnalyticsDashboardApp
+
     HAS_TEXTUAL = True
 except (ImportError, TypeError):
     HAS_TEXTUAL = False
+
     # Mock class for testing
     class AnalyticsDashboardApp:
         def __init__(self, collector=None):
             pass
+
         def get_collector(self):
             return MetricsCollector()
+
         def print_summary(self):
             pass
 

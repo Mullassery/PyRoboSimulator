@@ -1,12 +1,7 @@
 """Tests for scenario generation and world configuration."""
 
-import pytest
-from src.services.scenario_generator import (
-    ScenarioBuilder,
-    WorldConfig,
-    SpawnZone,
-    Obstacle,
-)
+
+from src.services.scenario_generator import Obstacle, ScenarioBuilder, SpawnZone, WorldConfig
 
 
 class TestSpawnZone:

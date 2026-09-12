@@ -4,7 +4,6 @@ import pytest
 
 from src.simulators.backend_interface import (
     CameraConfig,
-    ContactInfo,
     IMUConfig,
     LidarConfig,
     ObjectState,
@@ -14,9 +13,7 @@ from src.simulators.backend_interface import (
     RobotState,
     RobotType,
     SensorConfig,
-    SensorData,
     SensorType,
-    SimulationStep,
     SimulatorConfig,
     SimulatorType,
     WorldConfig,

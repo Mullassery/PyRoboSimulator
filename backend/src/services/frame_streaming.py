@@ -2,7 +2,7 @@
 
 import base64
 import json
-from dataclasses import asdict, dataclass
+from dataclasses import dataclass
 from typing import Any, Dict, List, Optional
 
 import msgpack
@@ -144,8 +144,7 @@ class WorldFrame:
             "agents": [agent.to_dict() for agent in self.agents],
             "events": [event.to_dict() for event in self.events],
             "sensors": {
-                agent_id: sensor.to_dict()
-                for agent_id, sensor in (self.sensors or {}).items()
+                agent_id: sensor.to_dict() for agent_id, sensor in (self.sensors or {}).items()
             }
             if self.sensors
             else {},

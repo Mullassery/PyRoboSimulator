@@ -244,17 +244,14 @@ class SimulatorBackend(ABC):
         Raises:
             RuntimeError: If initialization fails
         """
-        pass
 
     @abstractmethod
     def shutdown(self) -> None:
         """Cleanly shutdown the simulator."""
-        pass
 
     @abstractmethod
     def is_running(self) -> bool:
         """Check if simulator is running."""
-        pass
 
     # ==================== WORLD MANAGEMENT ====================
 
@@ -268,7 +265,6 @@ class SimulatorBackend(ABC):
         Returns:
             World ID/name
         """
-        pass
 
     @abstractmethod
     def load_world(self, world_path: str) -> str:
@@ -283,7 +279,6 @@ class SimulatorBackend(ABC):
         Raises:
             FileNotFoundError: If world file not found
         """
-        pass
 
     @abstractmethod
     def save_world(self, world_id: str, output_path: str) -> None:
@@ -293,7 +288,6 @@ class SimulatorBackend(ABC):
             world_id: World ID
             output_path: Path to save
         """
-        pass
 
     @abstractmethod
     def get_world_info(self, world_id: str) -> Dict[str, Any]:
@@ -305,7 +299,6 @@ class SimulatorBackend(ABC):
         Returns:
             World info dictionary
         """
-        pass
 
     # ==================== ROBOT MANAGEMENT ====================
 
@@ -323,7 +316,6 @@ class SimulatorBackend(ABC):
             ValueError: If robot config invalid
             RuntimeError: If spawn fails
         """
-        pass
 
     @abstractmethod
     def remove_robot(self, robot_name: str) -> None:
@@ -332,7 +324,6 @@ class SimulatorBackend(ABC):
         Args:
             robot_name: Robot name/ID
         """
-        pass
 
     @abstractmethod
     def reset_robot(self, robot_name: str) -> None:
@@ -341,7 +332,6 @@ class SimulatorBackend(ABC):
         Args:
             robot_name: Robot name/ID
         """
-        pass
 
     @abstractmethod
     def get_robot_state(self, robot_name: str) -> RobotState:
@@ -353,7 +343,6 @@ class SimulatorBackend(ABC):
         Returns:
             Robot state
         """
-        pass
 
     @abstractmethod
     def set_robot_pose(
@@ -369,7 +358,6 @@ class SimulatorBackend(ABC):
             position: XYZ position
             rotation: Quaternion rotation (x, y, z, w)
         """
-        pass
 
     @abstractmethod
     def set_joint_target(
@@ -389,12 +377,9 @@ class SimulatorBackend(ABC):
             velocity: Max velocity (for position control)
             force: Max force/torque
         """
-        pass
 
     @abstractmethod
-    def apply_joint_force(
-        self, robot_name: str, joint_name: str, force: float
-    ) -> None:
+    def apply_joint_force(self, robot_name: str, joint_name: str, force: float) -> None:
         """Apply force/torque directly to a joint.
 
         Args:
@@ -402,12 +387,9 @@ class SimulatorBackend(ABC):
             joint_name: Joint name
             force: Force/torque value
         """
-        pass
 
     @abstractmethod
-    def get_joint_state(
-        self, robot_name: str, joint_name: str
-    ) -> Dict[str, float]:
+    def get_joint_state(self, robot_name: str, joint_name: str) -> Dict[str, float]:
         """Get joint state (position, velocity, force).
 
         Args:
@@ -417,7 +399,6 @@ class SimulatorBackend(ABC):
         Returns:
             Dictionary with position, velocity, force
         """
-        pass
 
     # ==================== OBJECT/ASSET MANAGEMENT ====================
 
@@ -444,7 +425,6 @@ class SimulatorBackend(ABC):
         Returns:
             Object ID/name
         """
-        pass
 
     @abstractmethod
     def remove_object(self, object_name: str) -> None:
@@ -453,7 +433,6 @@ class SimulatorBackend(ABC):
         Args:
             object_name: Object name/ID
         """
-        pass
 
     @abstractmethod
     def get_object_state(self, object_name: str) -> ObjectState:
@@ -465,7 +444,6 @@ class SimulatorBackend(ABC):
         Returns:
             Object state
         """
-        pass
 
     @abstractmethod
     def set_object_pose(
@@ -481,14 +459,11 @@ class SimulatorBackend(ABC):
             position: XYZ position
             rotation: Quaternion rotation
         """
-        pass
 
     # ==================== SENSOR MANAGEMENT ====================
 
     @abstractmethod
-    def attach_sensor(
-        self, robot_name: str, sensor_config: SensorConfig
-    ) -> str:
+    def attach_sensor(self, robot_name: str, sensor_config: SensorConfig) -> str:
         """Attach sensor to robot.
 
         Args:
@@ -498,7 +473,6 @@ class SimulatorBackend(ABC):
         Returns:
             Sensor ID/name
         """
-        pass
 
     @abstractmethod
     def remove_sensor(self, robot_name: str, sensor_name: str) -> None:
@@ -508,7 +482,6 @@ class SimulatorBackend(ABC):
             robot_name: Robot name/ID
             sensor_name: Sensor name/ID
         """
-        pass
 
     @abstractmethod
     def get_sensor_data(self, robot_name: str, sensor_name: str) -> SensorData:
@@ -524,7 +497,6 @@ class SimulatorBackend(ABC):
         Raises:
             KeyError: If sensor not found
         """
-        pass
 
     @abstractmethod
     def get_camera_image(
@@ -545,12 +517,9 @@ class SimulatorBackend(ABC):
         Returns:
             Dictionary with 'rgb' (HxWx3 uint8), optional 'depth', 'segmentation'
         """
-        pass
 
     @abstractmethod
-    def get_lidar_scan(
-        self, robot_name: str, lidar_name: str
-    ) -> Dict[str, Any]:
+    def get_lidar_scan(self, robot_name: str, lidar_name: str) -> Dict[str, Any]:
         """Get Lidar scan points.
 
         Args:
@@ -560,7 +529,6 @@ class SimulatorBackend(ABC):
         Returns:
             Dictionary with 'points' (Nx3 float array), 'intensities', 'timestamps'
         """
-        pass
 
     @abstractmethod
     def get_imu_data(self, robot_name: str, imu_name: str) -> Dict[str, Any]:
@@ -573,7 +541,6 @@ class SimulatorBackend(ABC):
         Returns:
             Dictionary with 'accel', 'gyro', 'quat', timestamp
         """
-        pass
 
     # ==================== PHYSICS & DYNAMICS ====================
 
@@ -584,7 +551,6 @@ class SimulatorBackend(ABC):
         Args:
             gravity: Gravity XYZ
         """
-        pass
 
     @abstractmethod
     def get_gravity(self) -> Tuple[float, float, float]:
@@ -593,7 +559,6 @@ class SimulatorBackend(ABC):
         Returns:
             Gravity XYZ
         """
-        pass
 
     @abstractmethod
     def set_timestep(self, timestep_ms: float) -> None:
@@ -602,7 +567,6 @@ class SimulatorBackend(ABC):
         Args:
             timestep_ms: Timestep in milliseconds
         """
-        pass
 
     @abstractmethod
     def get_contacts(self) -> List[ContactInfo]:
@@ -611,7 +575,6 @@ class SimulatorBackend(ABC):
         Returns:
             List of contact information
         """
-        pass
 
     @abstractmethod
     def raycast(
@@ -630,7 +593,6 @@ class SimulatorBackend(ABC):
         Returns:
             Hit info (body_name, position, normal, distance) or None
         """
-        pass
 
     # ==================== SIMULATION CONTROL ====================
 
@@ -644,39 +606,32 @@ class SimulatorBackend(ABC):
         Returns:
             Simulation step result with all state information
         """
-        pass
 
     @abstractmethod
     def pause(self) -> None:
         """Pause simulation (keep state but don't advance)."""
-        pass
 
     @abstractmethod
     def resume(self) -> None:
         """Resume paused simulation."""
-        pass
 
     @abstractmethod
     def reset(self) -> None:
         """Reset entire simulation to initial state."""
-        pass
 
     @abstractmethod
     def is_paused(self) -> bool:
         """Check if simulation is paused."""
-        pass
 
     # ==================== RENDERING & VISUALIZATION ====================
 
     @abstractmethod
     def enable_rendering(self) -> None:
         """Enable rendering (if supported)."""
-        pass
 
     @abstractmethod
     def disable_rendering(self) -> None:
         """Disable rendering for performance."""
-        pass
 
     @abstractmethod
     def set_camera_view(
@@ -692,7 +647,6 @@ class SimulatorBackend(ABC):
             target: Look-at target
             up: Up vector
         """
-        pass
 
     @abstractmethod
     def render_frame(self) -> Optional[bytes]:
@@ -701,7 +655,6 @@ class SimulatorBackend(ABC):
         Returns:
             Frame data (PNG or other format), or None if headless
         """
-        pass
 
     # ==================== DOMAIN RANDOMIZATION ====================
 
@@ -717,31 +670,24 @@ class SimulatorBackend(ABC):
             intensity_range: (min, max) light intensity
             color_range: ((r_min, g_min, b_min), (r_max, g_max, b_max))
         """
-        pass
 
     @abstractmethod
-    def randomize_friction(
-        self, object_name: str, friction_range: Tuple[float, float]
-    ) -> None:
+    def randomize_friction(self, object_name: str, friction_range: Tuple[float, float]) -> None:
         """Randomize friction for object.
 
         Args:
             object_name: Object name
             friction_range: (min, max) friction coefficient
         """
-        pass
 
     @abstractmethod
-    def randomize_mass(
-        self, object_name: str, mass_range: Tuple[float, float]
-    ) -> None:
+    def randomize_mass(self, object_name: str, mass_range: Tuple[float, float]) -> None:
         """Randomize mass for object.
 
         Args:
             object_name: Object name
             mass_range: (min, max) mass in kg
         """
-        pass
 
     # ==================== UTILITIES & INFO ====================
 
@@ -752,7 +698,6 @@ class SimulatorBackend(ABC):
         Returns:
             SimulatorType enum
         """
-        pass
 
     @abstractmethod
     def get_simulation_info(self) -> Dict[str, Any]:
@@ -761,7 +706,6 @@ class SimulatorBackend(ABC):
         Returns:
             Info dictionary (step count, elapsed time, object count, etc)
         """
-        pass
 
     @abstractmethod
     def list_robots(self) -> List[str]:
@@ -770,7 +714,6 @@ class SimulatorBackend(ABC):
         Returns:
             Robot names/IDs
         """
-        pass
 
     @abstractmethod
     def list_objects(self) -> List[str]:
@@ -779,7 +722,6 @@ class SimulatorBackend(ABC):
         Returns:
             Object names/IDs
         """
-        pass
 
     @abstractmethod
     def get_robot_info(self, robot_name: str) -> Dict[str, Any]:
@@ -791,7 +733,6 @@ class SimulatorBackend(ABC):
         Returns:
             Info dictionary (joints, sensors, links, metadata)
         """
-        pass
 
     # ==================== ERROR HANDLING & VALIDATION ====================
 
@@ -808,7 +749,6 @@ class SimulatorBackend(ABC):
         Raises:
             ValueError: If invalid
         """
-        pass
 
     @abstractmethod
     def get_last_error(self) -> Optional[str]:
@@ -817,4 +757,3 @@ class SimulatorBackend(ABC):
         Returns:
             Error message or None
         """
-        pass

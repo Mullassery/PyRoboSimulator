@@ -1,22 +1,9 @@
 """Tests for Sensor Configuration and Awareness System - Phase 5.0."""
 
-import pytest
 
-from src.sensors.sensor_definitions import (
-    SensorCategory,
-    SensorType,
-    SensorSpec,
-    SensorRegistry,
-    SENSOR_REGISTRY,
-)
-from src.sensors.sensor_configuration import (
-    SensorSuite,
-    SensorConfigurationManager,
-)
-from src.sensors.sensor_aware_engine import (
-    SensorAwarenessConstraint,
-    SensorAwareSimulationEngine,
-)
+from src.sensors.sensor_aware_engine import SensorAwarenessConstraint, SensorAwareSimulationEngine
+from src.sensors.sensor_configuration import SensorConfigurationManager, SensorSuite
+from src.sensors.sensor_definitions import SensorCategory, SensorRegistry, SensorSpec, SensorType
 
 
 class TestSensorDefinitions:

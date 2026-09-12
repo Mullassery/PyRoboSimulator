@@ -5,8 +5,8 @@ import base64
 import numpy as np
 import pytest
 
-from services.simulation_engine import Agent, SimulationEngine, Vector3
 from services.sensor_effects import quantize
+from services.simulation_engine import Agent, SimulationEngine, Vector3
 
 
 class TestDepthQuantization:
@@ -136,7 +136,7 @@ class TestDepthSensorNoise:
         # Noise should be range-dependent, roughly proportional to distance
         # Sample pixels at different ranges and compare variance
         near_pixels = depth_map[256, 250:260]  # Pixels closer to camera
-        far_pixels = depth_map[100, 100:110]    # Pixels further from camera
+        far_pixels = depth_map[100, 100:110]  # Pixels further from camera
 
         # This is a statistical test, may need adjustment
         # The far pixels should have higher absolute variance
@@ -189,9 +189,7 @@ class TestTemporalFiltering:
         depth_no_filter_bytes = base64.b64decode(
             agent_no_filter.generate_depth_map(temporal_filter=False)
         )
-        depth_filter_bytes = base64.b64decode(
-            agent_filter.generate_depth_map(temporal_filter=True)
-        )
+        depth_filter_bytes = base64.b64decode(agent_filter.generate_depth_map(temporal_filter=True))
 
         depth_no_filter = np.frombuffer(depth_no_filter_bytes, dtype=np.float32).reshape(512, 512)
         depth_filter = np.frombuffer(depth_filter_bytes, dtype=np.float32).reshape(512, 512)
@@ -313,10 +311,7 @@ class TestDepthMapGeneration:
         start = time.time()
         for _ in range(5):
             agent.generate_depth_map(
-                min_range=0.1,
-                max_range=300,
-                quantization=0.001,
-                temporal_filter=True
+                min_range=0.1, max_range=300, quantization=0.001, temporal_filter=True
             )
         elapsed = time.time() - start
 

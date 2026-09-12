@@ -5,29 +5,31 @@ Analyzes trajectory metrics and generates scenarios at controlled difficulty lev
 
 import logging
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional
 from enum import Enum
+from typing import Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
 
 class DifficultyLevel(Enum):
     """Difficulty levels for curriculum."""
-    TRIVIAL = 0.1      # Very easy, perfect path available
-    NOVICE = 0.25      # Suitable for learning basics
-    BEGINNER = 0.4     # Some obstacles/complexity
+
+    TRIVIAL = 0.1  # Very easy, perfect path available
+    NOVICE = 0.25  # Suitable for learning basics
+    BEGINNER = 0.4  # Some obstacles/complexity
     INTERMEDIATE = 0.55  # Moderate challenge
-    ADVANCED = 0.7     # High complexity
-    EXPERT = 0.85      # Very challenging
-    IMPOSSIBLE = 1.0   # At or beyond capability limits
+    ADVANCED = 0.7  # High complexity
+    EXPERT = 0.85  # Very challenging
+    IMPOSSIBLE = 1.0  # At or beyond capability limits
 
 
 @dataclass
 class DifficultyFactors:
     """Factors that contribute to scenario difficulty."""
+
     path_complexity: float = 0.0  # 0-1, based on turns, length
     obstacle_density: float = 0.0  # 0-1, number/proximity of obstacles
-    time_pressure: float = 0.0    # 0-1, how tight the time limit
+    time_pressure: float = 0.0  # 0-1, how tight the time limit
     sensor_constraints: float = 0.0  # 0-1, sensor degradation/limitations
     dynamic_elements: float = 0.0  # 0-1, moving obstacles, changing env
     precision_required: float = 0.0  # 0-1, accuracy demands
@@ -56,6 +58,7 @@ class DifficultyFactors:
 @dataclass
 class LearnerProfile:
     """Profile of learner (agent) performance."""
+
     learner_id: str
     scenarios_completed: int = 0
     success_rate: float = 0.0  # 0-1
@@ -91,6 +94,7 @@ class LearnerProfile:
 @dataclass
 class CurriculumLesson:
     """A single lesson in curriculum."""
+
     lesson_id: str
     order: int  # Position in curriculum
     difficulty: float  # Target difficulty 0-1
@@ -104,6 +108,7 @@ class CurriculumLesson:
 @dataclass
 class CurriculumPlan:
     """Complete curriculum for learner progression."""
+
     plan_id: str
     learner_id: str
     start_difficulty: float = 0.1

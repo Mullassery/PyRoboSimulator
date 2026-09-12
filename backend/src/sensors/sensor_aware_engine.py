@@ -7,14 +7,8 @@ Only generates data for configured sensors. Optimizes compute accordingly.
 import logging
 from typing import Any, Dict, List, Optional, Set
 
-from src.sensors.sensor_definitions import (
-    SensorCategory,
-    SensorType,
-)
-from src.sensors.sensor_configuration import (
-    SensorConfigurationManager,
-    SensorSuite,
-)
+from src.sensors.sensor_configuration import SensorConfigurationManager, SensorSuite
+from src.sensors.sensor_definitions import SensorCategory, SensorType
 
 logger = logging.getLogger(__name__)
 
@@ -121,8 +115,7 @@ class SensorAwarenessConstraint:
             "depth_generator": self.can_generate_data("depth"),
             "thermal_generator": self.can_generate_data("thermal"),
             "lidar_generator": (
-                self.can_generate_data("lidar_2d")
-                or self.can_generate_data("lidar_3d")
+                self.can_generate_data("lidar_2d") or self.can_generate_data("lidar_3d")
             ),
             "radar_generator": self.can_generate_data("radar"),
             "audio_generator": self.can_generate_data("audio"),
@@ -143,13 +136,11 @@ class SensorAwarenessConstraint:
             "depth_dataset": self.can_generate_data("depth"),
             "thermal_dataset": self.can_generate_data("thermal"),
             "lidar_dataset": (
-                self.can_generate_data("lidar_2d")
-                or self.can_generate_data("lidar_3d")
+                self.can_generate_data("lidar_2d") or self.can_generate_data("lidar_3d")
             ),
             "radar_dataset": self.can_generate_data("radar"),
             "multimodal_dataset": (
-                self.can_generate_data("rgb")
-                and self.can_generate_data("depth")
+                self.can_generate_data("rgb") and self.can_generate_data("depth")
             ),
         }
 
@@ -256,8 +247,10 @@ class SensorAwareSimulationEngine:
         suite = self._config_manager.get_suite(robot_name)
 
         if not suite:
-            logger.error(f"Robot {robot_name} has no sensor configuration. " +
-                        "Complete sensor configuration phase first.")
+            logger.error(
+                f"Robot {robot_name} has no sensor configuration. "
+                + "Complete sensor configuration phase first."
+            )
             return False
 
         # Validate suite
@@ -276,8 +269,10 @@ class SensorAwareSimulationEngine:
 
         # Log optimization profile
         profile = constraint.get_compute_optimization_profile()
-        logger.info(f"Compute optimization: {profile['active_renderers']} renderers, "
-                   f"{profile['active_generators']} generators")
+        logger.info(
+            f"Compute optimization: {profile['active_renderers']} renderers, "
+            f"{profile['active_generators']} generators"
+        )
 
         for hint in profile["optimization_hints"]:
             logger.info(f"  → {hint}")
@@ -352,10 +347,7 @@ class SensorAwareSimulationEngine:
         return {
             "configured_robots": configured_robots,
             "initialized_robots": initialized_robots,
-            "pending_initialization": [
-                r for r in configured_robots
-                if r not in initialized_robots
-            ],
+            "pending_initialization": [r for r in configured_robots if r not in initialized_robots],
             "total_configured": len(configured_robots),
             "total_initialized": len(initialized_robots),
         }

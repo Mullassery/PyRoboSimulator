@@ -2,18 +2,14 @@
 
 import time
 
-import pytest
-
 from src.services.validation_and_reporting import (
     ComprehensiveReportGenerator,
     MetricType,
     PerformanceMetric,
     PerformanceMetricsCollector,
-    RootCauseAnalysis,
     RootCauseAnalyzer,
     SeverityLevel,
     ValidationFramework,
-    ValidationResult,
     ValidationStatus,
     ViolationDetector,
     ViolationEvent,
@@ -69,9 +65,7 @@ class TestPerformanceMetricsCollector:
         collector = PerformanceMetricsCollector()
 
         for i in range(10):
-            collector.record_metric(
-                "speed", MetricType.EFFICIENCY, 1.0 + i * 0.1, "m/s"
-            )
+            collector.record_metric("speed", MetricType.EFFICIENCY, 1.0 + i * 0.1, "m/s")
 
         assert len(collector.metrics) == 10
 
@@ -125,9 +119,7 @@ class TestValidationFramework:
         """Test mission completion validation (passed)."""
         framework = ValidationFramework()
 
-        result = framework.validate_mission_completion(
-            goal_reached=True, goal_distance=0.1
-        )
+        result = framework.validate_mission_completion(goal_reached=True, goal_distance=0.1)
 
         assert result.passed
         assert result.status == ValidationStatus.PASSED
@@ -159,9 +151,7 @@ class TestValidationFramework:
         """Test safety validation (perfect)."""
         framework = ValidationFramework()
 
-        result = framework.validate_safety(
-            collisions=0, near_misses=0, safety_violations=0
-        )
+        result = framework.validate_safety(collisions=0, near_misses=0, safety_violations=0)
 
         assert result.passed
         assert result.severity == SeverityLevel.LOW
@@ -170,9 +160,7 @@ class TestValidationFramework:
         """Test safety validation with collisions."""
         framework = ValidationFramework()
 
-        result = framework.validate_safety(
-            collisions=2, near_misses=3, safety_violations=0
-        )
+        result = framework.validate_safety(collisions=2, near_misses=3, safety_violations=0)
 
         assert not result.passed
         assert result.severity == SeverityLevel.CRITICAL
@@ -181,9 +169,7 @@ class TestValidationFramework:
         """Test safety validation with near misses."""
         framework = ValidationFramework()
 
-        result = framework.validate_safety(
-            collisions=0, near_misses=5, safety_violations=0
-        )
+        result = framework.validate_safety(collisions=0, near_misses=5, safety_violations=0)
 
         assert result.passed
         assert result.severity == SeverityLevel.MEDIUM
@@ -600,9 +586,7 @@ class TestValidationAndReportingIntegration:
 
         # Track performance over multiple scenarios
         for i in range(5):
-            metrics.record_metric(
-                f"scenario_{i}_time", MetricType.EFFICIENCY, 40.0 + i * 2
-            )
+            metrics.record_metric(f"scenario_{i}_time", MetricType.EFFICIENCY, 40.0 + i * 2)
             metrics.record_metric(f"scenario_{i}_distance", MetricType.EFFICIENCY, 90.0 + i)
 
         generator = ComprehensiveReportGenerator(metrics, validation, violations, analyzer)

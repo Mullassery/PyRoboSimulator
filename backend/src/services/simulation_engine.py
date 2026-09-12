@@ -3,7 +3,7 @@
 import base64
 import io
 import math
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Optional
 
 import numpy as np
@@ -73,7 +73,7 @@ class Agent:
         rain_intensity: float = 0.0,
         beam_spread: float = 0.1,
         multipath_probability: float = 0.05,
-        add_temporal_jitter: bool = True
+        add_temporal_jitter: bool = True,
     ) -> list:
         """Generate synthetic lidar point cloud with realistic effects.
 
@@ -142,8 +142,16 @@ class Agent:
                     reflect_angle = horizontal_angle + np.random.normal(0, 2)
                     reflect_vert = -vertical_angle  # Bounce from ground
 
-                    x2 = secondary_distance * np.cos(np.radians(reflect_vert)) * np.cos(np.radians(reflect_angle))
-                    y2 = secondary_distance * np.cos(np.radians(reflect_vert)) * np.sin(np.radians(reflect_angle))
+                    x2 = (
+                        secondary_distance
+                        * np.cos(np.radians(reflect_vert))
+                        * np.cos(np.radians(reflect_angle))
+                    )
+                    y2 = (
+                        secondary_distance
+                        * np.cos(np.radians(reflect_vert))
+                        * np.sin(np.radians(reflect_angle))
+                    )
                     z2 = secondary_distance * np.sin(np.radians(reflect_vert))
 
                     points.append([float(x2), float(y2), float(z2)])
@@ -155,7 +163,7 @@ class Agent:
         min_range: float = 0.1,
         max_range: float = 300.0,
         quantization: float = 0.001,
-        temporal_filter: bool = True
+        temporal_filter: bool = True,
     ) -> str:
         """Generate synthetic depth map with realistic sensor effects (float32 base64 encoded).
 
@@ -190,7 +198,7 @@ class Agent:
             min_range=min_range,
             max_range=max_range,
             quantization=quantization,
-            temporal_filter=temporal_filter
+            temporal_filter=temporal_filter,
         )
 
         # Encode as base64
@@ -204,7 +212,7 @@ class Agent:
         min_range: float = 0.1,
         max_range: float = 300.0,
         quantization: float = 0.001,
-        temporal_filter: bool = True
+        temporal_filter: bool = True,
     ) -> np.ndarray:
         """Apply realistic depth camera sensor effects.
 
@@ -218,7 +226,7 @@ class Agent:
         Returns:
             Depth map with applied sensor effects (float32)
         """
-        from services.sensor_effects import add_gaussian_noise, quantize
+        from services.sensor_effects import quantize
 
         result = depth_map.astype(np.float32)
 
@@ -249,7 +257,9 @@ class Agent:
 
         if np.any(edge_mask):
             edge_noise = np.random.normal(0, max_range * 0.02, result.shape)
-            result[edge_mask] = np.clip(result[edge_mask] + edge_noise[edge_mask], min_range, max_range)
+            result[edge_mask] = np.clip(
+                result[edge_mask] + edge_noise[edge_mask], min_range, max_range
+            )
 
         # 6. Temporal filtering (frame averaging with previous frame)
         if temporal_filter and self._prev_depth_map is not None:
@@ -286,11 +296,7 @@ class Agent:
             ]
 
         # Apply sensor effects
-        img_array = self._apply_sensor_effects(
-            img_array,
-            iso=iso,
-            color_grading=color_grading
-        )
+        img_array = self._apply_sensor_effects(img_array, iso=iso, color_grading=color_grading)
 
         # Convert to JPEG
         img = Image.fromarray(img_array, "RGB")
@@ -318,9 +324,9 @@ class Agent:
         """
         from services.sensor_effects import (
             add_gaussian_noise,
-            apply_radial_distortion,
-            apply_motion_blur,
             apply_color_grading,
+            apply_motion_blur,
+            apply_radial_distortion,
         )
 
         result = img_array.astype(np.float32)
@@ -347,10 +353,7 @@ class Agent:
         return result.astype(np.uint8)
 
     def generate_thermal_image(
-        self,
-        min_temp: float = -20.0,
-        max_temp: float = 60.0,
-        calibration_error: float = 2.0
+        self, min_temp: float = -20.0, max_temp: float = 60.0, calibration_error: float = 2.0
     ) -> str:
         """Generate synthetic thermal image with realistic sensor effects (float32 base64 encoded).
 
@@ -379,10 +382,7 @@ class Agent:
 
         # Apply material-based emissivity variation
         thermal_map = self._apply_thermal_effects(
-            thermal_map,
-            min_temp=min_temp,
-            max_temp=max_temp,
-            calibration_error=calibration_error
+            thermal_map, min_temp=min_temp, max_temp=max_temp, calibration_error=calibration_error
         )
 
         # Encode as base64
@@ -395,7 +395,7 @@ class Agent:
         thermal_map: np.ndarray,
         min_temp: float = -20.0,
         max_temp: float = 60.0,
-        calibration_error: float = 2.0
+        calibration_error: float = 2.0,
     ) -> np.ndarray:
         """Apply realistic thermal camera sensor effects.
 
@@ -413,17 +413,17 @@ class Agent:
         # 1. Material emissivity variation (11 materials with different values)
         # Create spatial patches with different emissivity
         material_emissivity = {
-            "asphalt": 0.95,      # High thermal absorption
-            "concrete": 0.92,     # High
-            "metal": 0.15,        # Very low
-            "glass": 0.85,        # High
-            "water": 0.98,        # Very high
-            "grass": 0.90,        # High
-            "bark": 0.94,         # High
-            "leaves": 0.96,       # High
-            "soil": 0.93,         # High
-            "plastic": 0.85,      # Medium
-            "brick": 0.93,        # High
+            "asphalt": 0.95,  # High thermal absorption
+            "concrete": 0.92,  # High
+            "metal": 0.15,  # Very low
+            "glass": 0.85,  # High
+            "water": 0.98,  # Very high
+            "grass": 0.90,  # High
+            "bark": 0.94,  # High
+            "leaves": 0.96,  # High
+            "soil": 0.93,  # High
+            "plastic": 0.85,  # Medium
+            "brick": 0.93,  # High
         }
 
         h, w = result.shape
@@ -443,13 +443,13 @@ class Agent:
             # Modulate around baseline, not multiply from zero
             base_offset = (max_temp + min_temp) / 2
             result[:, x_start:x_end] = (
-                (result[:, x_start:x_end] - base_offset) * emissivity + base_offset
-            )
+                result[:, x_start:x_end] - base_offset
+            ) * emissivity + base_offset
 
         # 2. View factor effect (directional sensitivity)
         # Simulate that viewing angle affects measurement
         yy, xx = np.mgrid[0:h, 0:w]
-        center_dist = np.sqrt((yy - h/2)**2 + (xx - w/2)**2) / max(h, w)
+        center_dist = np.sqrt((yy - h / 2) ** 2 + (xx - w / 2) ** 2) / max(h, w)
         view_factor = 0.8 + 0.2 * (1 - center_dist)  # Reduce at edges (off-axis)
 
         result = result * view_factor
@@ -558,6 +558,7 @@ class Event:
         data: Optional[dict] = None,
     ):
         """Initialize event."""
+        self.id: Optional[int] = None  # assigned by SimulationEngine._next_event_id
         self.timestamp = timestamp
         self.event_type = event_type
         self.agent_ids = agent_ids or []
@@ -726,6 +727,8 @@ class SimulationEngine:
             event_type="step_complete",
             data={"step": self.step_count, "agents": len(self.agents)},
         )
+        step_event.id = self._next_event_id
+        self._next_event_id += 1
         step_events.append(step_event)
 
         # Update time

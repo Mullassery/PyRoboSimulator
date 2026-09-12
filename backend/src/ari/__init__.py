@@ -8,7 +8,7 @@ individual frames or locations. Enables PyRoboSimulator to generate
 realistic scenarios for any region, improving over time.
 
 Example:
-    >>> from backend.src.ari import ARIOrchestrator, ARIConfig
+    >>> from src.ari import ARIOrchestrator, ARIConfig
     >>> ari = ARIOrchestrator(ARIConfig())
     >>> if ari.needs_learning("Leh", "India"):
     ...     knowledge = ari.learn_region("Leh", "India", (34.16, 77.58))
@@ -17,26 +17,23 @@ Example:
 
 from src.ari.ari_discovery import (
     ARIDiscoveryEngine,
-    DiscoveryQuery,
     DiscoveredAsset,
+    DiscoveryQuery,
     DiscoverySource,
     LearningPhase,
 )
-from src.ari.ari_orchestrator import (
-    ARIConfig,
-    ARIOrchestrator,
-)
+from src.ari.ari_orchestrator import ARIConfig, ARIOrchestrator
 from src.ari.regional_knowledge import (
     EnvironmentType,
+    InfrastructureCharacteristics,
     KnowledgeStore,
+    PedestrianCharacteristics,
     RegionalKnowledge,
     RoadCharacteristics,
     RoadType,
+    TerrainCharacteristics,
     VehicleDistribution,
     VehicleType,
-    PedestrianCharacteristics,
-    TerrainCharacteristics,
-    InfrastructureCharacteristics,
     WeatherCharacteristics,
 )
 

@@ -2,8 +2,8 @@
 
 import pytest
 
-from services.simulation_engine import SimulationEngine, Vector3
 from services.frame_streaming import Obstacle, WorldFrame
+from services.simulation_engine import SimulationEngine, Vector3
 
 
 class TestObstacleGeneration:

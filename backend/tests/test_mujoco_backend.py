@@ -10,7 +10,6 @@ The whole module is skipped if the optional `mujoco` dependency isn't
 installed (`pip install mujoco`, or `pip install -e ".[physics]"`).
 """
 
-import math
 import os
 
 import pytest
@@ -56,8 +55,9 @@ def backend():
     b.shutdown()
 
 
-def make_free_robot(name="falling_body", model_path="primitive:box:0.1,0.1,0.1:1.0",
-                     position=(0.0, 0.0, 5.0)):
+def make_free_robot(
+    name="falling_body", model_path="primitive:box:0.1,0.1,0.1:1.0", position=(0.0, 0.0, 5.0)
+):
     return RobotConfig(
         name=name,
         robot_type=RobotType.CUSTOM,
@@ -98,7 +98,7 @@ class TestLifecycle:
         assert backend.get_last_error() is not None
 
     def test_requires_mujoco_package_error_is_clear(self, monkeypatch):
-        import backend.src.simulators.mujoco_backend as mod
+        import src.simulators.mujoco_backend as mod
 
         monkeypatch.setattr(mod, "MUJOCO_AVAILABLE", False)
         with pytest.raises(ImportError, match="mujoco"):
@@ -443,7 +443,9 @@ class TestSensors:
                 height=48,
             ),
         )
-        result = b.get_camera_image("sensored", "eye", include_depth=True, include_segmentation=True)
+        result = b.get_camera_image(
+            "sensored", "eye", include_depth=True, include_segmentation=True
+        )
         assert result["rgb"].shape == (48, 64, 3)
         assert result["depth"].shape == (48, 64)
         assert result["depth"].min() >= 0.0

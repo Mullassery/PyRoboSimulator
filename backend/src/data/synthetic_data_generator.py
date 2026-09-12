@@ -55,9 +55,7 @@ class Dataset:
 class ObjectDetector:
     """Detects objects in simulation frames."""
 
-    def detect(
-        self, rgb_image: bytes, depth_image: Optional[bytes] = None
-    ) -> List[Dict[str, Any]]:
+    def detect(self, rgb_image: bytes, depth_image: Optional[bytes] = None) -> List[Dict[str, Any]]:
         """Detect objects in frame.
 
         Returns:
@@ -185,15 +183,11 @@ class SyntheticDatasetGenerator:
                 timestamp=frame_data.get("timestamp", 0.0),
                 rgb_image=frame_data.get("rgb", b""),
                 depth_image=frame_data.get("depth") if include_depth else None,
-                segmentation=segmentation_data.get("semantic_map")
-                if segmentation_data
-                else None,
+                segmentation=segmentation_data.get("semantic_map") if segmentation_data else None,
                 point_cloud=frame_data.get("point_cloud"),
                 bounding_boxes=detections,
                 keypoints=keypoints,
-                instance_masks=segmentation_data.get("instance_map")
-                if segmentation_data
-                else None,
+                instance_masks=segmentation_data.get("instance_map") if segmentation_data else None,
                 metadata={
                     "robot_pose": frame_data.get("robot_pose"),
                     "environment": mission_execution_data.get("environment"),
@@ -340,9 +334,7 @@ class SyntheticDatasetGenerator:
             "total_annotations": dataset.annotations_count,
             "class_distribution": all_classes,
             "avg_annotations_per_frame": (
-                dataset.annotations_count / len(dataset.frames)
-                if dataset.frames
-                else 0
+                dataset.annotations_count / len(dataset.frames) if dataset.frames else 0
             ),
             "has_depth": any(f.depth_image for f in dataset.frames),
             "has_segmentation": any(f.segmentation for f in dataset.frames),

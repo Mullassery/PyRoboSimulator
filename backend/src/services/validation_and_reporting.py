@@ -8,7 +8,7 @@ import logging
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -265,13 +265,15 @@ class ValidationFramework:
         Returns:
             Validation result
         """
-        has_violations = collisions > 0 or safety_violations > 0
+        collisions > 0 or safety_violations > 0
         passed = collisions == 0 and safety_violations == 0
 
         severity = (
             SeverityLevel.CRITICAL
             if collisions > 0
-            else SeverityLevel.MEDIUM if near_misses > 0 else SeverityLevel.LOW
+            else SeverityLevel.MEDIUM
+            if near_misses > 0
+            else SeverityLevel.LOW
         )
 
         result = ValidationResult(
@@ -461,9 +463,7 @@ class ViolationDetector:
         self.violations.append(violation)
 
         # Update count
-        self.violation_counts[violation_type] = (
-            self.violation_counts.get(violation_type, 0) + 1
-        )
+        self.violation_counts[violation_type] = self.violation_counts.get(violation_type, 0) + 1
 
         return violation
 
@@ -702,9 +702,7 @@ class ComprehensiveReportGenerator:
                 for v in violation_timeline
             ],
             "severity_breakdown": {
-                level.name: len(
-                    [v for v in violations if v.severity == level]
-                )
+                level.name: len([v for v in violations if v.severity == level])
                 for level in SeverityLevel
             },
             "type_breakdown": self.violation_detector.violation_counts,

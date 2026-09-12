@@ -275,7 +275,9 @@ class StateSynchronizationService:
         """
         self.validator.add_rule(field_name, validator)
 
-    def update_backend_state(self, state_data: Dict[str, Any], metadata: Optional[Dict] = None) -> bool:
+    def update_backend_state(
+        self, state_data: Dict[str, Any], metadata: Optional[Dict] = None
+    ) -> bool:
         """Update backend state.
 
         Args:
@@ -367,19 +369,21 @@ class StateSynchronizationService:
         backend_time = time.time()
         ue5_time = time.time()
 
-        for field in conflicts:
+        for field_name in conflicts:
             resolved_value, strategy = self.conflict_resolver.resolve(
-                self.backend_state.get(field),
+                self.backend_state.get(field_name),
                 backend_time,
-                self.ue5_state.get(field),
+                self.ue5_state.get(field_name),
                 ue5_time,
             )
-            resolved_state[field] = resolved_value
-            logger.info(f"Resolved conflict in {field} using {strategy}")
+            resolved_state[field_name] = resolved_value
+            logger.info(f"Resolved conflict in {field_name} using {strategy}")
 
         return True, resolved_state
 
-    def create_sync_message(self, data: Dict[str, Any], direction: SyncDirection) -> StateSyncMessage:
+    def create_sync_message(
+        self, data: Dict[str, Any], direction: SyncDirection
+    ) -> StateSyncMessage:
         """Create a sync message.
 
         Args:

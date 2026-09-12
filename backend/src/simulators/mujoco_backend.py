@@ -249,9 +249,7 @@ class MuJoCoBackend(SimulatorBackend):
 
         spec = mujoco.MjSpec.from_file(world_path)
         # Ensure a ground plane and light exist for worlds authored without one.
-        has_ground = any(
-            g.type == mujoco.mjtGeom.mjGEOM_PLANE for g in spec.worldbody.geoms
-        )
+        has_ground = any(g.type == mujoco.mjtGeom.mjGEOM_PLANE for g in spec.worldbody.geoms)
         if not has_ground:
             spec.worldbody.add_geom(
                 name="ground",
@@ -416,7 +414,9 @@ class MuJoCoBackend(SimulatorBackend):
             self._data.qvel[vadr : vadr + vdim] = 0.0
         mujoco.mj_forward(self._model, self._data)
 
-    def _body_state(self, body_name: str) -> Tuple[
+    def _body_state(
+        self, body_name: str
+    ) -> Tuple[
         Tuple[float, float, float],
         Tuple[float, float, float, float],
         Tuple[float, float, float],
@@ -440,9 +440,7 @@ class MuJoCoBackend(SimulatorBackend):
         if entry is None:
             raise KeyError(f"Robot not found: {robot_name}")
 
-        position, rotation, linear_velocity, angular_velocity = self._body_state(
-            entry.body_name
-        )
+        position, rotation, linear_velocity, angular_velocity = self._body_state(entry.body_name)
 
         joint_positions: Dict[str, float] = {}
         joint_velocities: Dict[str, float] = {}
@@ -572,9 +570,7 @@ class MuJoCoBackend(SimulatorBackend):
         # renames the child spec's elements in place to include the prefix.
         root_body_name = root_bodies[0].name if root_bodies else None
 
-        frame = self._spec.worldbody.add_frame(
-            pos=list(position), quat=_xyzw_to_wxyz(rotation)
-        )
+        frame = self._spec.worldbody.add_frame(pos=list(position), quat=_xyzw_to_wxyz(rotation))
         self._spec.attach(child, prefix=prefix, frame=frame)
         self._recompile()
 
@@ -598,9 +594,7 @@ class MuJoCoBackend(SimulatorBackend):
         entry = self._objects.get(object_name)
         if entry is None:
             raise KeyError(f"Object not found: {object_name}")
-        position, rotation, linear_velocity, angular_velocity = self._body_state(
-            entry.body_name
-        )
+        position, rotation, linear_velocity, angular_velocity = self._body_state(entry.body_name)
         return ObjectState(
             object_name=object_name,
             position=position,
@@ -765,9 +759,7 @@ class MuJoCoBackend(SimulatorBackend):
         angles = np.linspace(0, np.deg2rad(h_fov), num_beams, endpoint=False)
         for i, angle in enumerate(angles):
             direction = np.array([np.cos(angle), np.sin(angle), 0.0])
-            dist = mujoco.mj_ray(
-                self._model, self._data, origin, direction, None, 1, -1, geomid
-            )
+            dist = mujoco.mj_ray(self._model, self._data, origin, direction, None, 1, -1, geomid)
             if dist is not None and dist >= 0 and dist <= max_range:
                 points[i] = origin + direction * dist
                 intensities[i] = 1.0 - (dist / max_range)
@@ -999,9 +991,7 @@ class MuJoCoBackend(SimulatorBackend):
     def randomize_lighting(
         self,
         intensity_range: Tuple[float, float],
-        color_range: Optional[
-            Tuple[Tuple[float, float, float], Tuple[float, float, float]]
-        ] = None,
+        color_range: Optional[Tuple[Tuple[float, float, float], Tuple[float, float, float]]] = None,
     ) -> None:
         if self._model is None or self._model.nlight == 0:
             return
@@ -1015,9 +1005,7 @@ class MuJoCoBackend(SimulatorBackend):
                 color = np.array([intensity, intensity, intensity])
             self._model.light_diffuse[i] = color
 
-    def randomize_friction(
-        self, object_name: str, friction_range: Tuple[float, float]
-    ) -> None:
+    def randomize_friction(self, object_name: str, friction_range: Tuple[float, float]) -> None:
         if self._model is None:
             return
         entry = self._objects.get(object_name) or self._robots.get(object_name)
@@ -1079,9 +1067,7 @@ class MuJoCoBackend(SimulatorBackend):
             "type": entry.config.robot_type.value,
             "body_name": entry.body_name,
             "joints": [j[len(f"{robot_name}_") :] for j in entry.joint_names],
-            "actuated_joints": [
-                j[len(f"{robot_name}_") :] for j in entry.actuator_names
-            ],
+            "actuated_joints": [j[len(f"{robot_name}_") :] for j in entry.actuator_names],
         }
 
     # ==================== ERROR HANDLING & VALIDATION ====================
@@ -1142,9 +1128,7 @@ def _make_primitive_spec(spec_str: str) -> "mujoco.MjSpec":
         "cylinder": mujoco.mjtGeom.mjGEOM_CYLINDER,
     }
     if shape not in shape_map:
-        raise ValueError(
-            f"Unknown primitive shape '{shape}'. Supported: {list(shape_map)}"
-        )
+        raise ValueError(f"Unknown primitive shape '{shape}'. Supported: {list(shape_map)}")
 
     if size_str:
         size = [float(x) for x in size_str.split(",")]

@@ -3,15 +3,15 @@
 Adaptive curriculum generation with progressive difficulty scaling.
 """
 
+from src.curriculum.curriculum_generator import CurriculumScenarioGenerator
 from src.curriculum.difficulty_model import (
-    DifficultyLevel,
-    DifficultyFactors,
-    LearnerProfile,
     CurriculumLesson,
     CurriculumPlan,
+    DifficultyFactors,
+    DifficultyLevel,
     DifficultyModel,
+    LearnerProfile,
 )
-from src.curriculum.curriculum_generator import CurriculumScenarioGenerator
 
 __all__ = [
     "DifficultyLevel",

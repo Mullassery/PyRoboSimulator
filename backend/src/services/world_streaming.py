@@ -4,11 +4,10 @@ Handles serialization and streaming of world geometry, obstacles,
 and dynamic objects to UE5 with chunking and optimization.
 """
 
-import asyncio
 import json
 import logging
 import struct
-from dataclasses import asdict, dataclass
+from dataclasses import dataclass
 from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
@@ -373,7 +372,9 @@ class WorldStreamingService:
 
         return chunks
 
-    def get_chunk_json(self, chunk_x: int, chunk_y: int, include_terrain: bool = False) -> Optional[str]:
+    def get_chunk_json(
+        self, chunk_x: int, chunk_y: int, include_terrain: bool = False
+    ) -> Optional[str]:
         """Get chunk as JSON string.
 
         Args:
@@ -499,7 +500,9 @@ class WorldStreamingService:
             "cache_size": len(self.chunk_cache),
         }
 
-    def _get_chunks_for_bounds(self, bounds: Tuple[float, float, float, float]) -> List[Tuple[int, int]]:
+    def _get_chunks_for_bounds(
+        self, bounds: Tuple[float, float, float, float]
+    ) -> List[Tuple[int, int]]:
         """Get all chunks intersecting with bounds.
 
         Args:

@@ -31,12 +31,10 @@ from src.simulators.backend_interface import (
     ContactInfo,
     ObjectState,
     PhysicsEngineType,
-    RenderingBackend,
     RobotConfig,
     RobotState,
     SensorConfig,
     SensorData,
-    SensorType,
     SimulationStep,
     SimulatorBackend,
     SimulatorConfig,
@@ -100,11 +98,14 @@ class IsaacSimBackend(SimulatorBackend):
             "Isaac Sim requires the Omniverse runtime (`omni`/`isaacsim` "
             "packages, installed via NVIDIA's Omniverse Launcher, not pip) "
             "and a CUDA-capable NVIDIA GPU for PhysX/RTX rendering. "
-            + ("The `omni` package was importable, but no further Isaac Sim "
-               "integration is implemented here." if has_omni else
-               "Neither the `omni` package nor a GPU runtime was detected. ")
+            + (
+                "The `omni` package was importable, but no further Isaac Sim "
+                "integration is implemented here."
+                if has_omni
+                else "Neither the `omni` package nor a GPU runtime was detected. "
+            )
             + "Use MuJoCoBackend for real, working physics simulation "
-              "(pip-installable, no GPU required)."
+            "(pip-installable, no GPU required)."
         )
         logger.error(self._last_error)
         raise EnvironmentError(self._last_error)
@@ -186,7 +187,7 @@ class IsaacSimBackend(SimulatorBackend):
     def reset_robot(self, robot_name: str) -> None:
         """Reset robot to initial pose."""
         if robot_name in self._robots:
-            config = self._robots[robot_name]["config"]
+            self._robots[robot_name]["config"]
             logger.info(f"Reset robot: {robot_name}")
 
     def get_robot_state(self, robot_name: str) -> RobotState:
@@ -231,11 +232,9 @@ class IsaacSimBackend(SimulatorBackend):
         force: float = 1000.0,
     ) -> None:
         """Set joint target (position control)."""
-        pass
 
     def apply_joint_force(self, robot_name: str, joint_name: str, force: float) -> None:
         """Apply force to joint."""
-        pass
 
     def get_joint_state(self, robot_name: str, joint_name: str) -> Dict[str, float]:
         """Get joint state."""
@@ -284,7 +283,6 @@ class IsaacSimBackend(SimulatorBackend):
         rotation: Tuple[float, float, float, float],
     ) -> None:
         """Set object pose."""
-        pass
 
     # ==================== SENSOR MANAGEMENT ====================
 
@@ -358,7 +356,6 @@ class IsaacSimBackend(SimulatorBackend):
 
     def set_gravity(self, gravity: Tuple[float, float, float]) -> None:
         """Set gravity in PhysX."""
-        pass
 
     def get_gravity(self) -> Tuple[float, float, float]:
         """Get gravity."""
@@ -366,7 +363,6 @@ class IsaacSimBackend(SimulatorBackend):
 
     def set_timestep(self, timestep_ms: float) -> None:
         """Set simulation timestep."""
-        pass
 
     def get_contacts(self) -> List[ContactInfo]:
         """Get contact information."""
@@ -422,11 +418,9 @@ class IsaacSimBackend(SimulatorBackend):
 
     def enable_rendering(self) -> None:
         """Enable RTX rendering."""
-        pass
 
     def disable_rendering(self) -> None:
         """Disable rendering for performance."""
-        pass
 
     def set_camera_view(
         self,
@@ -435,7 +429,6 @@ class IsaacSimBackend(SimulatorBackend):
         up: Tuple[float, float, float] = (0.0, 0.0, 1.0),
     ) -> None:
         """Set viewport camera."""
-        pass
 
     def render_frame(self) -> Optional[bytes]:
         """Render frame."""
@@ -446,22 +439,15 @@ class IsaacSimBackend(SimulatorBackend):
     def randomize_lighting(
         self,
         intensity_range: Tuple[float, float],
-        color_range: Optional[
-            Tuple[Tuple[float, float, float], Tuple[float, float, float]]
-        ] = None,
+        color_range: Optional[Tuple[Tuple[float, float, float], Tuple[float, float, float]]] = None,
     ) -> None:
         """Randomize lighting."""
-        pass
 
-    def randomize_friction(
-        self, object_name: str, friction_range: Tuple[float, float]
-    ) -> None:
+    def randomize_friction(self, object_name: str, friction_range: Tuple[float, float]) -> None:
         """Randomize friction."""
-        pass
 
     def randomize_mass(self, object_name: str, mass_range: Tuple[float, float]) -> None:
         """Randomize mass."""
-        pass
 
     # ==================== INFO ====================
 

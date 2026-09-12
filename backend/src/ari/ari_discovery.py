@@ -7,7 +7,7 @@ YouTube, OpenStreetMap, satellite imagery, weather data.
 import logging
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -70,7 +70,9 @@ class ARIDiscoveryEngine:
         self._discovered_assets: Dict[str, List[DiscoveredAsset]] = {}
         self._learning_phase = LearningPhase.DISCOVERY
 
-    def should_learn_region(self, region_name: str, country: str, confidence_threshold: float = 0.5) -> bool:
+    def should_learn_region(
+        self, region_name: str, country: str, confidence_threshold: float = 0.5
+    ) -> bool:
         """Determine if region needs learning.
 
         Args:
@@ -281,9 +283,7 @@ class ARIDiscoveryEngine:
         logger.info(f"Discovered weather patterns for {region_name}")
         return weather_data
 
-    def discover_traffic_patterns(
-        self, region_name: str, country: str
-    ) -> Dict[str, Any]:
+    def discover_traffic_patterns(self, region_name: str, country: str) -> Dict[str, Any]:
         """Discover traffic patterns and vehicle data.
 
         Uses public traffic databases, Google Maps, etc.
@@ -309,9 +309,7 @@ class ARIDiscoveryEngine:
         logger.info(f"Discovered traffic patterns for {region_name}")
         return traffic_data
 
-    def process_youtube_frames(
-        self, video_url: str, max_frames: int = 100
-    ) -> List[Dict[str, Any]]:
+    def process_youtube_frames(self, video_url: str, max_frames: int = 100) -> List[Dict[str, Any]]:
         """Sample and analyze frames from discovered video.
 
         Removes duplicates, scene transitions, noise.
@@ -369,9 +367,7 @@ class ARIDiscoveryEngine:
 
         # Convert to probabilities
         total_frames = len(frames)
-        road_distribution = {
-            rt: count / total_frames for rt, count in road_types.items()
-        }
+        road_distribution = {rt: count / total_frames for rt, count in road_types.items()}
 
         characteristics = {
             "road_type_distribution": road_distribution,
@@ -411,10 +407,7 @@ class ARIDiscoveryEngine:
         geographic_score = min(geographic_spread_km / 20.0, 1.0)  # 20+ km spread
 
         confidence = (
-            frame_score * 0.3
-            + source_score * 0.3
-            + temporal_score * 0.2
-            + geographic_score * 0.2
+            frame_score * 0.3 + source_score * 0.3 + temporal_score * 0.2 + geographic_score * 0.2
         )
 
         return min(confidence, 1.0)

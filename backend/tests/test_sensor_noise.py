@@ -2,15 +2,16 @@
 Tests for sensor noise and distortion models.
 """
 
-import pytest
 import numpy as np
+import pytest
+
 from src.sensors.noise_models import (
+    DepthSensorNoise,
     GaussianNoiseGenerator,
     LensDistortionModel,
-    DepthSensorNoise,
     LidarSimulator,
-    ThermalEmissivityModel,
     SensorNoiseFactory,
+    ThermalEmissivityModel,
 )
 
 
@@ -212,26 +213,26 @@ class TestThermalEmissivityModel:
         """Test emissivity lookup."""
         model = ThermalEmissivityModel()
 
-        assert model.get_emissivity('asphalt') == 0.95
-        assert model.get_emissivity('metal') == 0.10
-        assert model.get_emissivity('water') == 0.96
-        assert model.get_emissivity('person') == 0.98
+        assert model.get_emissivity("asphalt") == 0.95
+        assert model.get_emissivity("metal") == 0.10
+        assert model.get_emissivity("water") == 0.96
+        assert model.get_emissivity("person") == 0.98
 
     def test_get_emissivity_default(self):
         """Test default emissivity for unknown material."""
         model = ThermalEmissivityModel()
-        assert model.get_emissivity('unknown_material') == 0.90
+        assert model.get_emissivity("unknown_material") == 0.90
 
     def test_apparent_temperature(self):
         """Test apparent temperature calculation."""
         model = ThermalEmissivityModel(ambient_temp_c=20.0)
 
         # High emissivity material at body temperature
-        temp_person = model.apparent_temperature(37, 'person')
+        temp_person = model.apparent_temperature(37, "person")
         assert 35 < temp_person < 39
 
         # Low emissivity material (metal) at same temperature
-        temp_metal = model.apparent_temperature(37, 'metal')
+        temp_metal = model.apparent_temperature(37, "metal")
         # Should see more ambient temperature reflected
         assert abs(temp_metal - 20.0) < abs(temp_person - 20.0)
 
@@ -240,7 +241,7 @@ class TestThermalEmissivityModel:
         model = ThermalEmissivityModel(ambient_temp_c=20.0)
 
         # Water has high emissivity
-        temp_water = model.apparent_temperature(50, 'water')
+        temp_water = model.apparent_temperature(50, "water")
 
         # Should be close to actual temperature
         assert 48 < temp_water < 52
@@ -250,7 +251,7 @@ class TestThermalEmissivityModel:
         model = ThermalEmissivityModel(ambient_temp_c=20.0)
 
         # Metal has low emissivity
-        temp_metal = model.apparent_temperature(50, 'metal')
+        temp_metal = model.apparent_temperature(50, "metal")
 
         # Should be influenced by ambient (20°C)
         assert temp_metal < 45  # Should be significantly lower than 50
@@ -355,7 +356,7 @@ class TestSensorNoiseIntegration:
         """Test thermal camera on scene with different materials."""
         thermal = SensorNoiseFactory.get_thermal_model(ambient_temp_c=20.0)
 
-        materials = ['asphalt', 'metal', 'water', 'person']
+        materials = ["asphalt", "metal", "water", "person"]
         temperatures = [40, 50, 15, 37]
 
         for material, temp in zip(materials, temperatures):

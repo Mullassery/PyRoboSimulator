@@ -4,7 +4,6 @@ import pytest
 
 from src.services.scenario_generation import (
     AdvancedScenarioGenerator,
-    CurriculumLesson,
     DifficultyLevel,
     GeneratedScenario,
     ScenarioClass,
@@ -239,9 +238,7 @@ class TestAdvancedScenarioGenerator:
         nominal = [s for s in scenarios if s.class_ == ScenarioClass.NOMINAL]
         degraded = [s for s in scenarios if s.class_ == ScenarioClass.DEGRADED]
         crisis = [s for s in scenarios if s.class_ == ScenarioClass.CRISIS]
-        catastrophic = [
-            s for s in scenarios if s.class_ == ScenarioClass.CATASTROPHIC
-        ]
+        catastrophic = [s for s in scenarios if s.class_ == ScenarioClass.CATASTROPHIC]
 
         # All classes should be represented
         assert len(nominal) > 0
@@ -301,14 +298,10 @@ class TestAdvancedScenarioGenerator:
         # Night should have lower human density (generally)
         night_scenarios = [s for s in scenarios if s.time_of_day == "night"]
         if night_scenarios:
-            avg_night_density = sum(
-                s.human_density for s in night_scenarios
-            ) / len(night_scenarios)
+            avg_night_density = sum(s.human_density for s in night_scenarios) / len(night_scenarios)
 
             day_scenarios = [s for s in scenarios if s.time_of_day != "night"]
-            avg_day_density = sum(s.human_density for s in day_scenarios) / len(
-                day_scenarios
-            )
+            avg_day_density = sum(s.human_density for s in day_scenarios) / len(day_scenarios)
 
             # On average night should have lower density
             assert avg_night_density < avg_day_density
@@ -339,9 +332,9 @@ class TestAdvancedScenarioGenerator:
             "NOMINAL may be unreachable under the default difficulty_distribution."
         )
 
-        avg_nominal_violations = sum(
-            len(s.active_violations) for s in nominal_scenarios
-        ) / len(nominal_scenarios)
+        avg_nominal_violations = sum(len(s.active_violations) for s in nominal_scenarios) / len(
+            nominal_scenarios
+        )
 
         # Generate catastrophic scenarios (should have more violations)
         gen.scenario_counter = 0
@@ -468,24 +461,20 @@ class TestAdvancedScenarioGenerator:
 
         # Easy scenarios should have less degradation
         easy_dist = {DifficultyLevel.EASY: 1.0}
-        easy_scenarios = gen.generate_scenario_batch(
-            count=20, difficulty_distribution=easy_dist
-        )
+        easy_scenarios = gen.generate_scenario_batch(count=20, difficulty_distribution=easy_dist)
 
         # Hard scenarios should have more degradation
         gen.scenario_counter = 0
         gen.generated_scenarios = []
         hard_dist = {DifficultyLevel.HARD: 1.0}
-        hard_scenarios = gen.generate_scenario_batch(
-            count=20, difficulty_distribution=hard_dist
-        )
+        hard_scenarios = gen.generate_scenario_batch(count=20, difficulty_distribution=hard_dist)
 
-        avg_easy_degradation = sum(
-            s.sensor_degradation for s in easy_scenarios
-        ) / len(easy_scenarios)
-        avg_hard_degradation = sum(
-            s.sensor_degradation for s in hard_scenarios
-        ) / len(hard_scenarios)
+        avg_easy_degradation = sum(s.sensor_degradation for s in easy_scenarios) / len(
+            easy_scenarios
+        )
+        avg_hard_degradation = sum(s.sensor_degradation for s in hard_scenarios) / len(
+            hard_scenarios
+        )
 
         assert avg_hard_degradation > avg_easy_degradation
 
@@ -509,9 +498,9 @@ class TestAdvancedScenarioGenerator:
             nominal_scenarios.extend([s for s in batch if s.class_ == ScenarioClass.NOMINAL])
             nominal_scenarios = nominal_scenarios[:50]
 
-        avg_nominal_events = sum(
-            len(s.rare_events) for s in nominal_scenarios
-        ) / len(nominal_scenarios)
+        avg_nominal_events = sum(len(s.rare_events) for s in nominal_scenarios) / len(
+            nominal_scenarios
+        )
 
         # Nominal should have few or no rare events
         assert avg_nominal_events < 0.5

@@ -2,6 +2,7 @@
 
 from dataclasses import dataclass
 from typing import List, Tuple
+
 import numpy as np
 
 
@@ -175,7 +176,7 @@ class LidarSensor:
         Returns:
             List of (x, y, z) points in meters
         """
-        num_points = self.config.num_rays_horizontal * self.config.num_layers_vertical
+        self.config.num_rays_horizontal * self.config.num_layers_vertical
         points = []
 
         for layer in range(self.config.num_layers_vertical):
@@ -188,8 +189,8 @@ class LidarSensor:
             for ray in range(self.config.num_rays_horizontal):
                 # Horizontal angle for this ray
                 horizontal_angle = (
-                    (ray / self.config.num_rays_horizontal) * self.config.fov_horizontal
-                )
+                    ray / self.config.num_rays_horizontal
+                ) * self.config.fov_horizontal
 
                 # Random distance for demo
                 distance = np.random.uniform(0, self.config.max_range)

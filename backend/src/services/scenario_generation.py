@@ -248,7 +248,11 @@ class AdvancedScenarioGenerator:
 
             # Generate scenario
             scenario = self._generate_base_scenario(
-                environment, region, difficulty, violation_probability=0.1, rare_event_probability=0.05
+                environment,
+                region,
+                difficulty,
+                violation_probability=0.1,
+                rare_event_probability=0.05,
             )
 
             scenarios.append(scenario)
@@ -324,13 +328,9 @@ class AdvancedScenarioGenerator:
         sensor_degradation = random.uniform(0, difficulty * 0.5)
 
         # Generate violations and failures
-        active_violations = self._generate_violations(
-            scenario_class, violation_probability
-        )
+        active_violations = self._generate_violations(scenario_class, violation_probability)
         rare_events = self._generate_rare_events(scenario_class, rare_event_probability)
-        infrastructure_failures = self._generate_infrastructure_failures(
-            scenario_class, region
-        )
+        infrastructure_failures = self._generate_infrastructure_failures(scenario_class, region)
 
         # Validation checkpoints
         validation_checkpoints = self._generate_validation_checkpoints(scenario_class)
@@ -382,7 +382,9 @@ class AdvancedScenarioGenerator:
         # Harder difficulties favor worse weather
         if difficulty > 0.7:
             # Prefer more challenging weather
-            return random.choice(weather_options[1:] if len(weather_options) > 1 else weather_options)
+            return random.choice(
+                weather_options[1:] if len(weather_options) > 1 else weather_options
+            )
 
         return random.choice(weather_options)
 
@@ -514,7 +516,6 @@ class AdvancedScenarioGenerator:
         Returns:
             List of validation checkpoints
         """
-        checkpoints = []
 
         base_checkpoints = [
             "initial_position_valid",

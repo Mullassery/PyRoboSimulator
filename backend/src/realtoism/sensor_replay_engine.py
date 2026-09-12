@@ -6,15 +6,9 @@ Enables synchronization of multiple sensor streams.
 
 import logging
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
-from src.realtoism.rosbag_parser import (
-    RosBagParser,
-    RosImage,
-    RosPointCloud,
-    RosImu,
-    RosGps,
-)
+from src.realtoism.rosbag_parser import RosBagParser, RosGps, RosImage, RosImu, RosPointCloud
 
 logger = logging.getLogger(__name__)
 
@@ -22,6 +16,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class SensorReplayState:
     """State of sensor replay."""
+
     current_time_sec: float = 0.0
     is_playing: bool = False
     playback_speed: float = 1.0

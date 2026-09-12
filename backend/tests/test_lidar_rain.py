@@ -34,11 +34,13 @@ class TestLidarRainOcclusion:
         )
 
         points_no_rain = agent.generate_lidar_cloud(rain_intensity=0.0)
-        points_heavy_rain = agent.generate_lidar_cloud(rain_intensity=1.0, multipath_probability=0.0)
+        points_heavy_rain = agent.generate_lidar_cloud(
+            rain_intensity=1.0, multipath_probability=0.0
+        )
 
         # Heavy rain should reduce points significantly (~80%)
         # Expected: ~20% of original remain
-        expected_points = len(points_no_rain) * 0.2
+        len(points_no_rain) * 0.2
         actual_fraction = len(points_heavy_rain) / len(points_no_rain)
 
         # Test with some tolerance (20% ± 5%)
@@ -134,8 +136,10 @@ class TestLidarBeamSpread:
         # Points should be different but similar in range
         if len(points_no_spread) == len(points_spread):
             # Check that some points differ in angle (x, y varies more than distance)
-            diffs = [np.linalg.norm(np.array(p1[:2]) - np.array(p2[:2]))
-                     for p1, p2 in zip(points_no_spread, points_spread)]
+            diffs = [
+                np.linalg.norm(np.array(p1[:2]) - np.array(p2[:2]))
+                for p1, p2 in zip(points_no_spread, points_spread)
+            ]
             assert np.mean(diffs) > 0
 
 
@@ -152,9 +156,7 @@ class TestLidarMultipath:
         )
 
         points = agent.generate_lidar_cloud(
-            rain_intensity=0.0,
-            multipath_probability=0.0,
-            add_temporal_jitter=False
+            rain_intensity=0.0, multipath_probability=0.0, add_temporal_jitter=False
         )
 
         # ~8192 points (512 rays × 16 layers, no multipath)
@@ -170,14 +172,12 @@ class TestLidarMultipath:
         )
 
         points_no_mp = agent.generate_lidar_cloud(
-            rain_intensity=0.0,
-            multipath_probability=0.0,
-            add_temporal_jitter=False
+            rain_intensity=0.0, multipath_probability=0.0, add_temporal_jitter=False
         )
         points_with_mp = agent.generate_lidar_cloud(
             rain_intensity=0.0,
             multipath_probability=0.1,  # 10% secondary returns
-            add_temporal_jitter=False
+            add_temporal_jitter=False,
         )
 
         # With multipath, should have more points
@@ -200,7 +200,7 @@ class TestLidarMultipath:
         points = agent.generate_lidar_cloud(
             rain_intensity=0.0,
             multipath_probability=1.0,  # All rays have multipath
-            add_temporal_jitter=False
+            add_temporal_jitter=False,
         )
 
         # Extract ranges
@@ -257,8 +257,10 @@ class TestLidarTemporalJitter:
         assert len(points_no_jitter) == len(points_jitter)
 
         # But different coordinates
-        differences = [np.linalg.norm(np.array(p1) - np.array(p2))
-                      for p1, p2 in zip(points_no_jitter, points_jitter)]
+        differences = [
+            np.linalg.norm(np.array(p1) - np.array(p2))
+            for p1, p2 in zip(points_no_jitter, points_jitter)
+        ]
 
         # Jitter should cause measurable differences
         assert np.mean(differences) > 0
@@ -301,7 +303,7 @@ class TestLidarIntegration:
             rain_intensity=0.5,
             beam_spread=0.2,
             multipath_probability=0.05,
-            add_temporal_jitter=True
+            add_temporal_jitter=True,
         )
 
         # Should have valid points
@@ -321,7 +323,7 @@ class TestLidarIntegration:
                 rain_intensity=0.2,
                 beam_spread=0.1,
                 multipath_probability=0.03,
-                add_temporal_jitter=True
+                add_temporal_jitter=True,
             )
 
             # Should have valid point cloud
@@ -345,7 +347,7 @@ class TestLidarIntegration:
                 rain_intensity=0.3,
                 beam_spread=0.15,
                 multipath_probability=0.05,
-                add_temporal_jitter=True
+                add_temporal_jitter=True,
             )
         elapsed = time.time() - start
 

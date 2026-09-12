@@ -5,11 +5,10 @@ import time
 from pathlib import Path
 
 import numpy as np
-import pytest
 
 from src.services.sensor_recording import (
-    RingBuffer,
     RecordingConfig,
+    RingBuffer,
     SensorFrame,
     SensorRecordingService,
 )
@@ -373,8 +372,7 @@ class TestSensorRecordingService:
 
             # Query by timestamp
             frames = service.query_frames(
-                start_timestamp=start_time,
-                end_timestamp=start_time + 0.3
+                start_timestamp=start_time, end_timestamp=start_time + 0.3
             )
             assert len(frames) > 0
 
@@ -430,6 +428,7 @@ class TestSensorRecordingService:
 
             # Set modification time to 2 days ago
             import os
+
             old_time = time.time() - (2 * 24 * 3600)
             os.utime(old_file, (old_time, old_time))
 

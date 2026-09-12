@@ -2,8 +2,8 @@
 
 import pytest
 
+from services.frame_streaming import AgentFrame, Vector3, WorldFrame
 from services.simulation_engine import SimulationEngine
-from services.frame_streaming import WorldFrame, AgentFrame, Vector3
 
 
 class TestEnvironmentFiltering:
@@ -224,7 +224,6 @@ class TestPerformanceWithFiltering:
 
     def test_frame_size_with_full_data(self):
         """Test frame size when including all data for filtering."""
-        import sys
 
         engine = SimulationEngine(
             num_agents=50,

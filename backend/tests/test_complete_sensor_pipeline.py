@@ -8,8 +8,8 @@ import numpy as np
 import pytest
 from PIL import Image
 
-from services.simulation_engine import Agent, SimulationEngine, Vector3
 from services.sensor_fusion import SensorFusionPipeline
+from services.simulation_engine import Agent, SimulationEngine, Vector3
 
 
 class TestCompleteSensorPipeline:
@@ -23,8 +23,6 @@ class TestCompleteSensorPipeline:
             velocity=Vector3(5, 5, 0),
             acceleration=Vector3(0, 0, 0),
         )
-
-        base_time = 1000.0
 
         # Generate all sensors
         rgb_b64 = agent.generate_rgb_frame(iso=100, color_grading="daylight")

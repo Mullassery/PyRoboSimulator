@@ -6,7 +6,7 @@ not memorized frames. Enables incremental learning and knowledge reuse.
 
 import json
 import logging
-from dataclasses import dataclass, field, asdict
+from dataclasses import asdict, dataclass, field
 from datetime import datetime
 from enum import Enum
 from typing import Any, Dict, List, Optional, Tuple
@@ -182,9 +182,7 @@ class WeatherCharacteristics:
     dust_frequency: float = 0.0
     snow_frequency: float = 0.0
     sunshine_hours_daily: float = 8.0
-    seasonal_variations: Dict[str, Dict[str, float]] = field(
-        default_factory=dict
-    )
+    seasonal_variations: Dict[str, Dict[str, float]] = field(default_factory=dict)
     observations_count: int = 0
     confidence: float = 0.0
 
@@ -204,9 +202,7 @@ class RegionalKnowledge:
     # Component knowledge
     roads: RoadCharacteristics = field(default_factory=RoadCharacteristics)
     vehicles: VehicleDistribution = field(default_factory=VehicleDistribution)
-    pedestrians: PedestrianCharacteristics = field(
-        default_factory=PedestrianCharacteristics
-    )
+    pedestrians: PedestrianCharacteristics = field(default_factory=PedestrianCharacteristics)
     terrain: TerrainCharacteristics = field(default_factory=TerrainCharacteristics)
     infrastructure: InfrastructureCharacteristics = field(
         default_factory=InfrastructureCharacteristics
@@ -450,9 +446,7 @@ class KnowledgeStore:
         # Update confidence and metadata
         merged.overall_confidence = merged.get_confidence_score()
         merged.learning_iterations = existing.learning_iterations + 1
-        merged.observation_count = (
-            existing.observation_count + new_knowledge.observation_count
-        )
+        merged.observation_count = existing.observation_count + new_knowledge.observation_count
         merged.update_timestamp = datetime.now().isoformat()
 
         return merged

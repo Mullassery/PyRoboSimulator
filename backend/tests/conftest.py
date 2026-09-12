@@ -8,11 +8,13 @@ import pytest
 # Try to import app dependencies, but allow tests to run without them
 try:
     from httpx import AsyncClient
-    from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
+    from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
     from sqlalchemy.orm import sessionmaker
-    from src.main import app
+
     from src.db.models import Base
     from src.db.session import get_db
+    from src.main import app
+
     HAS_APP = True
 except (ImportError, ModuleNotFoundError):
     HAS_APP = False
@@ -91,9 +93,7 @@ if HAS_APP:
         simulations_router.next_sim_id = 1
 
     @pytest.fixture
-    async def client(
-        test_db: AsyncSession, reset_demo_state
-    ) -> AsyncGenerator[AsyncClient, None]:
+    async def client(test_db: AsyncSession, reset_demo_state) -> AsyncGenerator[AsyncClient, None]:
         """Create async test client for FastAPI app.
 
         Args:

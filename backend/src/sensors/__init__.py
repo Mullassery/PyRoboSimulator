@@ -9,8 +9,8 @@ Comprehensive sensor framework for PyRoboSimulator enabling:
 - Compute optimization based on sensor suite
 
 Example:
-    >>> from backend.src.sensors import SensorConfigurationManager, SensorAwareSimulationEngine
-    >>> from backend.src.sensors import RobotHardwareKnowledgeBase
+    >>> from src.sensors import SensorConfigurationManager, SensorAwareSimulationEngine
+    >>> from src.sensors import RobotHardwareKnowledgeBase
     >>> 
     >>> # Automatic discovery for known robot
     >>> kb = RobotHardwareKnowledgeBase()
@@ -26,29 +26,39 @@ Example:
     >>> engine.initialize_simulation("robot_1")
 """
 
-from src.sensors.sensor_definitions import (
-    SensorCategory, SensorType, SensorSpec, SensorRegistry, SENSOR_REGISTRY,
-)
-from src.sensors.sensor_configuration import (
-    SensorSuite, SensorConfigurationManager,
-)
-from src.sensors.sensor_aware_engine import (
-    SensorAwarenessConstraint, SensorAwareSimulationEngine,
-)
 from src.sensors.robot_knowledge_base import (
-    RobotProfile, RobotHardwareKnowledgeBase, DocumentationParser,
     AutomaticRobotDiscovery,
+    DocumentationParser,
+    RobotHardwareKnowledgeBase,
+    RobotProfile,
+)
+from src.sensors.sensor_aware_engine import SensorAwarenessConstraint, SensorAwareSimulationEngine
+from src.sensors.sensor_configuration import SensorConfigurationManager, SensorSuite
+from src.sensors.sensor_definitions import (
+    SENSOR_REGISTRY,
+    SensorCategory,
+    SensorRegistry,
+    SensorSpec,
+    SensorType,
 )
 
 __all__ = [
     # Definitions
-    "SensorCategory", "SensorType", "SensorSpec", "SensorRegistry", "SENSOR_REGISTRY",
+    "SensorCategory",
+    "SensorType",
+    "SensorSpec",
+    "SensorRegistry",
+    "SENSOR_REGISTRY",
     # Configuration
-    "SensorSuite", "SensorConfigurationManager",
+    "SensorSuite",
+    "SensorConfigurationManager",
     # Simulation Awareness
-    "SensorAwarenessConstraint", "SensorAwareSimulationEngine",
+    "SensorAwarenessConstraint",
+    "SensorAwareSimulationEngine",
     # Robot Discovery
-    "RobotProfile", "RobotHardwareKnowledgeBase", "DocumentationParser",
+    "RobotProfile",
+    "RobotHardwareKnowledgeBase",
+    "DocumentationParser",
     "AutomaticRobotDiscovery",
 ]
 

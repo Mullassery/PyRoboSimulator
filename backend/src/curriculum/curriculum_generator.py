@@ -4,18 +4,17 @@ Generates synthetic scenarios at different difficulty levels for curriculum-base
 """
 
 import logging
-from typing import List, Dict, Optional, Any, Tuple
 from random import Random
+from typing import Dict, List
 
 from src.narratives import (
+    AgentRole,
     Narrative,
-    NarrativeType,
+    NarrativeConstraint,
     NarrativeEntity,
     NarrativeGoal,
-    NarrativeConstraint,
-    AgentRole,
+    NarrativeType,
 )
-from src.curriculum.difficulty_model import DifficultyFactors, DifficultyLevel
 
 logger = logging.getLogger(__name__)
 
@@ -96,27 +95,25 @@ class CurriculumScenarioGenerator:
             # Trivial: short, straight path
             distance = 10.0
             num_obstacles = 0
-            turns = 0
         elif difficulty < 0.4:
             # Novice: moderate distance, few obstacles
             distance = 20.0 + (self._rng.random() * 10)
             num_obstacles = 1
-            turns = 1
         elif difficulty < 0.6:
             # Intermediate: longer, curved path
             distance = 30.0 + (self._rng.random() * 15)
             num_obstacles = 2 + int(self._rng.random() * 2)
-            turns = 2 + int(self._rng.random() * 2)
+            2 + int(self._rng.random() * 2)
         elif difficulty < 0.8:
             # Advanced: complex path, many obstacles
             distance = 50.0 + (self._rng.random() * 20)
             num_obstacles = 4 + int(self._rng.random() * 3)
-            turns = 4 + int(self._rng.random() * 3)
+            4 + int(self._rng.random() * 3)
         else:
             # Expert: very complex
             distance = 80.0 + (self._rng.random() * 30)
             num_obstacles = 7 + int(self._rng.random() * 4)
-            turns = 6 + int(self._rng.random() * 4)
+            6 + int(self._rng.random() * 4)
 
         narrative = Narrative(
             narrative_id=f"curriculum_{curriculum_name}_lesson_{lesson_idx}",
@@ -142,7 +139,7 @@ class CurriculumScenarioGenerator:
 
         # Add obstacles
         for i in range(num_obstacles):
-            angle = (i / num_obstacles) * 6.28
+            (i / num_obstacles) * 6.28
             obs_x = 10.0 + (5.0 * (i % 2)) * ((difficulty + 0.5) ** 1.5)
             obs_y = 5.0 * (i % 3)
 
@@ -226,7 +223,7 @@ class CurriculumScenarioGenerator:
 
         # Add inspection points
         for i in range(num_points):
-            angle = (i / num_points) * 6.28
+            (i / num_points) * 6.28
             point_x = (area_size / 2) * (0.5 + 0.5 * (i % 2))
             point_y = (area_size / 2) * (i % 3) - (area_size / 3)
 
@@ -351,9 +348,7 @@ class CurriculumScenarioGenerator:
         for i in range(num_lessons):
             difficulty = start_difficulty + (i * step)
 
-            scenario = self.generate_scenario(
-                curriculum_name, i, difficulty, scenario_type
-            )
+            scenario = self.generate_scenario(curriculum_name, i, difficulty, scenario_type)
 
             scenarios.append(scenario)
 

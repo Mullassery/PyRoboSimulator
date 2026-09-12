@@ -9,8 +9,6 @@ import math
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Set, Tuple
 
-import numpy as np
-
 logger = logging.getLogger(__name__)
 
 
@@ -306,9 +304,7 @@ class AStarPathfinder:
 
         return waypoint_path
 
-    def _find_polygon_path(
-        self, start_poly: int, goal_poly: int
-    ) -> Optional[List[int]]:
+    def _find_polygon_path(self, start_poly: int, goal_poly: int) -> Optional[List[int]]:
         """Find path through polygons using A*.
 
         Args:
@@ -448,20 +444,19 @@ class RVOAvoidance:
         if not nearby_agents:
             # No neighbors, move toward goal
             to_goal = Vector2(goal.x - position.x, goal.y - position.y)
-            dist = math.sqrt(to_goal.x ** 2 + to_goal.y ** 2)
+            dist = math.sqrt(to_goal.x**2 + to_goal.y**2)
             if dist > 0:
                 to_goal.x = (to_goal.x / dist) * max_speed
                 to_goal.y = (to_goal.y / dist) * max_speed
             return to_goal
 
         # Build RVO constraints
-        constraints = []
 
         for neighbor_pos, neighbor_vel in nearby_agents:
             rel_pos = Vector2(neighbor_pos.x - position.x, neighbor_pos.y - position.y)
-            rel_vel = Vector2(velocity.x - neighbor_vel.x, velocity.y - neighbor_vel.y)
+            Vector2(velocity.x - neighbor_vel.x, velocity.y - neighbor_vel.y)
 
-            dist_sq = rel_pos.x ** 2 + rel_pos.y ** 2
+            dist_sq = rel_pos.x**2 + rel_pos.y**2
             dist = math.sqrt(dist_sq)
 
             if dist < 0.001:
@@ -476,7 +471,7 @@ class RVOAvoidance:
 
         # Move toward goal with constraints applied
         to_goal = Vector2(goal.x - position.x, goal.y - position.y)
-        dist = math.sqrt(to_goal.x ** 2 + to_goal.y ** 2)
+        dist = math.sqrt(to_goal.x**2 + to_goal.y**2)
 
         if dist > 0:
             to_goal.x = (to_goal.x / dist) * max_speed

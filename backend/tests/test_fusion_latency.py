@@ -1,19 +1,12 @@
 """Tests for sensor fusion pipeline (timestamp sync, coordinate transforms, latency)."""
 
 import base64
-import time
 
 import numpy as np
 import pytest
 
+from services.sensor_fusion import SensorFusionPipeline
 from services.simulation_engine import Agent, Vector3
-from services.sensor_fusion import (
-    SensorFusionPipeline,
-    RGBReading,
-    DepthReading,
-    LidarReading,
-    ThermalReading,
-)
 
 
 class TestTimestampSynchronization:
@@ -334,8 +327,9 @@ class TestIntegrationWithAgents:
 
         # Decode and push to fusion
         rgb_bytes = base64.b64decode(rgb_b64)
-        from PIL import Image
         import io
+
+        from PIL import Image
 
         rgb_img = Image.open(io.BytesIO(rgb_bytes))
         rgb_data = np.array(rgb_img)

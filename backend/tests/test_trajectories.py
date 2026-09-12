@@ -2,8 +2,8 @@
 
 import pytest
 
-from services.simulation_engine import SimulationEngine, Vector3
-from services.frame_streaming import AgentFrame, WorldFrame
+from services.frame_streaming import AgentFrame, Vector3, WorldFrame
+from services.simulation_engine import SimulationEngine
 from services.visualization_integration import VisualizationStreamer
 
 

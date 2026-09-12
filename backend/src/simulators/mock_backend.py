@@ -11,19 +11,12 @@ from typing import Any, Dict, List, Optional, Tuple
 import numpy as np
 
 from src.simulators.backend_interface import (
-    CameraConfig,
     ContactInfo,
-    IMUConfig,
-    LidarConfig,
     ObjectState,
-    PhysicsEngineType,
-    RenderingBackend,
     RobotConfig,
     RobotState,
-    RobotType,
     SensorConfig,
     SensorData,
-    SensorType,
     SimulationStep,
     SimulatorBackend,
     SimulatorConfig,
@@ -402,9 +395,7 @@ class MockBackend(SimulatorBackend):
 
         elapsed = time.time() - self._start_time
 
-        robot_states = {
-            name: self.get_robot_state(name) for name in self._robots.keys()
-        }
+        robot_states = {name: self.get_robot_state(name) for name in self._robots.keys()}
 
         return SimulationStep(
             step_count=self._step_count,
@@ -439,11 +430,9 @@ class MockBackend(SimulatorBackend):
 
     def enable_rendering(self) -> None:
         """Enable rendering."""
-        pass
 
     def disable_rendering(self) -> None:
         """Disable rendering."""
-        pass
 
     def set_camera_view(
         self,
@@ -452,7 +441,6 @@ class MockBackend(SimulatorBackend):
         up: Tuple[float, float, float] = (0.0, 0.0, 1.0),
     ) -> None:
         """Set camera view."""
-        pass
 
     def render_frame(self) -> Optional[bytes]:
         """Render frame."""
@@ -463,22 +451,15 @@ class MockBackend(SimulatorBackend):
     def randomize_lighting(
         self,
         intensity_range: Tuple[float, float],
-        color_range: Optional[
-            Tuple[Tuple[float, float, float], Tuple[float, float, float]]
-        ] = None,
+        color_range: Optional[Tuple[Tuple[float, float, float], Tuple[float, float, float]]] = None,
     ) -> None:
         """Randomize lighting."""
-        pass
 
-    def randomize_friction(
-        self, object_name: str, friction_range: Tuple[float, float]
-    ) -> None:
+    def randomize_friction(self, object_name: str, friction_range: Tuple[float, float]) -> None:
         """Randomize friction."""
-        pass
 
     def randomize_mass(self, object_name: str, mass_range: Tuple[float, float]) -> None:
         """Randomize mass."""
-        pass
 
     # ==================== UTILITIES & INFO ====================
 
@@ -494,9 +475,7 @@ class MockBackend(SimulatorBackend):
             "elapsed_time_sec": time.time() - self._start_time,
             "robot_count": len(self._robots),
             "object_count": len(self._objects),
-            "sensor_count": sum(
-                len(r["sensors"]) for r in self._robots.values()
-            ),
+            "sensor_count": sum(len(r["sensors"]) for r in self._robots.values()),
         }
 
     def list_robots(self) -> List[str]:

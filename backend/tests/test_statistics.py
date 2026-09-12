@@ -2,13 +2,15 @@
 Tests for the statistics calculator and aggregator.
 """
 
-import pytest
 import time
+
+import pytest
+
 from src.services.statistics import (
-    StatisticsCalculator,
-    StatisticsAggregator,
     AgentStateDistribution,
     EventRates,
+    StatisticsAggregator,
+    StatisticsCalculator,
 )
 
 

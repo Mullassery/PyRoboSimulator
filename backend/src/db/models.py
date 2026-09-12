@@ -1,16 +1,14 @@
 """SQLAlchemy ORM models."""
 
 from datetime import datetime
+from typing import Any, List, Optional
 
-from sqlalchemy import JSON, BigInteger, Float, ForeignKey, Integer, String, Text, Boolean, func
+from sqlalchemy import JSON, BigInteger, Boolean, Float, ForeignKey, Integer, String, Text, func
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
-from typing import List, Optional, Any
 
 
 class Base(DeclarativeBase):
     """SQLAlchemy declarative base."""
-
-    pass
 
 
 class User(Base):

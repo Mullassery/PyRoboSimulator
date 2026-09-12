@@ -6,8 +6,8 @@ Identifies gaps and discrepancies for model improvement.
 
 import logging
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, Tuple
 from math import sqrt
+from typing import Dict, List
 
 logger = logging.getLogger(__name__)
 
@@ -15,6 +15,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class ExecutionMetrics:
     """Metrics for an execution (real or simulated)."""
+
     execution_id: str
     execution_type: str  # "real" or "simulated"
     total_distance_m: float = 0.0
@@ -30,6 +31,7 @@ class ExecutionMetrics:
 @dataclass
 class ValidationMetric:
     """Single metric comparison result."""
+
     metric_name: str
     real_value: float
     sim_value: float
@@ -42,6 +44,7 @@ class ValidationMetric:
 @dataclass
 class ValidationResult:
     """Complete validation comparison."""
+
     real_execution_id: str
     sim_execution_id: str
     timestamp_generated: float
@@ -93,7 +96,9 @@ class SimRealValidator:
         Returns:
             Validation result with discrepancies and recommendations
         """
-        logger.info(f"Validating sim vs real: {real_metrics.execution_id} vs {sim_metrics.execution_id}")
+        logger.info(
+            f"Validating sim vs real: {real_metrics.execution_id} vs {sim_metrics.execution_id}"
+        )
 
         result = ValidationResult(
             real_execution_id=real_metrics.execution_id,
@@ -150,8 +155,8 @@ class SimRealValidator:
         # Identify discrepancies
         invalid_metrics = [m for m in result.metrics if not m.is_valid]
         result.discrepancies = [
-            f"{m.metric_name}: real={m.real_value:.3f}, sim={m.sim_value:.3f} " +
-            f"(error={m.absolute_error:.3f}, {m.relative_error:.1f}%)"
+            f"{m.metric_name}: real={m.real_value:.3f}, sim={m.sim_value:.3f} "
+            + f"(error={m.absolute_error:.3f}, {m.relative_error:.1f}%)"
             for m in invalid_metrics
         ]
 
@@ -160,12 +165,16 @@ class SimRealValidator:
 
         # Overall similarity
         valid_metrics = [m for m in result.metrics if m.is_valid]
-        result.overall_similarity = len(valid_metrics) / len(result.metrics) if result.metrics else 0.0
+        result.overall_similarity = (
+            len(valid_metrics) / len(result.metrics) if result.metrics else 0.0
+        )
 
         result.is_valid = len(result.discrepancies) == 0
 
-        logger.info(f"Validation complete: {result.overall_similarity:.1%} similarity, " +
-                   f"{len(result.discrepancies)} discrepancies")
+        logger.info(
+            f"Validation complete: {result.overall_similarity:.1%} similarity, "
+            + f"{len(result.discrepancies)} discrepancies"
+        )
 
         return result
 
@@ -312,8 +321,8 @@ class SimRealValidator:
             real_mean = sum(real_data) / len(real_data)
             sim_mean = sum(sim_data) / len(sim_data)
 
-            real_std = sqrt(sum((x - real_mean)**2 for x in real_data) / len(real_data))
-            sim_std = sqrt(sum((x - sim_mean)**2 for x in sim_data) / len(sim_data))
+            real_std = sqrt(sum((x - real_mean) ** 2 for x in real_data) / len(real_data))
+            sim_std = sqrt(sum((x - sim_mean) ** 2 for x in sim_data) / len(sim_data))
 
             if real_std == 0 or sim_std == 0:
                 correlations[sensor_name] = 1.0 if real_std == sim_std else 0.0

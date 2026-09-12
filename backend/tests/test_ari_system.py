@@ -1,21 +1,10 @@
 """Tests for Autonomous Regional Intelligence System (Phase 4.1)."""
 
 import json
-import pytest
 
-from src.ari.ari_discovery import (
-    ARIDiscoveryEngine,
-    DiscoverySource,
-    LearningPhase,
-)
+from src.ari.ari_discovery import ARIDiscoveryEngine, DiscoverySource
 from src.ari.ari_orchestrator import ARIConfig, ARIOrchestrator
-from src.ari.regional_knowledge import (
-    EnvironmentType,
-    KnowledgeStore,
-    RegionalKnowledge,
-    RoadType,
-    VehicleType,
-)
+from src.ari.regional_knowledge import EnvironmentType, KnowledgeStore, RegionalKnowledge
 
 
 class TestRegionalKnowledge:
@@ -334,8 +323,8 @@ class TestARIOrchestrator:
 
     def test_knowledge_persistence(self):
         """Test saving and loading knowledge."""
-        import tempfile
         import os
+        import tempfile
 
         orchestrator = ARIOrchestrator()
 
@@ -376,7 +365,7 @@ class TestARIOrchestrator:
             EnvironmentType.URBAN,
         )
 
-        conf1 = knowledge1.overall_confidence
+        knowledge1.overall_confidence
         iter1 = knowledge1.learning_iterations
 
         # Refine

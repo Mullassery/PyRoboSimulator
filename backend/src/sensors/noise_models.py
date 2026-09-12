@@ -2,14 +2,16 @@
 Realistic sensor noise and distortion models for simulation accuracy.
 """
 
-import numpy as np
-from typing import Tuple
 from dataclasses import dataclass
+from typing import Tuple
+
+import numpy as np
 
 
 @dataclass
 class NoiseParameters:
     """Parameters for sensor noise generation."""
+
     mean: float = 0.0
     std_dev: float = 1.0
     bias: float = 0.0
@@ -91,10 +93,10 @@ class LensDistortionModel:
         y_norm = (y - cy) / cy
 
         # Calculate radial distance
-        r2 = x_norm ** 2 + y_norm ** 2
+        r2 = x_norm**2 + y_norm**2
 
         # Apply distortion formula
-        distortion_factor = 1 + self.k1 * r2 + self.k2 * r2 ** 2
+        distortion_factor = 1 + self.k1 * r2 + self.k2 * r2**2
 
         # Map distorted coordinates back to original image
         x_distorted = (x_norm * distortion_factor * cx + cx).astype(int)
@@ -247,17 +249,17 @@ class ThermalEmissivityModel:
 
     # Typical emissivity values at room temperature (20°C)
     MATERIAL_EMISSIVITY = {
-        'asphalt': 0.95,
-        'concrete': 0.92,
-        'metal': 0.10,
-        'water': 0.96,
-        'grass': 0.98,
-        'tree': 0.97,
-        'building': 0.90,
-        'sky': 0.85,
-        'car': 0.85,
-        'person': 0.98,
-        'default': 0.90,
+        "asphalt": 0.95,
+        "concrete": 0.92,
+        "metal": 0.10,
+        "water": 0.96,
+        "grass": 0.98,
+        "tree": 0.97,
+        "building": 0.90,
+        "sky": 0.85,
+        "car": 0.85,
+        "person": 0.98,
+        "default": 0.90,
     }
 
     def __init__(self, ambient_temp_c: float = 20.0):
@@ -278,7 +280,7 @@ class ThermalEmissivityModel:
         Returns:
             Emissivity value (0-1)
         """
-        return self.MATERIAL_EMISSIVITY.get(material, self.MATERIAL_EMISSIVITY['default'])
+        return self.MATERIAL_EMISSIVITY.get(material, self.MATERIAL_EMISSIVITY["default"])
 
     def apparent_temperature(
         self,
@@ -304,10 +306,7 @@ class ThermalEmissivityModel:
 
         # Simplified thermal equation
         # T_apparent = sqrt[epsilon * T_object^4 + (1-epsilon) * T_camera^4]
-        apparent_temp_k4 = (
-            emissivity * object_temp_k ** 4 +
-            (1 - emissivity) * camera_temp_k ** 4
-        )
+        apparent_temp_k4 = emissivity * object_temp_k**4 + (1 - emissivity) * camera_temp_k**4
 
         apparent_temp_k = np.power(apparent_temp_k4, 0.25)
         apparent_temp_c = apparent_temp_k - 273.15

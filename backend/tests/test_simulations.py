@@ -58,7 +58,10 @@ async def test_created_simulation_is_owned_by_the_real_authenticated_user(
     """The simulation's user_id must come from the real auth context, not a
     hardcoded placeholder -- verified by checking two different users get
     two different owners."""
-    await client.post("/api/v1/auth/register", json={"email": "other@example.com", "password": "another-long-password"})
+    await client.post(
+        "/api/v1/auth/register",
+        json={"email": "other@example.com", "password": "another-long-password"},
+    )
     other_login = await client.post(
         "/api/v1/auth/login",
         json={"email": "other@example.com", "password": "another-long-password"},
@@ -175,7 +178,10 @@ async def test_get_simulation_owned_by_another_user_is_not_found(
     )
     sim_id = create_response.json()["id"]
 
-    await client.post("/api/v1/auth/register", json={"email": "intruder@example.com", "password": "another-long-password"})
+    await client.post(
+        "/api/v1/auth/register",
+        json={"email": "intruder@example.com", "password": "another-long-password"},
+    )
     intruder_login = await client.post(
         "/api/v1/auth/login",
         json={"email": "intruder@example.com", "password": "another-long-password"},
@@ -276,7 +282,10 @@ async def test_delete_simulation_owned_by_another_user_is_not_found(
     )
     sim_id = create_response.json()["id"]
 
-    await client.post("/api/v1/auth/register", json={"email": "intruder2@example.com", "password": "another-long-password"})
+    await client.post(
+        "/api/v1/auth/register",
+        json={"email": "intruder2@example.com", "password": "another-long-password"},
+    )
     intruder_login = await client.post(
         "/api/v1/auth/login",
         json={"email": "intruder2@example.com", "password": "another-long-password"},

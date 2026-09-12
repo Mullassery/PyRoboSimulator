@@ -3,14 +3,13 @@ CLI-based statistics dashboard using Textual.
 Real-time terminal UI for monitoring simulation statistics.
 """
 
-from textual.app import ComposeResult, App
-from textual.containers import Container, Horizontal, Vertical, ScrollableContainer
-from textual.widgets import Static, Header, Footer
-from textual.reactive import reactive
-from datetime import datetime
 from typing import Optional
 
-from src.services.statistics import StatisticsCalculator, StatisticsAggregator
+from textual.app import App, ComposeResult
+from textual.containers import Horizontal, ScrollableContainer, Vertical
+from textual.widgets import Footer, Header, Static
+
+from src.services.statistics import StatisticsCalculator
 
 
 class StatMetric(Static):
@@ -67,7 +66,9 @@ class StateDistributionWidget(Static):
             f"[red]Collision[/]     [{len(collision_bar):2d}%] {collision_bar:<{max_width}} {self.collision}"
         )
 
-    def update_distribution(self, moving: int, idle: int, goal_reached: int, collision: int) -> None:
+    def update_distribution(
+        self, moving: int, idle: int, goal_reached: int, collision: int
+    ) -> None:
         """Update state distribution."""
         self.moving = moving
         self.idle = idle
@@ -284,8 +285,9 @@ def create_dashboard(calculator: StatisticsCalculator) -> SimulationDashboard:
 
 if __name__ == "__main__":
     # Example usage
-    from src.services.statistics import StatisticsCalculator
     import asyncio
+
+    from src.services.statistics import StatisticsCalculator
 
     calculator = StatisticsCalculator()
 

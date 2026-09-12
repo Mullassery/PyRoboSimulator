@@ -1,7 +1,6 @@
 """Tests for Phase 2.2: Navigation & Pathfinding."""
 
 import math
-import pytest
 
 from src.services.pathfinding import (
     AStarPathfinder,
@@ -409,7 +408,7 @@ class TestRVOAvoidance:
 
         avoidance_vel = avoidance.compute_avoidance_velocity(pos, vel, goal, [], max_speed=5.0)
 
-        speed = math.sqrt(avoidance_vel.x ** 2 + avoidance_vel.y ** 2)
+        speed = math.sqrt(avoidance_vel.x**2 + avoidance_vel.y**2)
         assert speed <= 5.01  # Small tolerance for floating point
 
 
@@ -496,7 +495,7 @@ class TestPathfindingIntegration:
         for i in range(20):
             start = Vector2(i * 2, i * 2)
             goal = Vector2(40 - i * 2, 40 - i * 2)
-            path = pathfinder.find_path(start, goal)
+            pathfinder.find_path(start, goal)
 
         stats = pathfinder.get_statistics()
         assert stats["paths_calculated"] >= 20

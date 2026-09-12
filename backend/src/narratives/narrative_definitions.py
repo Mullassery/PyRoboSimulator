@@ -5,13 +5,14 @@ Enables conversion of story descriptions into executable scenarios.
 """
 
 from dataclasses import dataclass, field
+from datetime import datetime
 from enum import Enum
 from typing import Any, Dict, List, Optional, Tuple
-from datetime import datetime
 
 
 class NarrativeType(Enum):
     """Types of narratives."""
+
     RESCUE_OPERATION = "rescue_operation"
     DELIVERY_MISSION = "delivery_mission"
     EXPLORATION = "exploration"
@@ -24,6 +25,7 @@ class NarrativeType(Enum):
 
 class AgentRole(Enum):
     """Agent roles in narrative."""
+
     PROTAGONIST = "protagonist"
     ASSISTANT = "assistant"
     ANTAGONIST = "antagonist"
@@ -33,6 +35,7 @@ class AgentRole(Enum):
 
 class NarrativeEventType(Enum):
     """Types of events that can occur."""
+
     AGENT_ACTION = "agent_action"
     ENVIRONMENT_CHANGE = "environment_change"
     SENSOR_EVENT = "sensor_event"
@@ -44,6 +47,7 @@ class NarrativeEventType(Enum):
 
 class NarrativeBranch(Enum):
     """Branch types for narrative branching."""
+
     LINEAR = "linear"
     CONDITIONAL = "conditional"
     PROBABILISTIC = "probabilistic"
@@ -53,6 +57,7 @@ class NarrativeBranch(Enum):
 @dataclass
 class NarrativeEntity:
     """Entity (agent or object) in a narrative."""
+
     entity_id: str
     entity_type: str  # "robot", "human", "obstacle", "landmark"
     name: str
@@ -67,6 +72,7 @@ class NarrativeEntity:
 @dataclass
 class NarrativeGoal:
     """Goal or objective in narrative."""
+
     goal_id: str
     description: str
     goal_type: str  # "reach_location", "pick_object", "avoid_obstacle", etc.
@@ -80,6 +86,7 @@ class NarrativeGoal:
 @dataclass
 class NarrativeEvent:
     """Event in narrative timeline."""
+
     event_id: str
     event_type: NarrativeEventType
     timestamp_sec: float
@@ -94,6 +101,7 @@ class NarrativeEvent:
 @dataclass
 class NarrativeBranchPoint:
     """Decision point where narrative can branch."""
+
     branch_id: str
     trigger_condition: str  # NL description or code condition
     branches: Dict[str, "NarrativeSequence"] = field(default_factory=dict)
@@ -105,6 +113,7 @@ class NarrativeBranchPoint:
 @dataclass
 class NarrativeConstraint:
     """Constraint or rule in narrative."""
+
     constraint_id: str
     description: str
     constraint_type: str  # "safety", "efficiency", "realism", "challenge"
@@ -115,6 +124,7 @@ class NarrativeConstraint:
 @dataclass
 class NarrativeSequence:
     """Sequence of events forming part of narrative."""
+
     sequence_id: str
     name: str
     description: str
@@ -141,6 +151,7 @@ class NarrativeSequence:
 @dataclass
 class Narrative:
     """Complete narrative scenario definition."""
+
     narrative_id: str
     title: str
     description: str
@@ -203,6 +214,7 @@ class Narrative:
 @dataclass
 class NarrativeExecutionContext:
     """Runtime context for narrative execution."""
+
     narrative: Narrative
     current_sequence_idx: int = 0
     current_event_idx: int = 0

@@ -1,13 +1,9 @@
 """Tests for simulation engine physics and logic."""
 
+
 import pytest
-import math
-from src.services.simulation_engine import (
-    SimulationEngine,
-    Agent,
-    Vector3,
-    Event,
-)
+
+from src.services.simulation_engine import Agent, SimulationEngine, Vector3
 
 
 class TestVector3:

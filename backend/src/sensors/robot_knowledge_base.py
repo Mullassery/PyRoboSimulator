@@ -4,16 +4,11 @@ Maintains database of commercial robot sensor configurations.
 Enables automatic sensor discovery without manual configuration.
 """
 
-import json
 import logging
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional, Tuple
 
-from src.sensors.sensor_definitions import (
-    SensorSpec,
-    SensorType,
-    SensorCategory,
-)
+from src.sensors.sensor_definitions import SensorSpec, SensorType
 
 logger = logging.getLogger(__name__)
 
@@ -168,51 +163,72 @@ class RobotHardwareKnowledgeBase:
         """Setup sensors for default profiles."""
         # Spot sensors
         spot = self._profiles["boston_dynamics_spot"]
-        spot.add_sensor("rgb_0", RobotSensorEntry(
-            sensor_type=SensorType.RGB_CAMERA,
-            quantity=5,
-            confidence=0.95,
-            sources=["manufacturer_spec"],
-        ))
-        spot.add_sensor("stereo", RobotSensorEntry(
-            sensor_type=SensorType.STEREO_CAMERA,
-            quantity=1,
-            confidence=0.95,
-            sources=["manufacturer_spec"],
-        ))
-        spot.add_sensor("imu", RobotSensorEntry(
-            sensor_type=SensorType.IMU,
-            quantity=1,
-            confidence=1.0,
-            sources=["manufacturer_spec"],
-        ))
+        spot.add_sensor(
+            "rgb_0",
+            RobotSensorEntry(
+                sensor_type=SensorType.RGB_CAMERA,
+                quantity=5,
+                confidence=0.95,
+                sources=["manufacturer_spec"],
+            ),
+        )
+        spot.add_sensor(
+            "stereo",
+            RobotSensorEntry(
+                sensor_type=SensorType.STEREO_CAMERA,
+                quantity=1,
+                confidence=0.95,
+                sources=["manufacturer_spec"],
+            ),
+        )
+        spot.add_sensor(
+            "imu",
+            RobotSensorEntry(
+                sensor_type=SensorType.IMU,
+                quantity=1,
+                confidence=1.0,
+                sources=["manufacturer_spec"],
+            ),
+        )
 
         # Husky sensors
         husky = self._profiles["clearpath_husky"]
-        husky.add_sensor("rgb", RobotSensorEntry(
-            sensor_type=SensorType.RGB_CAMERA,
-            quantity=2,
-            confidence=0.9,
-            sources=["manufacturer_spec", "ros_package"],
-        ))
-        husky.add_sensor("lidar", RobotSensorEntry(
-            sensor_type=SensorType.VELODYNE_LIDAR,
-            quantity=1,
-            confidence=0.85,
-            sources=["typical_configuration"],
-        ))
-        husky.add_sensor("imu", RobotSensorEntry(
-            sensor_type=SensorType.IMU,
-            quantity=1,
-            confidence=1.0,
-            sources=["manufacturer_spec"],
-        ))
-        husky.add_sensor("gps", RobotSensorEntry(
-            sensor_type=SensorType.GPS,
-            quantity=1,
-            confidence=0.8,
-            sources=["typical_configuration"],
-        ))
+        husky.add_sensor(
+            "rgb",
+            RobotSensorEntry(
+                sensor_type=SensorType.RGB_CAMERA,
+                quantity=2,
+                confidence=0.9,
+                sources=["manufacturer_spec", "ros_package"],
+            ),
+        )
+        husky.add_sensor(
+            "lidar",
+            RobotSensorEntry(
+                sensor_type=SensorType.VELODYNE_LIDAR,
+                quantity=1,
+                confidence=0.85,
+                sources=["typical_configuration"],
+            ),
+        )
+        husky.add_sensor(
+            "imu",
+            RobotSensorEntry(
+                sensor_type=SensorType.IMU,
+                quantity=1,
+                confidence=1.0,
+                sources=["manufacturer_spec"],
+            ),
+        )
+        husky.add_sensor(
+            "gps",
+            RobotSensorEntry(
+                sensor_type=SensorType.GPS,
+                quantity=1,
+                confidence=0.8,
+                sources=["typical_configuration"],
+            ),
+        )
 
     def add_profile(self, profile: RobotProfile) -> None:
         """Add or update robot profile.
@@ -244,8 +260,7 @@ class RobotHardwareKnowledgeBase:
             Matching profiles
         """
         return [
-            p for p in self._profiles.values()
-            if p.manufacturer.lower() == manufacturer.lower()
+            p for p in self._profiles.values() if p.manufacturer.lower() == manufacturer.lower()
         ]
 
     def search_by_category(self, category: str) -> List[RobotProfile]:
@@ -257,10 +272,7 @@ class RobotHardwareKnowledgeBase:
         Returns:
             Matching profiles
         """
-        return [
-            p for p in self._profiles.values()
-            if p.category.lower() == category.lower()
-        ]
+        return [p for p in self._profiles.values() if p.category.lower() == category.lower()]
 
     def list_all_robots(self) -> List[str]:
         """List all known robot IDs.
@@ -282,12 +294,12 @@ class RobotHardwareKnowledgeBase:
             "total_robots": len(profiles),
             "manufacturers": len(set(p.manufacturer for p in profiles)),
             "categories": list(set(p.category for p in profiles)),
-            "avg_verification": sum(p.verification_level for p in profiles) / len(profiles) if profiles else 0,
-            "total_sensor_types": len(set(
-                entry.sensor_type
-                for p in profiles
-                for entry in p.sensors.values()
-            )),
+            "avg_verification": sum(p.verification_level for p in profiles) / len(profiles)
+            if profiles
+            else 0,
+            "total_sensor_types": len(
+                set(entry.sensor_type for p in profiles for entry in p.sensors.values())
+            ),
         }
 
 
@@ -358,9 +370,7 @@ class DocumentationParser:
             "raw_text_length": len(specs_text),
         }
 
-    def verify_with_multiple_sources(
-        self, sources: Dict[str, Dict[str, Any]]
-    ) -> Dict[str, Any]:
+    def verify_with_multiple_sources(self, sources: Dict[str, Dict[str, Any]]) -> Dict[str, Any]:
         """Cross-reference sensor info from multiple sources.
 
         Args:
@@ -438,9 +448,7 @@ class AutomaticRobotDiscovery:
 
         return profile
 
-    def discover_by_model_name(
-        self, manufacturer: str, model_name: str
-    ) -> Optional[RobotProfile]:
+    def discover_by_model_name(self, manufacturer: str, model_name: str) -> Optional[RobotProfile]:
         """Discover robot by manufacturer and model name.
 
         Args:
@@ -495,7 +503,7 @@ class AutomaticRobotDiscovery:
         Returns:
             Dialog data for user review
         """
-        sensor_summary = profile.get_sensor_summary()
+        profile.get_sensor_summary()
 
         # Categorize by confidence
         high_confidence = [
