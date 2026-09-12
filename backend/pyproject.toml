@@ -76,6 +76,10 @@ dev = [
     "pylint==3.0.3",
     "mypy==1.7.1",
     "bandit==1.7.5",
+    # bandit imports pbr.version at runtime but doesn't declare it in its own
+    # install_requires (only setup_requires) - without this, `bandit` fails
+    # with "ModuleNotFoundError: No module named 'pbr'" on a clean install.
+    "pbr>=5.0.0",
     "safety>=3.7.0",
 
     # Pre-commit
