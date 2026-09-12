@@ -49,37 +49,81 @@ code blocks below as backend-service examples, not pip-package examples, until i
 
 ## Known Issues
 
-- **Performance Benchmarks below are not backed by a committed, reproducible benchmark suite.** They are
-  not verified as part of this audit pass; treat them as unverified until a benchmark script lands in the
-  repo.
-- **Backend database/cache are still in-memory.** The PostgreSQL/Redis integration described in
-  Architecture is partially wired, not fully load-bearing for simulations/users as of this pass.
-- **CI has been red for at least the last 10 pushes to `main`**, including the commit that added the real
-  `StorageEngine` — checked via `gh run list --repo Mullassery/PyRoboSimulator`. The failure is in the
-  "Code Quality" job's dependency-install step (`pip install`: `ResolutionImpossible` — conflicting pinned
-  versions), not a test failure; the `Tests`/`Build`/`Deploy` jobs never run because that step blocks them.
-  A separate, unrelated failure in the same workflow (`Notify Slack`) is just a missing bot token/webhook
-  secret. The CI badge above reflects this live — it is not currently green.
-- **`NarrativeEngine.generate_from_events` is not implemented in the Rust core** — it raises
-  `NotImplementedError` by design; use the real, Claude-backed equivalent in
-  `backend/src/narratives/narrative_converter.py` instead (see "Why PyRoboSimulator?" above).
-- **Gazebo and Isaac Sim physics backends are unfinished sketches**, not real integrations — see
-  "Multi-Backend Physics" below.
-- **Backend test suite has known failures**, tracked not hidden — see "Testing & Quality" below for the
-  current pass/fail breakdown.
-- **`isort`'s own config was broken** — `[tool.isort]` in `backend/pyproject.toml` set
-  `multi_line_mode = 3`, which isn't a real isort setting (the real one is `multi_line_output`); recent
-  isort versions raise `UnsupportedSettings` and refuse to run at all rather than silently ignoring it.
-  Fixed by removing the invalid key (`profile = "black"` already implies compatible wrapping). Running
-  isort for real afterward finds genuine sorting violations in ~15 test files — not fixed in this pass,
-  left as real, visible debt rather than auto-applied blind.
-- **`black --check` currently fails on 72 of 134 backend files** (`src/` + `tests/`) — verified directly,
-  not fixed in this pass. This is a large, mechanical-but-risky change to make without also re-running the
-  full test suite afterward to confirm nothing broke; left as disclosed debt rather than rushed.
-- **This README had a leftover "Dashboard"/"OpenTelemetry"/"Production Deployment" section cluster**
-  pointing at `DASHBOARD_SHORTCUTS.md`/`OTEL_SETUP_GUIDE.md`/`PRODUCTION_DEPLOYMENT.md` — none of which
-  exist in this repo. Same cross-repo template contamination (unfilled `dash-[package]-*` placeholders)
-  found and removed from several sibling repos during an org-wide audit; removed here too.
+**2026-09-13 pass — CI workflow gating fixed, root causes behind most test
+failures fixed, deeper backlogs newly surfaced (not yet fixed):**
+
+- **CI workflow previously skipped `Tests`/`Security Audit` entirely whenever
+  `Code Quality` failed** (`needs: quality`), hiding whether the code actually
+  worked or had real vulnerabilities. Restructured: bandit/safety pulled into
+  their own independent `security-audit` job; `test` no longer depends on
+  `quality`; both now always run and report real status.
+- **`black`/`isort` backlog (72/134, 68/134 files) — fixed.** Reformatted to
+  CI's pinned `black==23.12.0`/`isort==5.13.2`.
+- **flake8 backlog (238 issues) — cleaned.** Mechanical unused-import/var/
+  line-length cleanup via `autoflake`, plus 4 real bugs found in the process:
+  a `NameError`-on-undefined-variable bug in `agent_interpreter.py`'s
+  fallback description, a bare `except:`, a `dataclasses.field` shadowing
+  bug, and a redundant import. 27 flake8 E501 (unsplittable long f-strings)
+  remain — cosmetic, not fixed.
+- **Real bugs found and fixed — backend test suite went from 87 failed/18
+  errors to 41 failed/1 error:**
+  - `passlib==1.7.4` + `bcrypt>=4.1` incompatibility broke **all** password
+    hashing (passlib's own internal self-test trips a `ValueError` bcrypt
+    4.1+ now raises). Pinned `bcrypt<4.1`. Alone fixed ~7 failures + 17 errors.
+  - The CLI analytics dashboard (`src/analytics/cli_dashboard.py`) was
+    silently, permanently disabled — a wrong import path
+    (`backend.src.analytics.cli_dashboard` instead of `src.analytics...`)
+    meant it always fell into its "textual not installed" fallback, even
+    when textual was installed, and its tests only ever exercised a mock.
+    Fixed the import path (also present in the test file and 3 docstrings),
+    and added `textual` as a real declared optional dependency (`dashboard`
+    extra) — it was never declared anywhere. 26/26 real dashboard tests now
+    pass against the actual implementation.
+  - 11 `SensorType` enum members (GPS, RTK_GPS, STEREO_CAMERA, TIME_OF_FLIGHT,
+    WHEEL_ENCODER, STEERING_ENCODER, FORCE_TORQUE_SENSOR, TACTILE_SENSOR,
+    WIND_SENSOR, SONAR, DVL) were referenced by the standard sensor-suite
+    builders but never registered — building a standard suite for most robot
+    platforms crashed outright. Added real specs with domain-realistic
+    parameters for all 11.
+  - `tests/test_trajectories.py` imported `Vector3` from the wrong module
+    (of 3 separate `Vector3` classes in this codebase) — fixed.
+  - `simulation_engine.py`'s `step_complete` `Event` was missing its `.id`
+    (the other 2 `Event` sites set one, this one didn't), crashing the
+    real-time visualization streamer whenever it needed to serialize one.
+  - `bandit` (Security Audit) couldn't even start — it imports `pbr` at
+    runtime but doesn't declare it as a real dependency. Added `pbr` to dev
+    deps. With bandit actually running, it flagged `main.py`'s
+    `host="0.0.0.0"` bind (correct/required — the app runs in a container)
+    — suppressed with `# nosec B104` and a justification, not by changing
+    the bind address.
+- **`src/__init__.py` was missing entirely**, making `src/` an implicit
+  namespace package — this is what caused mypy's "Source file found twice
+  under different module names" error, meaning the strict-mode mypy gate had
+  **never once completed a real check** in this repo's history. Fixed (no
+  behavior change). With that unblocked, mypy now runs to completion and
+  surfaces **530 real type errors across 58 files** — a large, previously
+  invisible backlog, not fixed in this pass.
+- **`safety check` (dependency vulnerability scan) reports 50 vulnerabilities
+  across 13 packages**, including a real starlette HTTP request smuggling CVE
+  (2026-48710) — not fixed in this pass; each needs individual upgrade-path
+  verification rather than a blind mass-upgrade. `safety check` itself is
+  also a deprecated command (unsupported since mid-2024); CI should move to
+  `safety scan` separately.
+- **Still open**: 41 test failures / 1 error (not yet individually
+  root-caused), the 530 mypy errors above, the 50 `safety` findings above,
+  27 cosmetic flake8 E501s, and the `frontend/` directory has not yet been
+  audited for JS quality.
+- **Backend database/cache are still in-memory.** The PostgreSQL/Redis
+  integration described in Architecture is partially wired, not fully
+  load-bearing for simulations/users as of this pass.
+- **`NarrativeEngine.generate_from_events` is not implemented in the Rust
+  core** — it raises `NotImplementedError` by design; use the real,
+  Claude-backed equivalent in `backend/src/narratives/narrative_converter.py`
+  instead (see "Why PyRoboSimulator?" above).
+- **Gazebo and Isaac Sim physics backends are unfinished sketches**, not real
+  integrations — see "Multi-Backend Physics" below.
+- **Performance Benchmarks below are not backed by a committed, reproducible
+  benchmark suite.** Treat them as unverified until a benchmark script lands.
 
 ---
 
