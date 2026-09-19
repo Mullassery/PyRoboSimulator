@@ -40,9 +40,10 @@ class MetricsPanel(Static):
         table.add_column("Value", style="green")
 
         table.add_row("Time", f"{latest_sim.elapsed_time_sec:.2f}s")
+        pos = latest_sim.current_position
         table.add_row(
             "Position",
-            f"({latest_sim.current_position[0]:.2f}, {latest_sim.current_position[1]:.2f}, {latest_sim.current_position[2]:.2f})",
+            f"({pos[0]:.2f}, {pos[1]:.2f}, {pos[2]:.2f})",
         )
         table.add_row("Velocity", f"{latest_sim.current_velocity:.2f} m/s")
         table.add_row("Acceleration", f"{latest_sim.current_acceleration:.2f} m/s²")
@@ -201,26 +202,24 @@ class ProgressPanel(Static):
 
         progress_lines = []
 
+        def bar(pct: float) -> str:
+            filled = int(pct / 5)
+            return "█" * filled + "░" * (20 - filled)
+
         # Simulation progress
         if latest_sim and narrative and narrative.goals_total > 0:
             goal_progress = (latest_sim.goals_completed / narrative.goals_total) * 100
-            progress_lines.append(
-                f"Goals:        [{goal_progress:5.1f}%] {'█' * int(goal_progress / 5)}{'░' * (20 - int(goal_progress / 5))}"
-            )
+            progress_lines.append(f"Goals:        [{goal_progress:5.1f}%] {bar(goal_progress)}")
 
         # Sequence progress
         if narrative and narrative.total_sequences > 0:
             seq_progress = narrative.sequence_progress_pct
-            progress_lines.append(
-                f"Sequence:     [{seq_progress:5.1f}%] {'█' * int(seq_progress / 5)}{'░' * (20 - int(seq_progress / 5))}"
-            )
+            progress_lines.append(f"Sequence:     [{seq_progress:5.1f}%] {bar(seq_progress)}")
 
         # Event progress
         if narrative and narrative.total_events > 0:
             event_progress = (narrative.events_triggered / narrative.total_events) * 100
-            progress_lines.append(
-                f"Events:       [{event_progress:5.1f}%] {'█' * int(event_progress / 5)}{'░' * (20 - int(event_progress / 5))}"
-            )
+            progress_lines.append(f"Events:       [{event_progress:5.1f}%] {bar(event_progress)}")
 
         if not progress_lines:
             return Panel("No progress data", title="Progress")
@@ -236,9 +235,9 @@ class ControlPanel(Static):
         """Render control panel."""
         content = """
 [cyan]Keyboard Controls:[/cyan]
-[yellow]p[/yellow] - Play/Pause        [yellow]s[/yellow] - Stop           [yellow]r[/yellow] - Reset
-[yellow]+[/yellow] - Speed up          [yellow]-[/yellow] - Slow down      [yellow]h[/yellow] - History (10s)
-[yellow]v[/yellow] - Toggle sensors    [yellow]t[/yellow] - Toggle narrative [yellow]q[/yellow] - Quit
+[yellow]p[/yellow] - Play/Pause      [yellow]s[/yellow] - Stop         [yellow]r[/yellow] - Reset
+[yellow]+[/yellow] - Speed up    [yellow]-[/yellow] - Slow down  [yellow]h[/yellow] - History (10s)
+[yellow]v[/yellow] - Toggle sensors  [yellow]t[/yellow] - Toggle narrative [yellow]q[/yellow] - Quit
         """
         return Panel(content, title="Controls")
 

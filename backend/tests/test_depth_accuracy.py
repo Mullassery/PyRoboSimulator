@@ -139,8 +139,8 @@ class TestDepthSensorNoise:
         far_pixels = depth_map[100, 100:110]  # Pixels further from camera
 
         # This is a statistical test, may need adjustment
-        # The far pixels should have higher absolute variance
         assert near_pixels.std() > 0  # Just check noise exists
+        assert far_pixels.std() > near_pixels.std()  # Far pixels have higher absolute variance
 
     def test_edge_artifacts_detected(self):
         """Test that depth discontinuities create artifact zones."""

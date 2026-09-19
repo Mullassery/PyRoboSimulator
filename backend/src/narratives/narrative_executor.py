@@ -257,7 +257,8 @@ class NarrativeExecutor:
         """Register callback for narrative event.
 
         Args:
-            event_type: "event_triggered" | "goal_progress" | "constraint_violated" | "sequence_completed"
+            event_type: "event_triggered" | "goal_progress" | "constraint_violated" |
+                "sequence_completed"
             callback: Callable to invoke
         """
         if event_type in self._callbacks:

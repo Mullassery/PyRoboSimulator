@@ -258,7 +258,10 @@ class NarrativeValidator:
                         ValidationError(
                             error_id=f"unknown_triggering_entity_{event.event_id}",
                             severity="warning",
-                            message=f"Event {event.event_id} references unknown entity {event.triggering_entity}",
+                            message=(
+                                f"Event {event.event_id} references unknown entity "
+                                f"{event.triggering_entity}"
+                            ),
                             affected_component="event",
                             component_id=event.event_id,
                         )
@@ -271,7 +274,10 @@ class NarrativeValidator:
                             ValidationError(
                                 error_id=f"unknown_affected_entity_{event.event_id}",
                                 severity="warning",
-                                message=f"Event {event.event_id} references unknown entity {affected_id}",
+                                message=(
+                                    f"Event {event.event_id} references unknown entity "
+                                    f"{affected_id}"
+                                ),
                                 affected_component="event",
                                 component_id=event.event_id,
                             )
@@ -283,7 +289,10 @@ class NarrativeValidator:
                         ValidationError(
                             error_id=f"invalid_confidence_{event.event_id}",
                             severity="critical",
-                            message=f"Event {event.event_id} has invalid confidence: {event.confidence}",
+                            message=(
+                                f"Event {event.event_id} has invalid confidence: "
+                                f"{event.confidence}"
+                            ),
                             affected_component="event",
                             component_id=event.event_id,
                         )

@@ -187,9 +187,9 @@ class SensorRecordingService:
 
         self.recording_active = False
         self.ring_buffer = RingBuffer()
-        self.frame_index: Dict[
-            str, List[Tuple[float, int]]
-        ] = {}  # agent_id -> [(timestamp, frame_idx)]
+        self.frame_index: Dict[str, List[Tuple[float, int]]] = (
+            {}
+        )  # agent_id -> [(timestamp, frame_idx)]
         self.current_file: Optional[str] = None
         self.frames_written = 0
         self.start_time: Optional[float] = None

@@ -467,12 +467,6 @@ class TestEnvironmentExpectationIntegration:
             description="Test warehouse",
         )
 
-        geo_profile = GeographicProfile(
-            region=RegionType.NORTH_INDIA,
-            name="Test Region",
-            description="Test region",
-        )
-
         # Add expectations
         exp1 = Expectation(
             id="exp_1",

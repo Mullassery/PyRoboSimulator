@@ -307,7 +307,7 @@ class TestARIOrchestrator:
         """Test learning and storage integration."""
         orchestrator = ARIOrchestrator()
 
-        knowledge = orchestrator.learn_region(
+        orchestrator.learn_region(
             "Tokyo",
             "Japan",
             (35.68, 139.69),
@@ -328,7 +328,7 @@ class TestARIOrchestrator:
 
         orchestrator = ARIOrchestrator()
 
-        knowledge = orchestrator.learn_region(
+        orchestrator.learn_region(
             "Delhi",
             "India",
             (28.61, 77.21),

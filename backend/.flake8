@@ -1,0 +1,6 @@
+[flake8]
+max-line-length = 100
+# E203 (whitespace before ':') conflicts with black's slice formatting --
+# black intentionally adds that space, so ignore it here rather than fight
+# the formatter (same reasoning as black's own recommended flake8 config).
+extend-ignore = E203

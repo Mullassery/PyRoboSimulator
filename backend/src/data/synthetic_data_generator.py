@@ -200,7 +200,7 @@ class SyntheticDatasetGenerator:
         # Create dataset
         dataset = Dataset(
             dataset_id=dataset_id,
-            name=f"Mission Dataset",
+            name="Mission Dataset",
             description=f"Synthetic data from mission {mission_execution_data.get('mission_id')}",
             frames=frames,
             format=format,

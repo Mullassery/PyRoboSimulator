@@ -271,9 +271,7 @@ class ValidationFramework:
         severity = (
             SeverityLevel.CRITICAL
             if collisions > 0
-            else SeverityLevel.MEDIUM
-            if near_misses > 0
-            else SeverityLevel.LOW
+            else SeverityLevel.MEDIUM if near_misses > 0 else SeverityLevel.LOW
         )
 
         result = ValidationResult(
@@ -590,9 +588,9 @@ class RootCauseAnalyzer:
             "primary_causes": cause_frequency,
             "average_confidence": avg_confidence,
             "average_probability": avg_probability,
-            "top_cause": max(cause_frequency.items(), key=lambda x: x[1])[0]
-            if cause_frequency
-            else None,
+            "top_cause": (
+                max(cause_frequency.items(), key=lambda x: x[1])[0] if cause_frequency else None
+            ),
             "analyses": [
                 {
                     "violation_id": a.violation_id,

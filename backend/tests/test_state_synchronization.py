@@ -1,6 +1,5 @@
 """Tests for Phase 1C.9: State Synchronization."""
 
-
 from src.services.state_synchronization import (
     ConflictResolutionStrategy,
     ConflictResolver,

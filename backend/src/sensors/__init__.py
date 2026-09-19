@@ -2,7 +2,7 @@
 
 Comprehensive sensor framework for PyRoboSimulator enabling:
 - Sensor configuration as mandatory initialization phase
-- Only selected sensors generate data during simulation  
+- Only selected sensors generate data during simulation
 - Automatic discovery of commercial robot sensor profiles
 - Robot hardware knowledge base with 60+ profiles
 - Documentation-driven sensor extraction
@@ -11,16 +11,16 @@ Comprehensive sensor framework for PyRoboSimulator enabling:
 Example:
     >>> from src.sensors import SensorConfigurationManager, SensorAwareSimulationEngine
     >>> from src.sensors import RobotHardwareKnowledgeBase
-    >>> 
+    >>>
     >>> # Automatic discovery for known robot
     >>> kb = RobotHardwareKnowledgeBase()
     >>> spot_profile = kb.get_profile("boston_dynamics_spot")
-    >>> 
+    >>>
     >>> # Or manual configuration
     >>> manager = SensorConfigurationManager()
     >>> suite = manager.create_standard_suite("robot_1", "mobile")
     >>> manager.register_suite(suite)
-    >>> 
+    >>>
     >>> # Initialize simulation with constraints
     >>> engine = SensorAwareSimulationEngine(manager)
     >>> engine.initialize_simulation("robot_1")

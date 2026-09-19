@@ -1,6 +1,5 @@
 """Tests for Curriculum (Phase 8) and Multi-Agent (Phase 9) systems."""
 
-
 from src.curriculum import (
     CurriculumScenarioGenerator,
     DifficultyFactors,

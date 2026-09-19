@@ -41,6 +41,9 @@ async def test_goal_reached_event_emitted_exactly_once():
     # Step once — should detect goal and emit event
     engine.step()
     goal_reached_events_after_1 = [e for e in engine.events if e.event_type == "goal_reached"]
+    assert (
+        len(goal_reached_events_after_1) == 1
+    ), "goal_reached event should be emitted on the step that reaches the goal"
 
     # Step again — should NOT emit another goal_reached event (already reached)
     engine.step()
@@ -80,9 +83,10 @@ async def test_capture_frame_reuses_stable_event_id_across_consecutive_frames():
         # Count occurrences — should be the same in both frames
         frame1_count = frame1_id_list.count(common_id)
         frame2_count = frame2_id_list.count(common_id)
-        assert (
-            frame1_count == frame2_count
-        ), f"Event ID {common_id} should have consistent count across frames (was {frame1_count} then {frame2_count})"
+        assert frame1_count == frame2_count, (
+            f"Event ID {common_id} should have consistent count across frames "
+            f"(was {frame1_count} then {frame2_count})"
+        )
 
 
 @pytest.mark.asyncio

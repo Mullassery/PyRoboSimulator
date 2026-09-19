@@ -294,9 +294,9 @@ class RobotHardwareKnowledgeBase:
             "total_robots": len(profiles),
             "manufacturers": len(set(p.manufacturer for p in profiles)),
             "categories": list(set(p.category for p in profiles)),
-            "avg_verification": sum(p.verification_level for p in profiles) / len(profiles)
-            if profiles
-            else 0,
+            "avg_verification": (
+                sum(p.verification_level for p in profiles) / len(profiles) if profiles else 0
+            ),
             "total_sensor_types": len(
                 set(entry.sensor_type for p in profiles for entry in p.sensors.values())
             ),

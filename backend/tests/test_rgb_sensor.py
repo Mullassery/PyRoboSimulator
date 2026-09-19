@@ -218,7 +218,10 @@ class TestRGBFrameIntegration:
 
         # Create sensor data with RGB
         sensor_data = SensorData(
-            rgb="iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="
+            rgb=(
+                "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGA"
+                "WjR9awAAAABJRU5ErkJggg=="
+            ),
         )
 
         # Create world frame with sensors
@@ -241,7 +244,10 @@ class TestRGBFrameIntegration:
         from services.frame_streaming import SensorData, WorldFrame
 
         sensor_data = SensorData(
-            rgb="iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="
+            rgb=(
+                "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGA"
+                "WjR9awAAAABJRU5ErkJggg=="
+            ),
         )
 
         frame = WorldFrame(

@@ -1,6 +1,5 @@
 """Tests for authentication and token management."""
 
-
 from src.services.auth import AuthService
 
 

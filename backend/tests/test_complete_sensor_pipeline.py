@@ -47,7 +47,7 @@ class TestCompleteSensorPipeline:
         assert len(lidar_points) > 7000, f"Lidar points {len(lidar_points)} < 7000"
         assert thermal_data.shape == (256, 256), f"Thermal shape {thermal_data.shape} != (256, 256)"
 
-        print(f"\n✓ All sensors generated:")
+        print("\n✓ All sensors generated:")
         print(f"  - RGB: {rgb_data.shape}")
         print(f"  - Depth: {depth_data.shape}")
         print(f"  - Lidar: {len(lidar_points)} points")
@@ -96,7 +96,7 @@ class TestCompleteSensorPipeline:
         assert fused.num_sensors_fused == 4, f"Expected 4 sensors, got {fused.num_sensors_fused}"
         assert fused.fusion_latency_ms < 50, f"Latency {fused.fusion_latency_ms}ms > 50ms"
 
-        print(f"\n✓ Complete 4-sensor fusion:")
+        print("\n✓ Complete 4-sensor fusion:")
         print(f"  - Latency: {fused.fusion_latency_ms:.2f}ms")
         print(f"  - Timestamp deviation: {fused.timestamp_deviation_ms:.2f}ms")
         print(f"  - RGB transform: {fused.rgb_to_world.shape}")
@@ -152,7 +152,7 @@ class TestCompleteSensorPipeline:
         assert len(latencies) == frame_count, f"Expected {frame_count} fused frames"
         avg_latency = np.mean(latencies)
 
-        print(f"\n✓ Multi-frame pipeline (5 frames):")
+        print("\n✓ Multi-frame pipeline (5 frames):")
         print(f"  - Avg latency: {avg_latency:.2f}ms")
         print(f"  - Max latency: {np.max(latencies):.2f}ms")
         assert avg_latency < 50, f"Average latency {avg_latency}ms > 50ms"
@@ -213,11 +213,11 @@ class TestCompleteSensorPipeline:
         thermal_data = np.frombuffer(thermal_bytes, dtype=np.float32).reshape(256, 256)
         assert np.min(thermal_data) >= -20 and np.max(thermal_data) <= 60
 
-        print(f"\n✓ Sensor range validation:")
-        print(f"  - RGB: uint8 [0-255] ✓")
-        print(f"  - Depth: float32 [0.1-300m] ✓")
+        print("\n✓ Sensor range validation:")
+        print("  - RGB: uint8 [0-255] ✓")
+        print("  - Depth: float32 [0.1-300m] ✓")
         print(f"  - Lidar: {len(lidar_pts)} points [x,y,z] ✓")
-        print(f"  - Thermal: float32 [-20, 60°C] ✓")
+        print("  - Thermal: float32 [-20, 60°C] ✓")
 
     def test_sensor_effects_applied(self):
         """Validate that realistic sensor effects are actually applied."""
@@ -258,15 +258,15 @@ class TestCompleteSensorPipeline:
         # Should be different due to calibration error
         assert thermal1 != thermal2, "Calibration error not applied"
 
-        print(f"\n✓ Sensor effects validation:")
-        print(f"  - RGB motion blur: different frames ✓")
-        print(f"  - Depth range enforcement: [10-100m] ✓")
+        print("\n✓ Sensor effects validation:")
+        print("  - RGB motion blur: different frames ✓")
+        print("  - Depth range enforcement: [10-100m] ✓")
         print(f"  - Lidar rain occlusion: {len(lidar_rain)} < {len(lidar_no_rain)} ✓")
-        print(f"  - Thermal calibration: effects applied ✓")
+        print("  - Thermal calibration: effects applied ✓")
 
     def test_complete_pipeline_performance(self):
         """End-to-end performance test: all sensors + fusion in production scenario."""
-        print(f"\n✓ Complete pipeline performance (30 fps simulation):")
+        print("\n✓ Complete pipeline performance (30 fps simulation):")
 
         agents = [
             Agent(
@@ -324,7 +324,7 @@ class TestCompleteSensorPipeline:
         print(f"  - Total time: {elapsed:.3f}s")
         print(f"  - Equivalent FPS: {fps:.1f} fps")
         print(f"  - Agents: {len(agents)}")
-        print(f"  - Sensors per frame: 4 (RGB, Depth, Lidar, Thermal)")
+        print("  - Sensors per frame: 4 (RGB, Depth, Lidar, Thermal)")
 
         # Should handle 3 agents × 10 frames × 4 sensors in reasonable time
         assert elapsed < 30, f"Performance too slow: {elapsed}s for 30 sensor captures"

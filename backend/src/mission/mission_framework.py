@@ -429,9 +429,9 @@ class MissionExecutor:
                 "task_id": task.task_id,
                 "name": task.name,
                 "status": task.status.value,
-                "duration_sec": (task.end_time - task.start_time)
-                if task.start_time and task.end_time
-                else None,
+                "duration_sec": (
+                    (task.end_time - task.start_time) if task.start_time and task.end_time else None
+                ),
                 "error": task.error,
             }
             for task in self._current_mission.tasks

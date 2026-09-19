@@ -372,9 +372,9 @@ class ARIDiscoveryEngine:
         characteristics = {
             "road_type_distribution": road_distribution,
             "avg_vehicle_count": sum(vehicle_counts) / len(vehicle_counts) if vehicle_counts else 0,
-            "avg_pedestrian_count": sum(pedestrian_counts) / len(pedestrian_counts)
-            if pedestrian_counts
-            else 0,
+            "avg_pedestrian_count": (
+                sum(pedestrian_counts) / len(pedestrian_counts) if pedestrian_counts else 0
+            ),
             "infrastructure_diversity": len(set(infrastructure_observed)),
             "frame_analysis_count": total_frames,
         }

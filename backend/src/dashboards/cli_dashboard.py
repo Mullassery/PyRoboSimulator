@@ -60,10 +60,12 @@ class StateDistributionWidget(Static):
         collision_bar = "=" * int((collision_pct / 100) * max_width)
 
         return (
-            f"[blue]Moving[/]       [{len(moving_bar):2d}%] {moving_bar:<{max_width}} {self.moving}\n"
-            f"[dim]Idle[/]         [{len(idle_bar):2d}%] {idle_bar:<{max_width}} {self.idle}\n"
-            f"[green]Goal Reached[/]  [{len(goal_bar):2d}%] {goal_bar:<{max_width}} {self.goal_reached}\n"
-            f"[red]Collision[/]     [{len(collision_bar):2d}%] {collision_bar:<{max_width}} {self.collision}"
+            f"[blue]Moving[/] [{len(moving_bar):2d}%] {moving_bar:<{max_width}} {self.moving}\n"
+            f"[dim]Idle[/] [{len(idle_bar):2d}%] {idle_bar:<{max_width}} {self.idle}\n"
+            f"[green]Goal Reached[/] [{len(goal_bar):2d}%] {goal_bar:<{max_width}} "
+            f"{self.goal_reached}\n"
+            f"[red]Collision[/] [{len(collision_bar):2d}%] {collision_bar:<{max_width}} "
+            f"{self.collision}"
         )
 
     def update_distribution(

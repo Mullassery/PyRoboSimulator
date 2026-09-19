@@ -414,9 +414,7 @@ class MuJoCoBackend(SimulatorBackend):
             self._data.qvel[vadr : vadr + vdim] = 0.0
         mujoco.mj_forward(self._model, self._data)
 
-    def _body_state(
-        self, body_name: str
-    ) -> Tuple[
+    def _body_state(self, body_name: str) -> Tuple[
         Tuple[float, float, float],
         Tuple[float, float, float, float],
         Tuple[float, float, float],

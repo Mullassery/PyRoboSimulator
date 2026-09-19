@@ -254,7 +254,8 @@ class SimRealValidator:
             elif "velocity" in metric.metric_name:
                 if metric.sim_value > metric.real_value:
                     recommendations.append(
-                        "Simulator velocity too high - reduce max velocity or check acceleration limits"
+                        "Simulator velocity too high - reduce max velocity or check "
+                        "acceleration limits"
                     )
                 else:
                     recommendations.append(
@@ -264,7 +265,8 @@ class SimRealValidator:
             elif "time" in metric.metric_name:
                 if metric.sim_value > metric.real_value:
                     recommendations.append(
-                        "Simulation taking longer - optimize path planning or increase velocity limits"
+                        "Simulation taking longer - optimize path planning or increase "
+                        "velocity limits"
                     )
                 else:
                     recommendations.append(
@@ -284,7 +286,8 @@ class SimRealValidator:
             )
 
         recommendations.append(
-            f"Real execution: {real_metrics.total_distance_m:.1f}m in {real_metrics.total_time_sec:.1f}s"
+            f"Real execution: {real_metrics.total_distance_m:.1f}m in "
+            f"{real_metrics.total_time_sec:.1f}s"
         )
 
         return recommendations

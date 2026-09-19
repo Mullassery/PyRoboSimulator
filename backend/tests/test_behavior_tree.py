@@ -1,6 +1,5 @@
 """Tests for Phase 2.1: Behavior Tree System."""
 
-
 from src.services.behavior_tree import (
     Action,
     BehaviorStatus,

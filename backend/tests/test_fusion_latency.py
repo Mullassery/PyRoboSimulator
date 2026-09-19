@@ -19,9 +19,9 @@ class TestTimestampSynchronization:
         # Generate synchronized sensor data (same timestamp)
         base_time = 1000.0
         rgb_data = np.random.randint(0, 255, (480, 640, 3), dtype=np.uint8)
-        depth_data = np.random.uniform(0.1, 300, (512, 512), dtype=np.float32)
+        depth_data = np.random.uniform(0.1, 300, (512, 512)).astype(np.float32)
         lidar_points = [[float(i), float(i), float(i)] for i in range(100)]
-        thermal_data = np.random.uniform(-20, 60, (256, 256), dtype=np.float32)
+        thermal_data = np.random.uniform(-20, 60, (256, 256)).astype(np.float32)
 
         # Push synchronized readings
         fusion.push_rgb_reading(rgb_data, base_time)
@@ -45,7 +45,7 @@ class TestTimestampSynchronization:
 
         # Generate out-of-sync sensor data (>5ms deviation)
         rgb_data = np.random.randint(0, 255, (480, 640, 3), dtype=np.uint8)
-        depth_data = np.random.uniform(0.1, 300, (512, 512), dtype=np.float32)
+        depth_data = np.random.uniform(0.1, 300, (512, 512)).astype(np.float32)
 
         fusion.push_rgb_reading(rgb_data, 1000.0)
         fusion.push_depth_reading(depth_data, 1010.0)  # 10ms deviation > 5ms threshold
@@ -59,7 +59,7 @@ class TestTimestampSynchronization:
         fusion = SensorFusionPipeline(agent_id=1, max_sync_deviation_ms=10.0)
 
         rgb_data = np.random.randint(0, 255, (480, 640, 3), dtype=np.uint8)
-        depth_data = np.random.uniform(0.1, 300, (512, 512), dtype=np.float32)
+        depth_data = np.random.uniform(0.1, 300, (512, 512)).astype(np.float32)
 
         fusion.push_rgb_reading(rgb_data, 1000.0)
         fusion.push_depth_reading(depth_data, 1005.0)  # 5ms deviation
@@ -74,7 +74,7 @@ class TestTimestampSynchronization:
         fusion = SensorFusionPipeline(agent_id=1, max_sync_deviation_ms=10.0)
 
         rgb_data = np.random.randint(0, 255, (480, 640, 3), dtype=np.uint8)
-        depth_data = np.random.uniform(0.1, 300, (512, 512), dtype=np.float32)
+        depth_data = np.random.uniform(0.1, 300, (512, 512)).astype(np.float32)
 
         fusion.push_rgb_reading(rgb_data, 1000.0)
         fusion.push_depth_reading(depth_data, 1004.0)
@@ -94,7 +94,7 @@ class TestCoordinateTransforms:
         fusion = SensorFusionPipeline(agent_id=1)
 
         rgb_data = np.random.randint(0, 255, (480, 640, 3), dtype=np.uint8)
-        depth_data = np.random.uniform(0.1, 300, (512, 512), dtype=np.float32)
+        depth_data = np.random.uniform(0.1, 300, (512, 512)).astype(np.float32)
 
         fusion.push_rgb_reading(rgb_data, 1000.0)
         fusion.push_depth_reading(depth_data, 1000.0)
@@ -125,7 +125,7 @@ class TestCoordinateTransforms:
         fusion = SensorFusionPipeline(agent_id=1)
 
         rgb_data = np.random.randint(0, 255, (480, 640, 3), dtype=np.uint8)
-        depth_data = np.random.uniform(0.1, 300, (512, 512), dtype=np.float32)
+        depth_data = np.random.uniform(0.1, 300, (512, 512)).astype(np.float32)
         lidar_points = [[1, 2, 3]]
         thermal_data = np.ones((256, 256), dtype=np.float32)
 
@@ -150,7 +150,7 @@ class TestSensorFusionLatency:
         fusion = SensorFusionPipeline(agent_id=1)
 
         rgb_data = np.random.randint(0, 255, (480, 640, 3), dtype=np.uint8)
-        depth_data = np.random.uniform(0.1, 300, (512, 512), dtype=np.float32)
+        depth_data = np.random.uniform(0.1, 300, (512, 512)).astype(np.float32)
 
         fusion.push_rgb_reading(rgb_data, 1000.0)
         fusion.push_depth_reading(depth_data, 1000.0)
@@ -165,9 +165,9 @@ class TestSensorFusionLatency:
         fusion = SensorFusionPipeline(agent_id=1)
 
         rgb_data = np.random.randint(0, 255, (480, 640, 3), dtype=np.uint8)
-        depth_data = np.random.uniform(0.1, 300, (512, 512), dtype=np.float32)
+        depth_data = np.random.uniform(0.1, 300, (512, 512)).astype(np.float32)
         lidar_points = [[float(i), float(i), float(i)] for i in range(1000)]
-        thermal_data = np.random.uniform(-20, 60, (256, 256), dtype=np.float32)
+        thermal_data = np.random.uniform(-20, 60, (256, 256)).astype(np.float32)
 
         fusion.push_rgb_reading(rgb_data, 1000.0)
         fusion.push_depth_reading(depth_data, 1000.0)
@@ -184,9 +184,9 @@ class TestSensorFusionLatency:
         fusion = SensorFusionPipeline(agent_id=1)
 
         rgb_data = np.random.randint(0, 255, (480, 640, 3), dtype=np.uint8)
-        depth_data = np.random.uniform(0.1, 300, (512, 512), dtype=np.float32)
+        depth_data = np.random.uniform(0.1, 300, (512, 512)).astype(np.float32)
         lidar_points = [[float(i), float(i), float(i)] for i in range(500)]
-        thermal_data = np.random.uniform(-20, 60, (256, 256), dtype=np.float32)
+        thermal_data = np.random.uniform(-20, 60, (256, 256)).astype(np.float32)
 
         total_latency = 0
         for i in range(10):
@@ -230,7 +230,7 @@ class TestMultiSensorFusion:
         fusion = SensorFusionPipeline(agent_id=1)
 
         rgb_data = np.random.randint(0, 255, (480, 640, 3), dtype=np.uint8)
-        depth_data = np.random.uniform(0.1, 300, (512, 512), dtype=np.float32)
+        depth_data = np.random.uniform(0.1, 300, (512, 512)).astype(np.float32)
 
         fusion.push_rgb_reading(rgb_data, 1000.0)
         fusion.push_depth_reading(depth_data, 1000.0)

@@ -1,6 +1,5 @@
 """Tests for simulation engine physics and logic."""
 
-
 import pytest
 
 from src.services.simulation_engine import Agent, SimulationEngine, Vector3

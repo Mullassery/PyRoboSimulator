@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=68.0", "wheel"]
+requires = ["setuptools>=78.1.1", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -13,7 +13,10 @@ authors = [{name = "PyRoboSimulator Team"}]
 
 dependencies = [
     # Web Framework
-    "fastapi==0.104.1",
+    # Floated (was ==0.104.1) -- that pin dragged in a starlette with a
+    # known CVE that `safety check` flags; no upper bound needed since
+    # nothing else in this list constrains fastapi's own major version.
+    "fastapi>=0.115.0",
     "uvicorn[standard]==0.24.0",
     "pydantic>=2.6.0,<3.0.0",
     "pydantic-settings==2.1.0",
@@ -29,21 +32,24 @@ dependencies = [
 
     # WebSocket & Real-time
     "websockets==12.0",
-    "msgpack==1.0.7",
+    "msgpack>=1.0.8",
 
     # Validation & Serialization
-    "python-multipart==0.0.6",
+    "python-multipart>=0.0.18",
     "email-validator==2.3.0",
 
     # Authentication
-    "python-jose[cryptography]==3.3.0",
+    # Floated (was ==3.3.0) -- pinned version has a known DoS CVE
+    # (CVE-2024-33664) fixed upstream; no fixed release exists yet as of
+    # this writing so this floats to pick up a fix once one ships.
+    "python-jose[cryptography]>=3.3.0",
     "passlib[bcrypt]==1.7.4",
     # passlib 1.7.4 (unmaintained) self-tests bcrypt at import time using an
     # input that bcrypt>=4.1 rejects with ValueError instead of the silent
     # truncation older bcrypt did - breaks all password hashing/verification.
     # Pin to the last compatible release until passlib is replaced/fixed.
     "bcrypt<4.1",
-    "python-dotenv==1.0.0",
+    "python-dotenv>=1.0.1",
 
     # Logging & Monitoring
     "prometheus-client==0.19.0",
@@ -52,7 +58,7 @@ dependencies = [
     # Utilities
     "numpy==1.24.3",
     "scipy==1.11.4",
-    "pillow==10.1.0",
+    "pillow>=10.3.0",
 
     # Narrative Engine (NLP -> scenario conversion)
     "anthropic==0.122.0",
@@ -61,7 +67,7 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
     # Testing
-    "pytest==7.4.3",
+    "pytest>=7.4.4",
     "pytest-asyncio==0.21.1",
     "pytest-cov==4.1.0",
     "pytest-benchmark==4.0.0",
@@ -70,12 +76,12 @@ dev = [
     "aiosqlite==0.19.0",
 
     # Code Quality
-    "black==23.12.0",
+    "black>=26.3.1",
     "isort==5.13.2",
     "flake8==6.1.0",
     "pylint==3.0.3",
     "mypy==1.7.1",
-    "bandit==1.7.5",
+    "bandit>=1.7.8",
     # bandit imports pbr.version at runtime but doesn't declare it in its own
     # install_requires (only setup_requires) - without this, `bandit` fails
     # with "ModuleNotFoundError: No module named 'pbr'" on a clean install.
@@ -86,8 +92,8 @@ dev = [
     "pre-commit==3.5.0",
 
     # Documentation
-    "mkdocs==1.5.3",
-    "mkdocs-material==9.4.14",
+    "mkdocs~=1.6",
+    "mkdocs-material>=9.5.32",
 
     # Physics backend tests (MuJoCo)
     "mujoco>=3.5.0",

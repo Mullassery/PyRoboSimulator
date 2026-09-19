@@ -184,7 +184,6 @@ class TestLidarMultipath:
         assert len(points_with_mp) > len(points_no_mp)
 
         # Expect roughly 10% more points
-        expected_ratio = 1.1  # 10% more
         actual_ratio = len(points_with_mp) / len(points_no_mp)
         assert 1.05 < actual_ratio < 1.15  # Allow 5-15% variation
 
@@ -275,7 +274,6 @@ class TestLidarTemporalJitter:
         )
 
         points1 = agent.generate_lidar_cloud(add_temporal_jitter=True, multipath_probability=0.0)
-        points2 = agent.generate_lidar_cloud(add_temporal_jitter=True, multipath_probability=0.0)
 
         # Higher range points should have more jitter
         # Extract by range and compare variability

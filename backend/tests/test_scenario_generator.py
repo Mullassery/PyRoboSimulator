@@ -1,6 +1,5 @@
 """Tests for scenario generation and world configuration."""
 
-
 from src.services.scenario_generator import Obstacle, ScenarioBuilder, SpawnZone, WorldConfig
 
 

@@ -46,8 +46,9 @@ async def test_readiness_ok_when_database_and_cache_are_healthy(client: AsyncCli
     `src.routers.health` are two distinct module objects. Patching the
     `src.`-prefixed one would silently miss the module the app actually runs.
     """
-    with patch("routers.health.check_database", new=AsyncMock(return_value=True)), patch(
-        "routers.health.check_cache", new=AsyncMock(return_value=True)
+    with (
+        patch("routers.health.check_database", new=AsyncMock(return_value=True)),
+        patch("routers.health.check_cache", new=AsyncMock(return_value=True)),
     ):
         response = await client.get("/api/v1/ready")
 
@@ -60,8 +61,9 @@ async def test_readiness_ok_when_database_and_cache_are_healthy(client: AsyncCli
 async def test_readiness_503_when_database_down(client: AsyncClient) -> None:
     """When the database check fails, /ready must report not-ready with 503,
     regardless of cache status."""
-    with patch("routers.health.check_database", new=AsyncMock(return_value=False)), patch(
-        "routers.health.check_cache", new=AsyncMock(return_value=True)
+    with (
+        patch("routers.health.check_database", new=AsyncMock(return_value=False)),
+        patch("routers.health.check_cache", new=AsyncMock(return_value=True)),
     ):
         response = await client.get("/api/v1/ready")
 
@@ -82,8 +84,9 @@ async def test_top_level_readiness_matches_api_v1_readiness(client: AsyncClient)
     actually defines this route's closure is `sys.modules["src.main"]`, not
     a separately-imported `main`.
     """
-    with patch("src.main.check_database", new=AsyncMock(return_value=True)), patch(
-        "src.main.check_cache", new=AsyncMock(return_value=False)
+    with (
+        patch("src.main.check_database", new=AsyncMock(return_value=True)),
+        patch("src.main.check_cache", new=AsyncMock(return_value=False)),
     ):
         response = await client.get("/ready")
 

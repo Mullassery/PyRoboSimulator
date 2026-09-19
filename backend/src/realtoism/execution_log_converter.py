@@ -141,7 +141,7 @@ class ExecutionLogConverter:
             final_segment = segments[-1]
             goal = NarrativeGoal(
                 goal_id="goal_0",
-                description=f"Execute recorded trajectory",
+                description="Execute recorded trajectory",
                 goal_type="follow_path",
                 target={
                     "start_position": segments[0].start_position,
@@ -212,7 +212,10 @@ class ExecutionLogConverter:
                 event_id=f"move_{seg_id}",
                 event_type=NarrativeEventType.AGENT_ACTION,
                 timestamp_sec=segment.start_time_sec,
-                description=f"Move segment {seg_id}: {segment.distance_m:.1f}m in {segment.duration_sec:.1f}s",
+                description=(
+                    f"Move segment {seg_id}: {segment.distance_m:.1f}m in "
+                    f"{segment.duration_sec:.1f}s"
+                ),
                 triggering_entity="robot_0",
                 affected_entities=["robot_0"],
                 parameters={
@@ -274,7 +277,7 @@ class ExecutionLogConverter:
         if metrics.max_velocity > 0:
             constraint = NarrativeConstraint(
                 constraint_id="velocity",
-                description=f"Robot velocity should match recorded execution",
+                description="Robot velocity should match recorded execution",
                 constraint_type="realism",
                 rule=f"velocity <= {metrics.max_velocity * 1.1:.2f} m/s",
                 violation_penalty=-0.3,
@@ -286,7 +289,10 @@ class ExecutionLogConverter:
         if metrics.path_smoothness > 0:
             constraint = NarrativeConstraint(
                 constraint_id="smoothness",
-                description=f"Path should be reasonably smooth (observed: {metrics.path_smoothness:.2f})",
+                description=(
+                    f"Path should be reasonably smooth "
+                    f"(observed: {metrics.path_smoothness:.2f})"
+                ),
                 constraint_type="realism",
                 rule=f"smoothness >= {metrics.path_smoothness * 0.8:.2f}",
                 violation_penalty=-0.2,

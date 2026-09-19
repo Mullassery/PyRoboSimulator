@@ -122,10 +122,6 @@ class TestMotionBlur:
         # Fast motion blur
         result_fast = apply_motion_blur(img, speed=5.0, direction_xy=(1, 0))
 
-        # Fast blur should be more blurred (lower variance in white region)
-        var_slow = np.var(result_slow[45:55, 45:55])
-        var_fast = np.var(result_fast[45:55, 45:55])
-
         # Fast blur should have spread out more (lower variance in white region means lower peak)
         assert result_fast[50, 50].mean() < result_slow[50, 50].mean()
 

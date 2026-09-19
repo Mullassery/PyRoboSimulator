@@ -143,11 +143,11 @@ class WorldFrame:
             "timestamp_ms": self.timestamp_ms,
             "agents": [agent.to_dict() for agent in self.agents],
             "events": [event.to_dict() for event in self.events],
-            "sensors": {
-                agent_id: sensor.to_dict() for agent_id, sensor in (self.sensors or {}).items()
-            }
-            if self.sensors
-            else {},
+            "sensors": (
+                {agent_id: sensor.to_dict() for agent_id, sensor in (self.sensors or {}).items()}
+                if self.sensors
+                else {}
+            ),
             "obstacles": [obs.to_dict() for obs in (self.obstacles or [])],
         }
 

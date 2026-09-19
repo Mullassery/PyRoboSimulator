@@ -1,4 +1,5 @@
-"""Tests for thermal camera sensor fidelity (emissivity, view factor, radiative exchange, calibration)."""
+"""Tests for thermal camera sensor fidelity (emissivity, view factor, radiative
+exchange, calibration)."""
 
 import base64
 
@@ -267,7 +268,8 @@ class TestThermalIntegration:
         thermal_bytes = base64.b64decode(thermal_b64)
         thermal_map = np.frombuffer(thermal_bytes, dtype=np.float32).reshape(256, 256)
 
-        # Material order: asphalt, concrete, metal, glass, water, grass, bark, leaves, soil, plastic, brick
+        # Material order: asphalt, concrete, metal, glass, water, grass, bark, leaves,
+        # soil, plastic, brick
         # Expected ordering: high emissivity (asphalt, water) > low emissivity (metal)
         patch_width = 256 // 11
 

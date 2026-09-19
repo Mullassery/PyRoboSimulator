@@ -111,7 +111,8 @@ NARRATIVE:
 Extract and return JSON with:
 - title: Brief title (max 50 chars)
 - description: One-sentence summary
-- type: One of [rescue_operation, delivery_mission, exploration, inspection, multi_agent_coordination, adversarial_scenario, training_curriculum, custom]
+- type: One of [rescue_operation, delivery_mission, exploration, inspection,
+  multi_agent_coordination, adversarial_scenario, training_curriculum, custom]
 - environment: One of [urban, industrial, outdoor, indoor]
 - time_of_day: One of [dawn, morning, noon, afternoon, dusk, night]
 - difficulty: Float 0-1 (0=trivial, 1=extremely hard)
@@ -192,7 +193,8 @@ NARRATIVE:
 For each goal, return JSON array with:
 - goal_id: Unique ID (e.g., "goal_0")
 - description: What needs to be achieved
-- goal_type: "reach_location" | "pick_object" | "avoid_obstacle" | "follow_path" | "inspect_area" | "coordinate_agents" | etc.
+- goal_type: "reach_location" | "pick_object" | "avoid_obstacle" | "follow_path" |
+  "inspect_area" | "coordinate_agents" | etc.
 - target: Object (target location, object properties, area to inspect, etc.)
 - priority: 0-1 (1 = highest priority)
 - time_limit_sec: Time limit or null if none
@@ -242,7 +244,8 @@ NARRATIVE:
 
 Create one or more sequences with events. For each event, return:
 - event_id: Unique ID
-- event_type: "agent_action" | "environment_change" | "sensor_event" | "goal_milestone" | "constraint_violation" | "decision_point" | "outcome"
+- event_type: "agent_action" | "environment_change" | "sensor_event" | "goal_milestone" |
+  "constraint_violation" | "decision_point" | "outcome"
 - timestamp_sec: When it occurs (relative to start)
 - description: What happens
 - triggering_entity: Which entity triggers this (entity_id)

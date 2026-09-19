@@ -194,9 +194,9 @@ class TestNarrativeConverter:
         # Mock the API response
         mock_response = MagicMock()
         mock_response.content = [MagicMock()]
-        mock_response.content[
-            0
-        ].text = '{"title": "Test", "type": "delivery_mission", "difficulty": 0.5}'
+        mock_response.content[0].text = (
+            '{"title": "Test", "type": "delivery_mission", "difficulty": 0.5}'
+        )
 
         with patch.object(converter._client.messages, "create", return_value=mock_response):
             metadata = converter._extract_metadata("test narrative")

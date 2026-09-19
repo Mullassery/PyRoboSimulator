@@ -386,9 +386,9 @@ class IsaacSimBackend(SimulatorBackend):
 
         return SimulationStep(
             step_count=self._step_count,
-            elapsed_time_sec=self._step_count * (self._config.timestep_ms / 1000.0)
-            if self._config
-            else 0.0,
+            elapsed_time_sec=(
+                self._step_count * (self._config.timestep_ms / 1000.0) if self._config else 0.0
+            ),
             timestep_ms=self._config.timestep_ms if self._config else 1.0,
             robot_states={},
             object_states={},
