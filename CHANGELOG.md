@@ -5,6 +5,90 @@ All notable changes to PyRoboSimulator will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+- `backend/pyproject.toml`: pinned `pytest>=7.4.4,<8`. The unbounded floor let
+  a fresh `pip install -e ".[dev]"` resolve pytest 9.x, which removed the
+  private `FixtureDef.unittest` attribute that pinned `pytest-asyncio==0.21.1`
+  depends on -- broke 33 async-fixture tests (auth, simulations API, health
+  checks) with `AttributeError: 'FixtureDef' object has no attribute
+  'unittest'`. Verified: 33 errors with pytest 9.1.1, 33 errors with pytest
+  8.4.2, 0 with pytest 7.4.4.
+- `backend/pyproject.toml` and `backend/README.md` claimed `MIT` license;
+  the repo-wide `LICENSE` file (and root `pyproject.toml`) is Apache-2.0.
+  Corrected both to Apache-2.0.
+- Root `pyproject.toml`: added `[tool.maturin] include = ["LICENSE"]` --
+  without it, `maturin sdist` omits `LICENSE` from the source distribution,
+  which PyPI rejects with a 400.
+- `.gitignore` ignored `Cargo.lock`, so it was never actually tracked despite
+  existing on disk. This is a cdylib PyO3 extension published as a binary
+  artifact (not a library other crates depend on), so pinning transitive
+  dependency versions for reproducible builds matters; now tracked.
+- A stray `.coverage` file (committed since the "Phase 6" commit) is now
+  untracked and `.coverage`/`htmlcov/`/`.pytest_cache/`/`.mypy_cache/` are
+  gitignored.
+- `.github/workflows/ci-cd.yaml`: bumped several actions off versions GitHub
+  Actions no longer runs (`actions/setup-python@v4`→`v5`,
+  `codecov/codecov-action@v3`→`v4`, `docker/setup-buildx-action@v2`→`v3`,
+  `google-github-actions/auth@v1`→`v2`, `google-github-actions/setup-gcloud@v1`→`v2`,
+  `docker/build-push-action@v4`→`v6`); quoted `$GITHUB_OUTPUT` per shellcheck;
+  added the missing `id: docker_build` on the image-build step (the
+  "Image digest" step referenced `steps.docker_build.outputs.digest`, which
+  was always undefined because no step had that id).
+
+### Documented, not fixed (see ROADMAP_HONEST.md)
+- 33 failed / 1 error / 882 passed / 6 skipped / 3 xfailed in
+  `backend/tests/` as of this pass (down from the previously-documented 41
+  failed/1 error, mostly via the pytest pin fix above surfacing real
+  failures that used to be masked as collection errors).
+- mypy: 546 errors across 58 files (`mypy src/`, strict mode), up slightly
+  from the previously-documented 530 (net new debt, not yet individually
+  triaged).
+- `frontend/package.json`'s `lint` script (`eslint src --ext ts,tsx`)
+  references a package that is not in `dependencies`/`devDependencies` and
+  there is no eslint config file anywhere in `frontend/` -- `npm run lint`
+  cannot work as written.
+- `.github/workflows/ci-cd.yaml` only triggers on changes under `backend/**`
+  -- the Rust core, Python bindings, and `frontend/` have no CI coverage at
+  all (no build, no test, no lint).
+- `build`/`scan`/`deploy-staging`/`smoke-test` jobs in
+  `.github/workflows/ci-cd.yaml` depend on GCP Workload Identity secrets and
+  a Slack webhook that this solo-maintainer repo almost certainly does not
+  have configured, and `smoke-test` hits a literal placeholder domain
+  (`https://api-staging.example.com`) that was never replaced with a real
+  one. Any push to `main` that passes `quality`/`security-audit`/`test`
+  will then fail at `build`, making the CI/CD badge red even when the parts
+  that matter (lint/security/tests) are green.
+
+## [0.11.0] - 2026-09-13
+
+### Added
+- Real, RocksDB-backed `StorageEngine` (`pyrobosimulator-core/src/storage.rs`):
+  an actual on-disk event log keyed by `world_id`, replacing the prior silent
+  in-memory no-op.
+
+### Removed
+- Dead Rust `world_gen.rs` stub, superseded by the Python-side world
+  generation in `backend/src/services/scenario_generator.py`.
+
+### Changed
+- Relicensed the repo from a Proprietary/source-available license to
+  Apache License 2.0 (`LICENSE`, root `pyproject.toml`, `Cargo.toml`).
+- CI: `security-audit` (bandit/safety) split into its own job, independent
+  of `quality`, so a lint failure can no longer hide a real security finding
+  the way it previously could; `test` no longer depends on `quality` either.
+- Fixed the root causes behind the majority of a 46-failure/17-error backend
+  test backlog: a `passlib`/`bcrypt>=4.1` incompatibility that broke all
+  password hashing, 11 unregistered `SensorType` enum members, a wrong
+  `Vector3` import, a missing `Event.id` on the `step_complete` event, a
+  broken CLI-dashboard import path that silently disabled it, and a missing
+  `bandit` runtime dependency (`pbr`) that prevented the security scan from
+  ever completing.
+- Archived 31 stale planning/status docs from `docs/` into `docs/archive/`
+  and removed leftover boilerplate from an unrelated project
+  ("PyStreamAI") that had been copied into this repo.
+
 ## [0.10.0] - 2026-08-17
 
 ### Corrected: the [0.9.0] Phase 4.2 entry below was inaccurate

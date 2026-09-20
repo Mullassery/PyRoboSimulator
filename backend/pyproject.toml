@@ -8,7 +8,7 @@ version = "0.10.0"
 description = "AI-native world simulation platform for robots and autonomous systems"
 readme = "README.md"
 requires-python = ">=3.10"
-license = {text = "MIT"}
+license = {text = "Apache-2.0"}
 authors = [{name = "PyRoboSimulator Team"}]
 
 dependencies = [
@@ -74,7 +74,18 @@ dev = [
     "setuptools>=83.0.0",
 
     # Testing
-    "pytest>=7.4.4",
+    # Upper-bounded: pytest-asyncio==0.21.1 (below) reaches into pytest's
+    # private FixtureDef internals (`fixturedef.unittest`), which pytest 8
+    # removed. An unbounded floor here silently resolves pytest 8/9 on any
+    # fresh install and breaks every async-fixture-based test (auth,
+    # simulations API, health checks) with
+    # "AttributeError: 'FixtureDef' object has no attribute 'unittest'".
+    # Verified: 33 errors with pytest 9.1.1 and with pytest 8.4.2, 0 with
+    # pytest==7.4.4. Bumping pytest-asyncio instead (rather than pinning
+    # pytest) was not attempted here -- 0.21.1 predates pytest-asyncio's
+    # strict/auto mode config rework, so upgrading it is a separate,
+    # untested behavior change, not a same-day pin fix.
+    "pytest>=7.4.4,<8",
     "pytest-asyncio==0.21.1",
     "pytest-cov==4.1.0",
     "pytest-benchmark==4.0.0",

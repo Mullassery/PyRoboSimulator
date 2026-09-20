@@ -1,6 +1,10 @@
 # Rust
 /target/
-Cargo.lock
+# Cargo.lock is intentionally committed (this workspace builds a cdylib
+# PyO3 extension published as an application/binary artifact, not a library
+# consumed by other Rust crates) -- pinning transitive versions matters for
+# reproducible builds. Previously ignored here, which meant it was never
+# actually tracked; fixed by removing this line and `git add`-ing it.
 **/*.rs.bk
 *.pdb
 
@@ -53,5 +57,11 @@ dump.rdb
 # MuJoCo (written to CWD by the mujoco package on GL warnings)
 MUJOCO_LOG.TXT
 
-# pytest-cov artifact, shouldn't be committed
+# pytest-cov / coverage.py artifacts, shouldn't be committed
 coverage.xml
+.coverage
+htmlcov/
+.pytest_cache/
+.mypy_cache/
+.benchmarks/
+.deepeval/

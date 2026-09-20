@@ -1,6 +1,6 @@
 # PyRoboSimulator
 
-**Production-grade world simulation platform for autonomous systems, robotics, and AI research**
+**A world simulation platform for autonomous systems, robotics, and AI research**
 
 A source-available simulation engine built for developers and researchers who need accurate, scalable environments for testing autonomous vehicles, robots, and multi-agent systems. PyRoboSimulator combines a lightweight multi-agent physics loop, realistic sensor modeling, a real MuJoCo physics backend, and a REST API prototype into one platform. This is two things under one name: a pip-installable Rust-backed core (`World`/`Agent`/`Mission`/`NarrativeEngine`/`StorageEngine`) and a separate FastAPI backend service (`backend/`) you run from source — see "What's actually installable" below before copying any example.
 
@@ -48,6 +48,79 @@ code blocks below as backend-service examples, not pip-package examples, until i
 ---
 
 ## Known Issues
+
+**2026-09-20 pass — OSS standardization audit; re-verified every number
+below against a real local run, found and fixed a version-pin bug that was
+silently breaking 33 tests on any fresh install:**
+
+- **`backend/pyproject.toml` pinned `pytest>=7.4.4` with no upper bound.**
+  A fresh `pip install -e ".[dev]"` today resolves pytest 9.1.1, which
+  removed the private `FixtureDef.unittest` attribute that pinned
+  `pytest-asyncio==0.21.1` reaches into — broke every async-fixture test
+  (auth, simulations API, health checks) with `AttributeError: 'FixtureDef'
+  object has no attribute 'unittest'`. Verified broken under both pytest
+  9.1.1 and 8.4.2, fixed by pinning `pytest>=7.4.4,<8`. This was invisible
+  in CI as long as a cached/older pytest happened to be resolved; it is not
+  a hypothetical.
+- **Backend test suite, re-run locally against real Postgres/Redis
+  containers with the pytest pin fixed: 33 failed, 1 error, 882 passed, 6
+  skipped, 3 xfailed** (`pytest --cov=src`, from `backend/`). This
+  supersedes the previous "41 failed/1 error" figure below the fold in
+  Testing & Quality, which is now stale.
+- **`black`/`isort`/`flake8` are fully clean** as of this pass (0 issues on
+  all three, re-run directly) — the previously-documented 72/134, 68/134
+  file backlog and 27 remaining flake8 E501s are gone. Whatever fixed them
+  landed between the last audit and this one.
+- **mypy: 546 errors across 58 files** (`mypy src/`, strict mode) — up
+  slightly from the previously-documented 530; still not fixed, still not
+  blocking CI (`continue-on-error: true`).
+- **`safety check --ignore 64396 --ignore 64459`: 0 vulnerabilities
+  reported** (down from the previously-documented 50 across 13 packages) —
+  the starlette CVE and others cited before appear to have been resolved by
+  dependency floats already in `pyproject.toml`. The 2 ignored `ecdsa`
+  findings (64396/64459) remain ignored for the reason already documented
+  in `backend/pyproject.toml`/CI (no patched release exists).
+- **`bandit -r src/ -ll`: 0 issues** (1 finding suppressed via `# nosec
+  B104` with justification, as before).
+- **`backend/pyproject.toml` and `backend/README.md` claimed MIT license;
+  fixed to Apache-2.0** to match the repo-wide `LICENSE` file — this was a
+  real, user-visible inconsistency, not a formatting nit.
+- **Root `pyproject.toml` was missing `[tool.maturin] include = ["LICENSE"]`**
+  — without it, `maturin sdist` omits `LICENSE`, which PyPI rejects with a
+  400. Fixed.
+- **`Cargo.lock` was gitignored and therefore never tracked**, despite this
+  being a cdylib PyO3 extension published as a binary artifact (not a
+  library other crates depend on) where pinning transitive versions for
+  reproducible builds matters. Fixed: untracked from `.gitignore`, now
+  committed.
+- **`SECURITY.md` previously claimed a "Security Team", committed
+  24h/48h/7-day/30-day response SLAs, a version-support table for 0.1.x/0.2.x
+  (predating the current 0.11.x line), and "aims to support" SOC 2/GDPR/
+  HIPAA/PCI DSS compliance.** None of that reflected reality — this is a
+  single-maintainer project with no enforcement/response infrastructure and
+  no compliance audits of any kind. Rewritten to state that honestly, and
+  the fake `security@pyrobosimulator.ai`/`info@pyrobosimulator.ai` contact
+  addresses (a domain the maintainer does not own or monitor) were replaced
+  with GitHub Security Advisories and the maintainer's real email.
+- **`frontend/package.json`'s `lint` script (`eslint src --ext ts,tsx`)
+  references a package that isn't in `dependencies`/`devDependencies`, and
+  there is no eslint config anywhere in `frontend/`.** `npm run lint` cannot
+  work as written. Not fixed this pass (needs an actual ESLint+TS config
+  decision, not a one-line patch) — see ROADMAP_HONEST.md.
+- **`.github/workflows/ci-cd.yaml` only triggers on `backend/**` path
+  changes** — the Rust core, Python bindings (`python/`), and `frontend/`
+  have zero CI coverage (no build, no test, no lint) regardless of what
+  changes. Not fixed this pass — see ROADMAP_HONEST.md.
+- **`build`/`scan`/`deploy-staging`/`smoke-test` CI jobs depend on GCP
+  Workload Identity secrets and a Slack webhook this solo-maintainer repo
+  almost certainly does not have configured, and `smoke-test` hits a literal
+  placeholder domain (`https://api-staging.example.com`) that was never
+  replaced.** Any push to `main` that passes `quality`/`security-audit`/
+  `test` will still fail at `build`, so the CI/CD badge can read red even
+  when the parts that matter are green. Bumped several stale action
+  versions and fixed a broken `steps.docker_build` reference (a step ID
+  that didn't exist) as safe, mechanical fixes; did not restructure or
+  disable the speculative deploy pipeline itself — see ROADMAP_HONEST.md.
 
 **2026-09-13 pass — CI workflow gating fixed, root causes behind most test
 failures fixed, deeper backlogs newly surfaced (not yet fixed):**
@@ -517,9 +590,12 @@ See [API Documentation](backend/docs/API.md) for full reference.
 ## Testing & Quality
 
 **Test Suite**
-- 925 test functions across 43 files (`backend/tests/`), covering unit, integration, and performance scenarios
-- **74% measured line coverage** (`pytest --cov=src`, run from `backend/`) — up from 41% at the last audit;
-  812 passing, 86 failing, 18 erroring, 6 skipped, 3 xfailed as of this pass. The remaining failures are
+- Test functions across 44 files (`backend/tests/`), covering unit, integration, and performance scenarios
+- **75% measured line coverage** (`pytest --cov=src`, run from `backend/`, verified 2026-09-20 against real
+  Postgres/Redis containers): 882 passing, 33 failing, 1 erroring, 6 skipped, 3 xfailed as of this pass.
+  This number required a fix first — `backend/pyproject.toml` had an unbounded `pytest` floor that resolved
+  pytest 9.x and broke 33 tests via a `pytest-asyncio==0.21.1` incompatibility (see Known Issues); with that
+  pinned, the real remaining failure count is 33, not the 41 previously reported. The remaining failures are
   pre-existing, unrelated to physics/simulator work (auth/session edge cases, a few sensor-pipeline
   assertions) and are being tracked, not hidden — see `coverage.xml`/`htmlcov/` for the full per-file
   breakdown. Real coverage gaps remain concentrated in speculative/unfinished feature areas
@@ -668,7 +744,7 @@ repo does not import or link against any of those siblings.
 - [x] Navigation & pathfinding (A*, RVO, NavMesh)
 - [x] Agent memory system (episodic, semantic, procedural, emotional)
 - [x] Multi-agent communication framework
-- [x] 925 tests, 74% measured coverage (see Testing & Quality above)
+- [x] 44 test files, 75% measured coverage (see Testing & Quality above)
 
 ### Phase 3-8 (Complete - v0.8.0)
 - [x] Narrative Simulation Engine (NLP→scenario conversion via Claude API)
@@ -736,7 +812,7 @@ pytest  # Run tests
 - [Documentation](backend/docs/) — Comprehensive guides
 - [GitHub Discussions](https://github.com/Mullassery/PyRoboSimulator/discussions) — Q&A and ideas
 - [GitHub Issues](https://github.com/Mullassery/PyRoboSimulator/issues) — Bug reports and feature requests
-- [Email](mailto:info@pyrobosimulator.ai) — Direct support
+- [Email](mailto:mullassery@gmail.com) — the maintainer's real address; `info@pyrobosimulator.ai` (previously listed here) is not a real, monitored address
 
 **Stay Updated**
 - Star this repository for updates

@@ -296,4 +296,4 @@ All dependencies are open-source (OSS-only stack).
 
 ## License
 
-MIT License - See LICENSE file for details
+Apache License 2.0 - see the repo-root [LICENSE](../LICENSE) file. (This previously said "MIT", which did not match the actual repo-wide license; there is no separate `backend/LICENSE`.)

@@ -35,3 +35,8 @@ module-name = "pyrobosimulator._core"
 # __init__.py), so `pip install pyrobosimulator` has never actually
 # exposed the documented API until this fix.
 python-source = "python"
+# Without this, `maturin sdist` omits LICENSE from the source distribution
+# (it's outside python-source and not auto-included), which makes PyPI
+# reject the upload with a 400 for license-file-not-found. Known recurring
+# bug pattern across this org's maturin-based repos.
+include = ["LICENSE"]

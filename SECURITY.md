@@ -2,7 +2,18 @@
 
 ## Reporting Security Vulnerabilities
 
-We take security seriously. If you discover a security vulnerability, please report it responsibly by emailing security@pyrobosimulator.ai instead of using the public issue tracker.
+This is a solo-maintained project — there is no security team, only one
+person (mullassery@gmail.com / [@Mullassery](https://github.com/Mullassery)
+on GitHub). If you discover a security vulnerability, please report it
+privately rather than using the public issue tracker, via either:
+
+- [GitHub Security Advisories](https://github.com/Mullassery/PyRoboSimulator/security/advisories/new)
+  for this repo (preferred — keeps the report private until a fix ships), or
+- Email to mullassery@gmail.com.
+
+`security@pyrobosimulator.ai` / `info@pyrobosimulator.ai`, previously listed
+here, are not real, monitored addresses — that domain is not owned or
+checked by the maintainer. Removed.
 
 ### What to Include
 
@@ -20,23 +31,20 @@ When reporting a security issue, please provide:
 
 ### Response Timeline
 
-We commit to:
-- **24 hours**: Acknowledge receipt of security report
-- **48 hours**: Initial assessment and confirmation
-- **7 days**: Working patch or mitigation guidance
-- **30 days**: Security release with fix
+No SLA is promised — this is one person maintaining the project outside of
+other commitments, not a company with a security team. Best effort, no
+committed hours/days figures. In practice: expect an acknowledgment within
+a few days, not hours; a fix timeline depends entirely on severity and the
+maintainer's availability.
 
 ## Supported Versions
 
-Security patches are provided for:
-
-| Version | Support Status | End of Life |
-|---------|---|---|
-| 0.2.x | Active | 12 months |
-| 0.1.x | Limited | 3 months |
-| < 0.1 | Unsupported | Immediate |
-
-We recommend always using the latest stable version.
+There is no back-port policy. Only the latest published release on PyPI
+(currently 0.11.x) receives fixes. Older versions are not patched — upgrade
+to latest if you need a fix. The version table previously here (claiming
+"12 months" / "3 months" support windows for versions 0.1.x/0.2.x, which
+predate the current 0.11.x line entirely) was aspirational and did not
+reflect anything actually being done; removed rather than left stale.
 
 ## Security Best Practices
 
@@ -204,14 +212,17 @@ See [OSS Compliance Audit](backend/docs/OSS_COMPLIANCE.md).
 
 ## Compliance
 
-PyRoboSimulator aims to support compliance requirements:
+No compliance certification (SOC 2, HIPAA, PCI DSS, GDPR or otherwise) has
+been obtained or audited for this project, and none is claimed. A previous
+version of this file listed SOC 2 Type II / GDPR / HIPAA / PCI DSS as things
+the project "aims to support" — none of that has been implemented,
+verified, or audited; the claim has been removed rather than left as
+unverifiable aspiration. If you need a specific compliance posture, you are
+responsible for your own audit of this codebase and deployment.
 
-- **SOC 2 Type II**: Audit logging, access controls, monitoring
-- **GDPR**: Data protection, user data deletion, privacy
-- **HIPAA**: Optional data encryption, audit trails (for healthcare deployments)
-- **PCI DSS**: No payment processing (scope-dependent)
-
-See [OSS Compliance](backend/docs/OSS_COMPLIANCE.md) for license compliance details.
+See [OSS Compliance](backend/docs/OSS_COMPLIANCE.md) for dependency license
+information only (that document is about OSS license compliance, not
+regulatory compliance).
 
 ## Known Security Limitations
 
@@ -251,13 +262,13 @@ Before deploying PyRoboSimulator to production:
 
 ## Contact
 
-- **Security Team**: security@pyrobosimulator.ai
-- **Report vulnerability**: security@pyrobosimulator.ai
-- **General questions**: info@pyrobosimulator.ai
-- **GitHub Issues**: Public bugs only (use issue templates)
+- **Security reports**: [GitHub Security Advisories](https://github.com/Mullassery/PyRoboSimulator/security/advisories/new)
+  or mullassery@gmail.com
+- **General questions**: [GitHub Discussions](https://github.com/Mullassery/PyRoboSimulator/discussions)
+- **GitHub Issues**: Public, non-security bugs only (use issue templates)
 
 ---
 
-**Version**: 1.0  
-**Last Updated**: 2024-07-29  
-**Next Review**: 2025-01-29
+**Last updated**: 2026-09-20 (OSS standardization pass — removed fabricated
+"Security Team"/SLA/version-support/compliance claims that did not reflect
+this being a single-maintainer project; see git history for prior wording).
