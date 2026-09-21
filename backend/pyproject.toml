@@ -98,7 +98,7 @@ dev = [
     "isort==5.13.2",
     "flake8==6.1.0",
     "pylint==3.0.3",
-    "mypy==1.7.1",
+    "mypy==2.3.1",
     "bandit>=1.7.8",
     # bandit imports pbr.version at runtime but doesn't declare it in its own
     # install_requires (only setup_requires) - without this, `bandit` fails
