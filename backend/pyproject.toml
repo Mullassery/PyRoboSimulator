@@ -58,7 +58,7 @@ dependencies = [
     # Utilities
     "numpy==1.24.3",
     "scipy==1.11.4",
-    "pillow>=10.3.0",
+    "pillow>=12.3.0",
 
     # Narrative Engine (NLP -> scenario conversion)
     "anthropic==0.122.0",
