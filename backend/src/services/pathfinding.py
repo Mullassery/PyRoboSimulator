@@ -179,12 +179,24 @@ class NavigationMesh:
 
     def _polygons_adjacent(self, poly1: NavMeshPolygon, poly2: NavMeshPolygon) -> bool:
         """Check if two polygons share an edge."""
-        # Simplified: check if centers are close
+        # Simplified: check if centers are close relative to the polygons'
+        # own size. A fixed `self.grid_size * 2.5` threshold only works when
+        # polygons happen to be about as large as grid_size; for larger
+        # hand-built polygons (e.g. 10x10 cells with the default grid_size=1.0)
+        # it never triggers, leaving every polygon neighborless and making
+        # find_path() fail for any path that must cross more than one
+        # polygon. Scale the threshold to each polygon's own radius instead.
         if poly1.center is None or poly2.center is None:
             return False
 
+        def _radius(poly: NavMeshPolygon) -> float:
+            if not poly.vertices or poly.center is None:
+                return 0.0
+            return max(poly.center.distance_to(v) for v in poly.vertices)
+
         dist = poly1.center.distance_to(poly2.center)
-        return dist < self.grid_size * 2.5
+        threshold = max(self.grid_size * 2.5, (_radius(poly1) + _radius(poly2)) * 0.95)
+        return dist < threshold
 
 
 class PathfindingCache:
@@ -278,6 +290,12 @@ class AStarPathfinder:
             return cached_path
 
         self.paths_calculated += 1
+
+        # Trivial case: already at the goal. This must be resolved before
+        # any polygon lookup so it works even when the point falls inside an
+        # unwalkable polygon (no movement is required either way).
+        if start == goal:
+            return [start]
 
         # Find start and goal polygons
         start_poly = self.nav_mesh.find_polygon_at(start)

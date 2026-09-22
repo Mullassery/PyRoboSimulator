@@ -322,9 +322,11 @@ class TestDepthMapGeneration:
         """Test SimulationEngine can capture depth from all agents."""
         engine = SimulationEngine(num_agents=3, duration=1.0, timestep=0.016)
 
-        # Generate depth maps for all agents
+        # Generate depth maps for all agents. engine.agents is a
+        # dict[int, Agent] keyed by agent id -- iterating it directly yields
+        # the int keys, not Agent objects.
         depth_maps = {}
-        for agent in engine.agents:
+        for agent in engine.agents.values():
             depth_b64 = agent.generate_depth_map()
             depth_bytes = base64.b64decode(depth_b64)
             depth_maps[agent.id] = np.frombuffer(depth_bytes, dtype=np.float32).reshape(512, 512)

@@ -31,11 +31,16 @@ class TestGaussianNoise:
 
         # ISO 100 = low noise
         noisy_100 = add_gaussian_noise(test_array, sigma=3.0, value_min=0, value_max=255)
-        noise_100 = np.std(noisy_100 - 128)
+        # Subtracting a Python int from a uint8 array does the subtraction in
+        # uint8: any pixel that landed below 128 underflows and wraps around
+        # to a huge positive value (e.g. 127 - 128 -> 255), which swamped the
+        # real noise measurement with wraparound artifacts. Cast to a signed
+        # dtype first so this measures actual signed deviation from 128.
+        noise_100 = np.std(noisy_100.astype(np.int16) - 128)
 
         # ISO 3200 = high noise
         noisy_3200 = add_gaussian_noise(test_array, sigma=45.0, value_min=0, value_max=255)
-        noise_3200 = np.std(noisy_3200 - 128)
+        noise_3200 = np.std(noisy_3200.astype(np.int16) - 128)
 
         # Higher ISO should have more noise
         assert noise_3200 > noise_100
@@ -122,8 +127,15 @@ class TestMotionBlur:
         # Fast motion blur
         result_fast = apply_motion_blur(img, speed=5.0, direction_xy=(1, 0))
 
-        # Fast blur should have spread out more (lower variance in white region means lower peak)
-        assert result_fast[50, 50].mean() < result_slow[50, 50].mean()
+        # (50, 50) is the dead center of a 10x10 solid-color square -- with
+        # kernel sizes this small (apply_motion_blur caps kernel_size at
+        # int(speed/2)), the blur neighborhood around the center never
+        # reaches the square's edge, so convolving a uniform region just
+        # returns the same uniform value regardless of speed (both were
+        # 255). Check a pixel just past the square's edge along the blur
+        # direction instead, where faster motion actually smears more of
+        # the white square's brightness into the background.
+        assert result_fast[50, 55].mean() > result_slow[50, 55].mean()
 
     def test_motion_blur_preserves_shape(self):
         """Test that motion blur preserves image shape."""

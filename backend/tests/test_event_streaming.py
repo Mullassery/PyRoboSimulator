@@ -61,7 +61,10 @@ async def test_capture_frame_reuses_stable_event_id_across_consecutive_frames():
     from services.visualization_integration import VisualizationStreamer
 
     engine = SimulationEngine(num_agents=5, duration=10.0, num_obstacles=2)
-    streamer = VisualizationStreamer(engine, frame_rate=60)
+    # VisualizationStreamer takes simulation_id, not frame_rate (there is no
+    # such constructor argument -- frame_rate is a fixed internal attribute).
+    # Every other call site in this test suite passes simulation_id=1.
+    streamer = VisualizationStreamer(engine, simulation_id=1)
 
     # Generate a frame with some events
     frame1 = streamer._capture_frame()
@@ -95,12 +98,21 @@ async def test_event_ids_persist_through_simulation_lifetime():
     engine = SimulationEngine(num_agents=3, duration=5.0, num_obstacles=2)
 
     all_ids_seen = set()
+    previously_seen_count = 0
 
     for step in range(50):
         engine.step()
 
-        # Check that all event IDs so far are unique
-        for event in engine.events:
+        # engine.events is cumulative (each step() extends it, never
+        # replaces it) -- iterating the whole list every step re-checks
+        # earlier steps' already-verified events against `all_ids_seen`,
+        # which by construction always contains them by now, guaranteeing a
+        # false "duplicate" on step 1 regardless of whether IDs actually
+        # collide. Only check events appended since the last step.
+        new_events = engine.events[previously_seen_count:]
+        previously_seen_count = len(engine.events)
+
+        for event in new_events:
             assert (
                 event.id not in all_ids_seen
             ), f"Event ID {event.id} was already seen (step {step})"

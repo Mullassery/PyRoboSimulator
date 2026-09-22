@@ -56,7 +56,11 @@ class GaussianNoiseGenerator:
         noise = self.generate(data.shape)
         noisy = data + noise
         if clip:
-            noisy = np.clip(noisy, 0, 255)
+            # `data + noise` promotes to float64 regardless of `data`'s
+            # dtype; clip=True is documented as "for images" (0-255 range),
+            # so callers passing a uint8 image expect a uint8 image back,
+            # not a float64 array that merely happens to be in [0, 255].
+            noisy = np.clip(noisy, 0, 255).astype(data.dtype)
         return noisy
 
 
@@ -230,16 +234,28 @@ class LidarSimulator:
         Returns:
             Noisy ranges
         """
+        # Lost returns (e.g. from apply_rain_effect's point-loss simulation)
+        # are represented as np.inf. Multiplying/adding noise into those
+        # entries can produce NaN (0 * inf == nan, whenever a sampled
+        # angle_noise happens to land on exactly 0.0) instead of leaving
+        # them as "no valid return" -- and unlike inf, NaN survives
+        # np.clip() unchanged, so it silently corrupted the output with
+        # values that violate the [0, max_range] contract every caller
+        # relies on. Only apply noise to points that had a finite return.
+        finite_mask = np.isfinite(ranges)
+        noisy_ranges = ranges.copy()
+
         # Range noise (Gaussian)
         range_noise = np.random.normal(0, range_noise_std, ranges.shape)
-        noisy_ranges = ranges + range_noise
 
         # Angular noise affects effective range (small angle approximation)
         # At 10m distance, 0.01 degree error ~ 0.002m range error
         angle_noise = np.random.normal(0, np.radians(angle_noise_std), ranges.shape)
         angle_range_error = angle_noise * ranges
 
-        noisy_ranges += angle_range_error
+        noisy_ranges[finite_mask] = (
+            ranges[finite_mask] + range_noise[finite_mask] + angle_range_error[finite_mask]
+        )
 
         return np.clip(noisy_ranges, 0, self.max_range)
 

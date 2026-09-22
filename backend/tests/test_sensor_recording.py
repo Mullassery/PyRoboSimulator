@@ -401,6 +401,10 @@ class TestSensorRecordingService:
         """Test size estimation."""
         with tempfile.TemporaryDirectory() as tmpdir:
             service = SensorRecordingService(output_dir=tmpdir)
+            # add_frame() is a no-op while recording_active is False (its
+            # default) -- without this, the frame below is silently
+            # dropped and estimate_size_mb() always reports 0.
+            service.start_recording("test")
 
             # Add 1080p RGB frame
             data = np.random.randint(0, 255, (1080, 1920, 3), dtype=np.uint8)

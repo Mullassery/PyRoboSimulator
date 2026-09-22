@@ -1,50 +1,91 @@
 """Monitoring and observability with Prometheus."""
 
 import time
-from typing import Callable
+from typing import Callable, Type, TypeVar
 
 from fastapi import Response
-from prometheus_client import CONTENT_TYPE_LATEST, Counter, Gauge, Histogram, generate_latest
+from prometheus_client import (
+    CONTENT_TYPE_LATEST,
+    REGISTRY,
+    Counter,
+    Gauge,
+    Histogram,
+    generate_latest,
+)
+from prometheus_client.registry import CollectorRegistry
+
+_MetricT = TypeVar("_MetricT", Counter, Gauge, Histogram)
+
+
+def _get_or_create(metric_cls: Type[_MetricT], name: str, *args, **kwargs) -> _MetricT:
+    """Create a metric, reusing an already-registered collector of the same name.
+
+    This module is reachable under two different module identities in this
+    codebase: `src.services.monitoring` (imported with the `src.` prefix by
+    most test files) and `services.monitoring` (imported unprefixed by
+    `src/main.py`'s `from services.monitoring import ...`, since `src/` is
+    also on `sys.path`). Python treats those as two separate module objects,
+    so this file's top-level code runs twice in the same process, and
+    `prometheus_client`'s default `CollectorRegistry` is a process-global
+    singleton independent of module identity -- the second run's
+    `Histogram(...)`/`Counter(...)`/`Gauge(...)` calls raise
+    `ValueError: Duplicated timeseries in CollectorRegistry` instead of
+    silently no-oping. Reusing the already-registered collector avoids that
+    without changing the app's public metrics behavior.
+    """
+    registry: CollectorRegistry = REGISTRY
+    existing = registry._names_to_collectors.get(name)
+    if existing is not None:
+        return existing
+    return metric_cls(name, *args, **kwargs)
+
 
 # Metrics
-api_request_duration = Histogram(
+api_request_duration = _get_or_create(
+    Histogram,
     "api_request_duration_seconds",
     "API request latency in seconds",
     ["method", "endpoint"],
     buckets=(0.01, 0.05, 0.1, 0.5, 1.0, 5.0),
 )
 
-api_request_count = Counter(
+api_request_count = _get_or_create(
+    Counter,
     "api_requests_total",
     "Total API requests",
     ["method", "endpoint", "status"],
 )
 
-db_query_duration = Histogram(
+db_query_duration = _get_or_create(
+    Histogram,
     "db_query_duration_seconds",
     "Database query latency in seconds",
     ["query_type"],
     buckets=(0.001, 0.01, 0.05, 0.1, 0.5),
 )
 
-cache_hits = Counter(
+cache_hits = _get_or_create(
+    Counter,
     "cache_hits_total",
     "Total cache hits",
     ["cache_type"],
 )
 
-cache_misses = Counter(
+cache_misses = _get_or_create(
+    Counter,
     "cache_misses_total",
     "Total cache misses",
     ["cache_type"],
 )
 
-active_simulations = Gauge(
+active_simulations = _get_or_create(
+    Gauge,
     "active_simulations",
     "Number of active simulations",
 )
 
-simulation_events = Counter(
+simulation_events = _get_or_create(
+    Counter,
     "simulation_events_total",
     "Total events recorded across simulations",
     ["event_type"],

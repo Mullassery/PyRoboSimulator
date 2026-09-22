@@ -348,8 +348,14 @@ class TestWorldStreamingService:
     def test_all_chunks_json(self):
         """Test streaming all chunks."""
         service = WorldStreamingService()
-        service.create_box_obstacle(Vector3(100, 100, 0), Vector3(5, 5, 3))
-        service.create_box_obstacle(Vector3(600, 600, 0), Vector3(5, 5, 3))
+        obs1 = service.create_box_obstacle(Vector3(100, 100, 0), Vector3(5, 5, 3))
+        obs2 = service.create_box_obstacle(Vector3(600, 600, 0), Vector3(5, 5, 3))
+        # create_box_obstacle() only builds the Obstacle; add_obstacle() is
+        # what actually assigns it to a chunk. Without these calls the
+        # service has zero chunks regardless of how many obstacles were
+        # created, which is what made this assert 0 >= 1.
+        service.add_obstacle(obs1)
+        service.add_obstacle(obs2)
 
         json_str = service.get_all_chunks_json()
         data = json.loads(json_str)

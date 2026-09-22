@@ -1,5 +1,7 @@
 """Integration tests for all API endpoints."""
 
+from unittest.mock import AsyncMock, patch
+
 import pytest
 from httpx import AsyncClient
 
@@ -311,12 +313,18 @@ class TestHealthAPI:
     async def test_readiness_check(self, client: AsyncClient) -> None:
         """Test readiness check endpoint.
 
-        No real Redis is reachable in this test environment, so a real
-        readiness check honestly reports not-ready (503) -- see
+        Patches check_cache to force the not-ready (503) path -- see
         test_health.py for the full real-vs-mocked coverage of this
-        endpoint's actual database/cache logic.
+        endpoint's actual database/cache logic. This previously assumed "no
+        real Redis is reachable in this test environment", but
+        docker-compose.yml and the CI `test` job both provide a real
+        `redis:7-alpine` on the exact address this app defaults to
+        (`redis://localhost:6379/0`), so that assumption doesn't hold and
+        the check legitimately succeeded, returning 200 instead of the 503
+        this test asserted.
         """
-        response = await client.get("/api/v1/ready")
+        with patch("routers.health.check_cache", new=AsyncMock(return_value=False)):
+            response = await client.get("/api/v1/ready")
 
         assert response.status_code == 503
         data = response.json()

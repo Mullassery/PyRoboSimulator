@@ -286,14 +286,16 @@ class Agent:
         width, height = 640, 480
         color = self._get_color_by_state()
 
-        # Create gradient image
-        img_array = np.zeros((height, width, 3), dtype=np.uint8)
-        for i in range(height):
-            img_array[i, :] = [
-                int(color[0] * (i / height)),
-                int(color[1] * (i / height)),
-                int(color[2] * (i / height)),
-            ]
+        # Create gradient image. Vectorized: the previous per-row Python
+        # loop (480 iterations, each building a fresh 3-element Python list)
+        # was the dominant cost of generate_rgb_frame() -- ~40ms/frame here,
+        # blowing well past get_all_agents_rgb_frames()'s <100ms-for-5-agents
+        # budget. Same truncating int() semantics as before, just computed
+        # for the whole column at once.
+        row_fraction = (np.arange(height, dtype=np.float32) / height)[:, None]  # (height, 1)
+        channel_scale = np.array(color, dtype=np.float32)[None, :]  # (1, 3)
+        gradient_column = (row_fraction * channel_scale).astype(np.uint8)  # (height, 3)
+        img_array = np.repeat(gradient_column[:, None, :], width, axis=1)
 
         # Apply sensor effects
         img_array = self._apply_sensor_effects(img_array, iso=iso, color_grading=color_grading)
@@ -480,11 +482,19 @@ class Agent:
             return (0, 150, 255)  # Blue (idle)
 
     def update_physics(self, dt: float) -> None:
-        """Update agent physics using Euler integration.
+        """Update agent physics using (explicit/forward) Euler integration.
 
         Args:
             dt: Timestep in seconds
         """
+        # Explicit Euler integrates position from the velocity at the start
+        # of the step, not the velocity after this step's acceleration has
+        # already been applied to it -- using the post-update velocity here
+        # made this semi-implicit (symplectic) Euler instead, which is a
+        # different (also valid, but not what this method documents or what
+        # callers doing their own manual integration checks assume) scheme.
+        old_velocity = self.velocity
+
         # v = v + a*dt
         self.velocity = self.velocity + self.acceleration * dt
 
@@ -493,8 +503,8 @@ class Agent:
         if vel_mag > self.max_velocity:
             self.velocity = self.velocity.normalize() * self.max_velocity
 
-        # x = x + v*dt
-        self.position = self.position + self.velocity * dt
+        # x = x + v*dt (using the pre-update velocity)
+        self.position = self.position + old_velocity * dt
 
         # Reset acceleration (forces applied each frame)
         self.acceleration = Vector3(0, 0, 0)
@@ -536,15 +546,26 @@ class Agent:
         x_max: float,
         y_min: float,
         y_max: float,
+        min_bounce_speed: float = 0.5,
     ) -> None:
         """Clamp agent position to world bounds."""
         self.position.x = max(x_min, min(x_max, self.position.x))
         self.position.y = max(y_min, min(y_max, self.position.y))
-        # Bounce off boundaries
+        # Bounce off boundaries. `velocity *= -0.5` only reverses/damps
+        # existing motion -- an agent found at/past a boundary with zero (or
+        # already-outward) velocity component would otherwise never actually
+        # move back inside on the next step, since 0 * -0.5 stays 0. Give it
+        # a minimum inward nudge in that case.
         if self.position.x <= x_min or self.position.x >= x_max:
-            self.velocity.x *= -0.5
+            inward = 1.0 if self.position.x <= x_min else -1.0
+            self.velocity.x = (
+                self.velocity.x * -0.5 if self.velocity.x != 0 else inward * min_bounce_speed
+            )
         if self.position.y <= y_min or self.position.y >= y_max:
-            self.velocity.y *= -0.5
+            inward = 1.0 if self.position.y <= y_min else -1.0
+            self.velocity.y = (
+                self.velocity.y * -0.5 if self.velocity.y != 0 else inward * min_bounce_speed
+            )
 
 
 class Event:

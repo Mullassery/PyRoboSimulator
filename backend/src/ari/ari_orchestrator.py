@@ -69,9 +69,13 @@ class ARIOrchestrator:
 
         knowledge = self._knowledge_store.get(region_name, country)
 
-        if knowledge and knowledge.get_confidence_score() < self._config.auto_learn_threshold:
+        # overall_confidence, not get_confidence_score() -- see the same
+        # note in KnowledgeStore.has_knowledge(). learn_region() only ever
+        # sets overall_confidence; get_confidence_score()'s per-component
+        # average stays 0.0 for knowledge this orchestrator produced.
+        if knowledge and knowledge.overall_confidence < self._config.auto_learn_threshold:
             logger.info(
-                f"ARI: Low confidence ({knowledge.get_confidence_score():.1%}) "
+                f"ARI: Low confidence ({knowledge.overall_confidence:.1%}) "
                 f"for {region_name} - refinement needed"
             )
             return True

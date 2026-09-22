@@ -316,7 +316,9 @@ class TestLidarIntegration:
         """Test SimulationEngine Lidar capture for all agents."""
         engine = SimulationEngine(num_agents=3, duration=1.0, timestep=0.016)
 
-        for agent in engine.agents:
+        # engine.agents is a dict[int, Agent] keyed by agent id -- iterating
+        # it directly yields the int keys, not Agent objects.
+        for agent in engine.agents.values():
             points = agent.generate_lidar_cloud(
                 rain_intensity=0.2,
                 beam_spread=0.1,

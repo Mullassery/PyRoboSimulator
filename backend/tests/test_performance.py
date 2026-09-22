@@ -14,7 +14,6 @@ class TestAPIPerformance:
         self,
         client: AsyncClient,
         auth_headers: dict,
-        benchmark_async,
     ) -> None:
         """Benchmark listing simulations."""
         # Create some simulations
@@ -28,8 +27,10 @@ class TestAPIPerformance:
         async def list_sims():
             return await client.get("/api/v1/simulations", headers=auth_headers)
 
-        # Note: benchmark_async not available in standard pytest
-        # This is a placeholder for actual benchmark
+        # No real benchmarking here (an async-benchmark fixture was
+        # referenced but never actually provided/wired up, which made this
+        # test error out at fixture resolution before it ever ran) -- this
+        # just exercises the endpoint.
         response = await list_sims()
         assert response.status_code == 200
 

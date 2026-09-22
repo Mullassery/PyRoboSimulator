@@ -102,7 +102,14 @@ class Relationship:
         elif self.relationship_type == "neutral":
             base = 0.0
 
-        return base * (0.5 + 0.5 * self.trust) * (0.5 + 0.5 * self.familiarity)
+        # Trust reinforces the relationship's polarity: for positive
+        # relationships, high trust strengthens the bond; for negative
+        # (enemy) relationships, *low* trust is what reinforces the enmity.
+        # Using `trust` directly for both signs made a low-trust "enemy"
+        # weaker/less-negative than a high-trust one, which is backwards.
+        trust_factor = self.trust if base >= 0 else (1.0 - self.trust)
+
+        return base * (0.5 + 0.5 * trust_factor) * (0.5 + 0.5 * self.familiarity)
 
 
 class AgentMemory:
@@ -360,15 +367,19 @@ class AgentMemory:
                 if not memory.is_accessible():
                     continue
 
-                # Simple text matching on tags
-                if any(query_lower in tag.lower() for tag in memory.tags):
-                    results.append(memory)
+                # A memory can match both on tags and on content -- only add
+                # it once (previously it was appended once per matching
+                # criterion, double-counting any memory that matched both).
+                matched = any(query_lower in tag.lower() for tag in memory.tags)
 
-                # Match in content keys
-                for key, val in memory.content.items():
-                    if isinstance(val, str) and query_lower in val.lower():
-                        results.append(memory)
-                        break
+                if not matched:
+                    for val in memory.content.values():
+                        if isinstance(val, str) and query_lower in val.lower():
+                            matched = True
+                            break
+
+                if matched:
+                    results.append(memory)
 
         # Sort by strength
         results.sort(key=lambda m: m.get_strength(), reverse=True)

@@ -26,10 +26,20 @@ async def test_health_check(client: AsyncClient) -> None:
 
 @pytest.mark.asyncio
 async def test_readiness_reports_real_unavailable_cache(client: AsyncClient) -> None:
-    """With no real Redis server reachable in the test environment, /ready
-    must honestly report the cache as unavailable and return 503 -- not the
-    old hardcoded {"ready": True}."""
-    response = await client.get("/api/v1/ready")
+    """/ready must honestly report the cache as unavailable and return 503
+    when Redis is down -- not the old hardcoded {"ready": True}.
+
+    This used to rely on "no real Redis server reachable in the test
+    environment" instead of patching check_cache like every other test in
+    this file does -- but both docker-compose.yml and the CI workflow's
+    `test` job spin up a real `redis:7-alpine` on the exact
+    `redis://localhost:6379/0` this app defaults to, so that assumption is
+    false in the actual configured test environment and the check legitimately
+    succeeds. Patch it instead, matching test_readiness_503_when_database_down
+    below.
+    """
+    with patch("routers.health.check_cache", new=AsyncMock(return_value=False)):
+        response = await client.get("/api/v1/ready")
 
     data = response.json()
     assert data["ready"] is False

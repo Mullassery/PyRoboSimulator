@@ -509,7 +509,13 @@ class RootCauseAnalyzer:
         """
         # Determine primary cause from violation type
         primary_cause_map = {
-            "collision": "Obstacle detection failure",
+            # Every other entry's description echoes its violation_type key
+            # (e.g. "gps_loss" -> "GPS signal unavailable" contains "gps"),
+            # which is what callers grep for (see
+            # RootCauseAnalyzer.analyze_violation callers). "collision" was
+            # the one outlier mapped to "Obstacle detection failure", which
+            # doesn't mention collision at all.
+            "collision": "Collision due to obstacle detection failure",
             "gps_loss": "GPS signal unavailable",
             "motor_failure": "Motor malfunction",
             "communication_loss": "Communication channel disruption",

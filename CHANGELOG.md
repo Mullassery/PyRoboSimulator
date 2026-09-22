@@ -8,6 +8,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Fixed
+- Backend test suite: re-verified the previously-documented 33 failed/1
+  error and root-caused/fixed 28 of them (individual failures listed in
+  `ROADMAP_HONEST.md`), spanning genuine logic bugs and outdated test
+  expectations across pathfinding, agent memory, world streaming,
+  validation/reporting, Prometheus metrics double-registration, ARI
+  confidence tracking, physics integration, RGB/lidar/thermal/depth sensor
+  tests, event ID tracking, and a dead fixture reference. 5 failures remain,
+  all non-trivial (sensor RNG architecture and a coupled thermal-physics
+  sign bug) -- see ROADMAP_HONEST.md. Net: 33 failed/1 error/882 passed ->
+  5 failed/0 error/911 passed.
 - `backend/pyproject.toml`: pinned `pytest>=7.4.4,<8`. The unbounded floor let
   a fresh `pip install -e ".[dev]"` resolve pytest 9.x, which removed the
   private `FixtureDef.unittest` attribute that pinned `pytest-asyncio==0.21.1`
@@ -38,10 +48,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   was always undefined because no step had that id).
 
 ### Documented, not fixed (see ROADMAP_HONEST.md)
-- 33 failed / 1 error / 882 passed / 6 skipped / 3 xfailed in
-  `backend/tests/` as of this pass (down from the previously-documented 41
-  failed/1 error, mostly via the pytest pin fix above surfacing real
-  failures that used to be masked as collection errors).
+- 5 failed / 0 error / 911 passed / 6 skipped / 3 xfailed in
+  `backend/tests/` as of this pass (down from 33 failed/1 error/882 passed
+  at the last audit): `test_lidar_rain.py`'s two determinism tests and
+  `test_lidar_performance` (lidar cloud generation's base per-ray distance
+  is unconditionally randomized regardless of the beam_spread/jitter/
+  multipath flags, so no combination can currently produce a deterministic
+  cloud, and the same 640x480 sensor-effects pipeline is also the root
+  cause of `test_rgb_capture_performance`'s missed <100ms budget -- radial
+  distortion and Gaussian noise generation are the measured bottlenecks,
+  inherent cost of the feature, not a regression); and
+  `test_thermal_accuracy.py::test_view_factor_center_brightest` (the base
+  thermal gradient's sign is coupled to the material-emissivity transform's
+  behavior above/below the 20C baseline -- flipping it to fix the
+  view-factor direction silently broke two material-ordering tests, so this
+  needs the coupling untangled, not a one-line sign flip).
 - mypy: 546 errors across 58 files (`mypy src/`, strict mode), up slightly
   from the previously-documented 530 (net new debt, not yet individually
   triaged).

@@ -486,7 +486,14 @@ class WorldStreamingService:
         Returns:
             Dictionary with stats
         """
-        total_obstacles = sum(len(c.obstacles) for c in self.chunks.values())
+        # An obstacle straddling a chunk boundary is intentionally added to
+        # every chunk it overlaps (see add_obstacle/_get_chunks_for_bounds),
+        # so summing per-chunk list lengths double-counts any obstacle that
+        # spans more than one chunk. Count distinct obstacle ids instead.
+        unique_obstacle_ids = {
+            obstacle.id for c in self.chunks.values() for obstacle in c.obstacles
+        }
+        total_obstacles = len(unique_obstacle_ids)
         total_dynamic = sum(len(c.dynamic_objects) for c in self.chunks.values())
         total_memory = sum(c.memory_size() for c in self.chunks.values())
 

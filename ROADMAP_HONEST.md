@@ -94,15 +94,46 @@ bottom), not by reading old docs and trusting them.
    `backend/pyproject.toml`'s `[tool.mypy]` (honest, if that's the intent)
    or doing the actual multi-week cleanup — picking neither is the current
    state.
-2. **33 failed / 1 error in `backend/tests/`** (re-verified 2026-09-20,
-   down from a previously-reported 41 failed/1 error). Representative
-   failures: `test_pathfinding.py::TestAStarPathfinder::test_simple_path`,
-   `test_agent_memory.py::TestRelationship::test_relationship_strength_enemy`,
-   `test_lidar_rain.py::TestLidarIntegration::test_engine_lidar_capture_all_agents`,
-   `test_world_streaming.py::TestWorldStreamingService::test_1000_obstacles`.
-   Not root-caused individually in this pass — that's real, scoped
-   debugging work across sensor/pathfinding/memory/streaming subsystems,
-   not a mechanical fix.
+2. **5 failed / 0 error in `backend/tests/`** (re-verified 2026-09-22, down
+   from 33 failed/1 error). 28 of the 33 were individually root-caused and
+   fixed this pass (see CHANGELOG.md's `[Unreleased] Fixed` entry for the
+   full list) -- genuine logic bugs (e.g. a nav-mesh neighbor-adjacency
+   threshold that never scaled to real polygon sizes, symplectic-vs-explicit
+   Euler integration, a Prometheus metric double-registered because this
+   codebase's mixed `src.`-prefixed/unprefixed import style creates two
+   module identities for the same file, ARI confidence checks reading the
+   wrong field) and outdated test expectations (wrong dict-iteration,
+   missing setup calls, uint8 wraparound in test arithmetic, swapped
+   arguments). The remaining 5 are real and not mechanical fixes:
+   - `test_lidar_rain.py::TestLidarBeamSpread::test_no_beam_spread_deterministic`,
+     `::TestLidarTemporalJitter::test_no_jitter_deterministic`,
+     `::TestLidarIntegration::test_lidar_performance` -- lidar cloud
+     generation's base per-ray distance (`np.random.uniform(5, max_range)`
+     in `SimulationEngine.generate_lidar_cloud`) is randomized unconditionally,
+     regardless of the `beam_spread`/`add_temporal_jitter`/`multipath_probability`
+     flags, so no flag combination can produce a deterministic cloud today;
+     fixing it means redesigning the RNG seeding (e.g. a per-position/per-ray
+     deterministic "scene" distance with noise layered on top) without
+     breaking the ~30 other lidar/depth tests that currently pass.
+     `test_lidar_performance` is also borderline/flaky under load (0.50s
+     limit, measured 0.44-0.54s) since the same unseeded-RNG code path is
+     what it's timing.
+   - `test_rgb_sensor.py::TestSimulationEngineRGBCapture::test_rgb_capture_performance` --
+     profiled: `apply_radial_distortion` (~32ms) and Gaussian noise
+     generation (~12ms) per 640x480 frame dominate, not the gradient-image
+     setup (vectorized this pass, see CHANGELOG, but that wasn't the
+     bottleneck). Hitting <100ms for 5 agents needs a faster distortion
+     implementation, not a mechanical fix.
+   - `test_thermal_accuracy.py::TestThermalViewFactor::test_view_factor_center_brightest` --
+     `SimulationEngine.generate_thermal_image`'s base radial gradient adds
+     `distance_effect` (making edges hotter, opposite of the "on-axis is
+     warmest" view-factor physics `_apply_thermal_effects` documents and
+     implements separately). Flipping the sign to match is the obvious fix,
+     but it's coupled to the material-emissivity transform's behavior above
+     vs. below the 20C baseline in `_apply_thermal_effects`, and doing so
+     regressed `test_emissivity_spatial_variation` and
+     `test_thermal_material_ordering` (metal read warmer than asphalt) --
+     reverted. Needs the two effects untangled, not a one-line sign flip.
 3. **`frontend/package.json`'s `lint` script is broken as written.**
    `"lint": "eslint src --ext ts,tsx"` — `eslint` is not in `dependencies`
    or `devDependencies` (only `typescript`/`vite`/`vitest` are), and there
@@ -162,7 +193,7 @@ bottom), not by reading old docs and trusting them.
 | Missing sdist LICENSE include | `pyproject.toml` `[tool.maturin]` | Fixed this pass | See above |
 | `Cargo.lock` untracked | `.gitignore:3` (pre-fix) | Fixed this pass | See above |
 | mypy strict-mode backlog | `backend/` (58 files) | Real, unfixed | 546 errors, `continue-on-error: true` in CI |
-| 33 failing backend tests | `backend/tests/*` | Real, unfixed | See failure list above |
+| 5 failing backend tests (28 fixed 2026-09-22) | `backend/tests/*` | Real, unfixed | See failure list above |
 | Broken frontend lint script | `frontend/package.json:11` | Real, unfixed | `eslint` not installed, no config |
 | Unaudited frontend | `frontend/` (entire tree) | Real, unfixed | No CI, no verified test/build run |
 | CI path-scoped to backend only | `.github/workflows/ci-cd.yaml` `on.push.paths`/`on.pull_request.paths` | Real, unfixed | Rust/Python-bindings/frontend uncovered |

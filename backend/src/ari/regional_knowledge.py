@@ -354,7 +354,17 @@ class KnowledgeStore:
         if not knowledge:
             return False
 
-        return knowledge.get_confidence_score() >= min_confidence
+        # Use overall_confidence, not get_confidence_score(): the latter
+        # averages per-component confidence fields (roads.confidence,
+        # vehicles.confidence, etc.), which ARIOrchestrator.learn_region()
+        # never populates -- it computes confidence once via
+        # DiscoveryEngine.estimate_confidence() and assigns it directly to
+        # overall_confidence. Checking get_confidence_score() here always
+        # saw 0.0 for knowledge produced by the real learning path, so
+        # has_knowledge() reported False (and needs_learning() reported
+        # "always needs learning") even immediately after a successful,
+        # well-above-threshold learn_region() call.
+        return knowledge.overall_confidence >= min_confidence
 
     def list_regions(self) -> List[str]:
         """List all known regions.
@@ -443,8 +453,27 @@ class KnowledgeStore:
                     old_dist * old_count + new_dist * new_count
                 ) / (old_count + new_count)
 
-        # Update confidence and metadata
-        merged.overall_confidence = merged.get_confidence_score()
+        # Update confidence and metadata.
+        # NOT merged.get_confidence_score(): that averages per-component
+        # confidence fields (roads.confidence, vehicles.confidence, etc.),
+        # which nothing in this codebase's real learning path
+        # (ARIOrchestrator.learn_region) ever populates -- it always
+        # evaluates to 0.0, so every refinement pass silently reset
+        # overall_confidence to 0 regardless of how good the new pass was.
+        # Weight-average the two real overall_confidence values by
+        # observation count instead, consistent with how every other field
+        # above is merged.
+        old_count = existing.observation_count
+        new_count = new_knowledge.observation_count
+        if old_count + new_count > 0:
+            merged.overall_confidence = (
+                existing.overall_confidence * old_count
+                + new_knowledge.overall_confidence * new_count
+            ) / (old_count + new_count)
+        else:
+            merged.overall_confidence = max(
+                existing.overall_confidence, new_knowledge.overall_confidence
+            )
         merged.learning_iterations = existing.learning_iterations + 1
         merged.observation_count = existing.observation_count + new_knowledge.observation_count
         merged.update_timestamp = datetime.now().isoformat()

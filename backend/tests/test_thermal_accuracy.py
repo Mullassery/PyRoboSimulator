@@ -97,13 +97,17 @@ class TestThermalViewFactor:
         # Center region (on-axis, better view factor)
         center = thermal_map[100:150, 100:150]
 
-        # Edge regions (off-axis, reduced view factor)
+        # Edge regions (off-axis, reduced view factor). The top/bottom
+        # bands are (10, 256) and the left/right bands are (256, 10) --
+        # concatenating those 2D slices directly (default axis=0) fails
+        # because their second dimensions don't match. Flatten each band
+        # first: only the aggregate mean over all edge pixels is needed.
         edges = np.concatenate(
             [
-                thermal_map[0:10, :],
-                thermal_map[-10:, :],
-                thermal_map[:, 0:10],
-                thermal_map[:, -10:],
+                thermal_map[0:10, :].ravel(),
+                thermal_map[-10:, :].ravel(),
+                thermal_map[:, 0:10].ravel(),
+                thermal_map[:, -10:].ravel(),
             ]
         )
 
