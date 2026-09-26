@@ -535,9 +535,70 @@ for frame in engine.get_sensor_frames(agent_id=0):
 
 ---
 
+## vs PyBullet
+
+PyBullet (the standard OSS robotics/physics simulator) is the closest real
+comparison — but it couldn't be run against this project's actual physics
+loop, and here's exactly why, verified directly rather than assumed:
+
+**The pip-installable core (`pyrobosimulator`) has no physics simulation
+at all.** `pyrobosimulator-core/src/world.rs` (80 lines) and `agent.rs`
+expose only `add_agent`/`remove_agent`/`agent_count` and plain data
+fields (`position`, `velocity`, `rotation`) — there is no `step()`/
+`update()` method anywhere in the core crate, `velocity` is set once at
+construction and never read or advanced by anything. What real
+"forward-Euler" physics this project has (`update_physics()`, confirmed
+in `backend/src/services/simulation_engine.py:484`, genuinely explicit
+Euler integration with velocity clamping) lives entirely in the separate
+`backend/` FastAPI service, not in what `pip install pyrobosimulator`
+gives you — a distinction the "Comparison with Alternatives" table below
+doesn't make, presenting "Physics Engine: Custom Euler" and "Agents/Frame:
+100K+" as properties of one undifferentiated "PyRoboSimulator," when in
+fact one install path (the pip package) has zero physics and the other
+(the backend) needs a separately-run Postgres/Redis-backed service.
+
+**What I could actually verify, real numbers, this machine (Apple
+Silicon, 2026-09-27):** creating and storing N `Agent` objects (with a
+real position set on each) in the pip-installable `World`:
+
+| N agents | Time | Agents/sec |
+|---|---|---|
+| 1,000 | 0.001s | ~1,000,000 |
+| 10,000 | 0.012s | ~830,000 |
+| 100,000 | 0.120s | ~830,000 |
+
+This is genuinely fast — but it's agent object creation/storage, **not**
+a physics simulation frame (nothing here computes motion, collision, or
+sensor state), so it is not a fair stand-in for the "100K+ agents/sec,
+full physics" claim in the Performance Benchmarks table below, and isn't
+directly comparable to PyBullet (which does real per-body physics on
+every step). **PyBullet itself could not be installed in this
+environment** — `pip install pybullet` fails building from source against
+this machine's macOS 26 SDK (a real, reproducible `clang` compile error in
+bullet3's bundled zlib sources, tried on Python 3.11 and 3.13, both
+pybullet 3.2.5 and current), so a live side-by-side run wasn't possible
+this pass. A real comparison against PyBullet would need to target the
+backend's `update_physics()`/MuJoCo path specifically, not the pip
+package, and would need a macOS/Python combination PyBullet's build
+actually supports.
+
+**No code bug found here** — the core package's docs elsewhere ("Why
+PyRoboSimulator?" above) do correctly distinguish the pip package from
+the backend; the gap is specifically the "Comparison with Alternatives"
+table's collapsing of both into one row per metric.
+
 ## Performance Benchmarks
 
 All benchmarks run on a 2023 MacBook Pro (Apple Silicon M2, 8GB RAM):
+
+**Unverified this pass:** this table has no reproduction script, date, or
+commit reference, and — per the finding directly above — "100K+
+agents/sec, full physics" cannot currently be true of the pip-installable
+core (which has no physics loop at all); if it's true of anything, it
+would be a `backend/` benchmark that needs its own citation. Treat every
+row below as an unverified historical claim, not a re-confirmed number,
+until someone re-runs it against the actual `backend/` service with a
+committed script.
 
 | Metric | Value | Notes |
 |--------|-------|-------|
@@ -693,19 +754,24 @@ See [Deployment Guide](backend/docs/DEPLOYMENT.md) for detailed instructions.
 
 ## Comparison with Alternatives
 
-| Feature | PyRoboSimulator | CARLA | Gazebo | AirSim |
-|---------|---|---|---|---|
-| **Language** | Python | C++ | C++ | C++ |
-| **Physics Engine** | Custom Euler | PhysX | ODE/Bullet | PhysX |
-| **Agents/Frame** | 100K+ | 100s | 1000s | 100s |
-| **REST API** | Native | No | No | Limited |
-| **Kubernetes Ready** | Yes | No | No | No |
-| **Database Integration** | Yes (PostgreSQL) | No | No | No |
-| **Caching Layer** | Yes (Redis) | No | No | No |
-| **Multi-Modal Sensors** | RGB, Depth, Lidar, Thermal | RGB, Depth, Lidar | Camera, IMU, GPS | RGB, Depth, Lidar |
-| **License** | Apache 2.0 | MIT | Apache 2.0 | MIT |
-| **Production Monitoring** | Prometheus/Grafana | No | No | No |
-| **Open Source** | Yes (Apache 2.0) | Partial | Yes | Partial |
+**Corrected 2026-09-27:** this table used to present "PyRoboSimulator" as
+one undifferentiated column against CARLA/Gazebo/AirSim. In reality it's
+two separately-installed pieces with very different real capabilities —
+see "vs PyBullet" above for how this was verified. Split accordingly:
+
+| Feature | PyRoboSimulator (pip core) | PyRoboSimulator (`backend/` service) | CARLA | Gazebo | AirSim |
+|---------|---|---|---|---|---|
+| **Language** | Python (Rust core) | Python | C++ | C++ | C++ |
+| **Physics Engine** | **None** — no `step()`/`update()` exists | Custom forward-Euler, or real MuJoCo (both verified in source) | PhysX | ODE/Bullet | PhysX |
+| **Agents/Frame** | N/A (no simulation loop) | Not independently re-verified this pass — see "Performance Benchmarks" honesty note below | 100s | 1000s | 100s |
+| **REST API** | No | Native | No | No | Limited |
+| **Kubernetes Ready** | N/A | Manifests exist (`backend/k8s/`); DB/cache layers still in-memory as of this pass, see Known Issues | No | No | No |
+| **Database Integration** | No | Yes (PostgreSQL) | No | No | No |
+| **Caching Layer** | No | Yes (Redis) | No | No | No |
+| **Multi-Modal Sensors** | No | RGB, Depth, Lidar, Thermal (real, in `backend/src/sensors/`) | RGB, Depth, Lidar | Camera, IMU, GPS | RGB, Depth, Lidar |
+| **License** | Apache 2.0 | Apache 2.0 | MIT | Apache 2.0 | MIT |
+| **Production Monitoring** | No | Prometheus/Grafana | No | No | No |
+| **Open Source** | Yes | Yes | Partial | Yes | Partial |
 
 ---
 
