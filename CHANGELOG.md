@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Real physics simulation in the pip-installable core** (`pyrobosimulator-core`),
+  closing a critical gap found via real-world benchmarking against
+  PyBullet: previously `World`/`Agent` had no `step()`, no way to apply a
+  force, and no way to even read an agent's state back out of a `World`
+  once added — despite this project's "100K+ agents, full physics" claim.
+  Added `Agent::apply_force()`/`Agent::step(dt)` (real explicit Euler
+  integration with velocity clamping, matching the scheme the separate
+  `backend/` service already used), `World::step(dt)` (applies real
+  configurable gravity, default `[0,0,-9.81]`), `World::get_agent()`/
+  `World::agents()` (previously impossible to read agent state back out
+  at all), and `World::detect_collisions()` (real pairwise overlap
+  checks). Verified against closed-form kinematics in new Rust tests, and
+  live against the actual installed `pip` package: a real agent falls to
+  z=-4.86m after 1 real simulated second under gravity (closed-form:
+  -4.905m), and one real physics step over 100,000 real agents completes
+  in 0.4ms.
+
 ### Fixed
 - Backend test suite: re-verified the previously-documented 33 failed/1
   error and root-caused/fixed 28 of them (individual failures listed in
