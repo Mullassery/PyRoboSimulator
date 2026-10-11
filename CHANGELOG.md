@@ -5,7 +5,7 @@ All notable changes to PyRoboSimulator will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.12.1] - 2026-10-11
 
 ### Added
 - **Real physics simulation in the pip-installable core** (`pyrobosimulator-core`),
@@ -26,6 +26,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   in 0.4ms.
 
 ### Fixed
+- **Frontend (`frontend/`) error sweep**: fixed 22 TypeScript errors so
+  `tsc --noEmit` is clean (unused `React` imports/locals, a mis-typed
+  `THREE.Box3Helper` ref in `App.tsx`, and a bogus `msgpack` import in
+  `useWebSocket.test.ts` replaced with a self-contained big-endian `pack()`
+  helper), added the missing `jsdom` devDependency (`vitest.config.ts`
+  already set `environment: 'jsdom'`, so no component test could previously
+  run), and fixed a `StatsPanel` formatting bug where integer agent counts
+  rendered with a trailing `.0` (added a `decimals` prop; zero-count
+  distribution charts are now skipped). `npx vitest run` passes 86/86.
 - Backend test suite: re-verified the previously-documented 33 failed/1
   error and root-caused/fixed 28 of them (individual failures listed in
   `ROADMAP_HONEST.md`), spanning genuine logic bugs and outdated test
