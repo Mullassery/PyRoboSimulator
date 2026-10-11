@@ -3,7 +3,7 @@
  * Displays live simulation statistics with mini charts
  */
 
-import React, { useMemo } from 'react'
+import React from 'react'
 import '../styles/StatsPanel.css'
 
 interface AgentStateDistribution {
@@ -41,9 +41,10 @@ interface MiniChartProps {
   unit?: string
   max?: number
   color?: string
+  decimals?: number
 }
 
-function MiniChart({ title, value, unit = '', max = 100, color = '#3a7fbd' }: MiniChartProps) {
+function MiniChart({ title, value, unit = '', max = 100, color = '#3a7fbd', decimals = 1 }: MiniChartProps) {
   const percentage = Math.min((value / max) * 100, 100)
 
   return (
@@ -51,7 +52,7 @@ function MiniChart({ title, value, unit = '', max = 100, color = '#3a7fbd' }: Mi
       <div className="chart-header">
         <span className="chart-title">{title}</span>
         <span className="chart-value">
-          {value.toFixed(1)}{unit}
+          {value.toFixed(decimals)}{unit}
         </span>
       </div>
       <div className="chart-bar-container">
@@ -72,14 +73,15 @@ interface StatBoxProps {
   value: number | string
   unit?: string
   color?: string
+  decimals?: number
 }
 
-function StatBox({ label, value, unit = '', color = '#e0e0e0' }: StatBoxProps) {
+function StatBox({ label, value, unit = '', color = '#e0e0e0', decimals = 1 }: StatBoxProps) {
   return (
     <div className="stat-box">
       <div className="stat-label">{label}</div>
       <div className="stat-value" style={{ color }}>
-        {typeof value === 'number' ? value.toFixed(1) : value}
+        {typeof value === 'number' ? value.toFixed(decimals) : value}
         {unit && <span className="stat-unit">{unit}</span>}
       </div>
     </div>
@@ -104,14 +106,6 @@ export default function StatsPanel({ stats, enabled = true }: StatsPanelProps) {
     + stats.agent_state_distribution.collision
     + stats.agent_state_distribution.other
 
-  const getStateColor = (stateCount: number, total: number): string => {
-    const percentage = total > 0 ? (stateCount / total) * 100 : 0
-    if (percentage < 25) return '#666'
-    if (percentage < 50) return '#3a7fbd'
-    if (percentage < 75) return '#5a9fdd'
-    return '#7abf1d'
-  }
-
   const cpuHealthColor = stats.fps >= 50 ? '#7abf1d' : stats.fps >= 30 ? '#ffa500' : '#ff6b6b'
 
   return (
@@ -128,6 +122,7 @@ export default function StatsPanel({ stats, enabled = true }: StatsPanelProps) {
             value={stats.active_agents}
             unit=""
             color="#3a7fbd"
+            decimals={0}
           />
           <StatBox
             label="FPS"
@@ -147,36 +142,49 @@ export default function StatsPanel({ stats, enabled = true }: StatsPanelProps) {
       <div className="stats-section">
         <div className="section-title">Agent State Distribution</div>
         <div className="state-distribution">
-          <MiniChart
-            title="Moving"
-            value={stats.agent_state_distribution.moving}
-            max={totalAgents || 100}
-            color="#3a7fbd"
-          />
-          <MiniChart
-            title="Idle"
-            value={stats.agent_state_distribution.idle}
-            max={totalAgents || 100}
-            color="#666"
-          />
-          <MiniChart
-            title="Goal Reached"
-            value={stats.agent_state_distribution.goal_reached}
-            max={totalAgents || 100}
-            color="#7abf1d"
-          />
-          <MiniChart
-            title="Collision"
-            value={stats.agent_state_distribution.collision}
-            max={totalAgents || 100}
-            color="#ff6b6b"
-          />
+          {stats.agent_state_distribution.moving > 0 && (
+            <MiniChart
+              title="Moving"
+              value={stats.agent_state_distribution.moving}
+              max={totalAgents || 100}
+              color="#3a7fbd"
+              decimals={0}
+            />
+          )}
+          {stats.agent_state_distribution.idle > 0 && (
+            <MiniChart
+              title="Idle"
+              value={stats.agent_state_distribution.idle}
+              max={totalAgents || 100}
+              color="#666"
+              decimals={0}
+            />
+          )}
+          {stats.agent_state_distribution.goal_reached > 0 && (
+            <MiniChart
+              title="Goal Reached"
+              value={stats.agent_state_distribution.goal_reached}
+              max={totalAgents || 100}
+              color="#7abf1d"
+              decimals={0}
+            />
+          )}
+          {stats.agent_state_distribution.collision > 0 && (
+            <MiniChart
+              title="Collision"
+              value={stats.agent_state_distribution.collision}
+              max={totalAgents || 100}
+              color="#ff6b6b"
+              decimals={0}
+            />
+          )}
           {stats.agent_state_distribution.other > 0 && (
             <MiniChart
               title="Other"
               value={stats.agent_state_distribution.other}
               max={totalAgents || 100}
               color="#ffa500"
+              decimals={0}
             />
           )}
         </div>

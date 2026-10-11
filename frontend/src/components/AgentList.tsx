@@ -3,7 +3,7 @@
  * Allows searching, filtering, and selecting agents
  */
 
-import React, { useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import '../styles/AgentList.css'
 
 interface Agent {

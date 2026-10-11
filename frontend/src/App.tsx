@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import * as THREE from 'three'
 import { useWebSocket } from './hooks/useWebSocket'
 import { useViewPresets } from './hooks/useViewPresets'
@@ -56,7 +56,7 @@ function App() {
   const obstaclesMeshesRef = useRef<Map<number, THREE.Mesh>>(new Map())
   const trajectoryLinesRef = useRef<Map<number, THREE.LineSegments>>(new Map())
   const gridHelperRef = useRef<THREE.GridHelper | null>(null)
-  const boundingBoxRef = useRef<THREE.BoxHelper | null>(null)
+  const boundingBoxRef = useRef<THREE.Box3Helper | null>(null)
   const obstaclesInitializedRef = useRef(false)
   const cameraRef = useRef<THREE.PerspectiveCamera | THREE.OrthographicCamera | null>(null)
   const cameraTargetRef = useRef(new THREE.Vector3(0, 0, 0))
@@ -131,11 +131,12 @@ function App() {
     gridHelperRef.current = gridHelper
 
     // World bounds
-    const boundingBox = new THREE.BoxHelper(
+    const boundingBox = new THREE.Box3Helper(
       new THREE.Box3(
         new THREE.Vector3(-250, -250, -10),
         new THREE.Vector3(250, 250, 10)
-      )
+      ),
+      0xffff00
     )
     scene.add(boundingBox)
     boundingBoxRef.current = boundingBox

@@ -98,7 +98,7 @@ describe('useAgentSelection', () => {
       result.current.selectAgents([1, 2, 3, 4, 5])
     })
 
-    expect(result.current.selectedAgents.size).toBe(5)
+    expect(result.current.selectedAgents.size).toBe(5);
     [1, 2, 3, 4, 5].forEach((id) => {
       expect(result.current.selectedAgents.has(id)).toBe(true)
     })

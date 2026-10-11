@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import '../styles/SensorPanel.css'
 
 interface SensorData {
@@ -19,7 +19,6 @@ interface LidarViewerProps {
 // Lidar point cloud viewer component
 function LidarViewer({ points }: LidarViewerProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
-  const rotationRef = useRef({ x: 0, y: 0 })
 
   useEffect(() => {
     if (!canvasRef.current || !points || points.length === 0) return
@@ -46,7 +45,6 @@ function LidarViewer({ points }: LidarViewerProps) {
     }
 
     const centerX = (minX + maxX) / 2
-    const centerY = (minY + maxY) / 2
     const centerZ = (minZ + maxZ) / 2
 
     // Clear canvas

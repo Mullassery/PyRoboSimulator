@@ -3,7 +3,7 @@
  * Provides quick access to saved camera view presets
  */
 
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { PresetStorage } from '../services/presetManager'
 import '../styles/PresetButtons.css'
 
@@ -21,7 +21,6 @@ export default function PresetButtons({
   presets,
   onApplyPreset,
   onSavePreset,
-  onDeletePreset,
   onExportPresets,
   onImportPresets,
   onResetToDefaults,

@@ -2,7 +2,7 @@
  * Tests for PresetManager
  */
 
-import { PresetManager, CameraPreset } from '../presetManager'
+import { PresetManager, CameraPreset, PresetStorage } from '../presetManager'
 
 // Mock localStorage
 const localStorageMock = (() => {

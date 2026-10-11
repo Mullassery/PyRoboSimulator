@@ -1,5 +1,4 @@
 import { describe, it, expect } from 'vitest'
-import * as msgpack from 'msgpack'
 
 // Re-implementation of the unpack logic for testing (mirrors the fixed useWebSocket.ts)
 function testUnpack(buffer: ArrayBuffer): any {
@@ -144,99 +143,195 @@ function testUnpack(buffer: ArrayBuffer): any {
   return unpack()
 }
 
+// Minimal big-endian MessagePack encoder for test fixtures (matches testUnpack above)
+function pack(value: any): ArrayBuffer {
+  const bytes: number[] = []
+
+  function u8(n: number): void {
+    bytes.push(n & 0xff)
+  }
+  function u16(n: number): void {
+    bytes.push((n >> 8) & 0xff, n & 0xff)
+  }
+  function u32(n: number): void {
+    bytes.push((n >>> 24) & 0xff, (n >>> 16) & 0xff, (n >>> 8) & 0xff, n & 0xff)
+  }
+  function f64(n: number): void {
+    const buf = new ArrayBuffer(8)
+    new DataView(buf).setFloat64(0, n, false)
+    bytes.push(...new Uint8Array(buf))
+  }
+  function str(s: string): void {
+    const encoded = new TextEncoder().encode(s)
+    if (encoded.length < 32) {
+      u8(0xa0 | encoded.length)
+    } else if (encoded.length < 256) {
+      u8(0xd9)
+      u8(encoded.length)
+    } else {
+      u8(0xda)
+      u16(encoded.length)
+    }
+    bytes.push(...encoded)
+  }
+  function array(arr: any[]): void {
+    if (arr.length < 16) {
+      u8(0x90 | arr.length)
+    } else if (arr.length < 65536) {
+      u8(0xdc)
+      u16(arr.length)
+    } else {
+      u8(0xdd)
+      u32(arr.length)
+    }
+    for (const item of arr) encode(item)
+  }
+  function map(obj: Record<string, any>): void {
+    const keys = Object.keys(obj)
+    if (keys.length < 16) {
+      u8(0x80 | keys.length)
+    } else if (keys.length < 65536) {
+      u8(0xde)
+      u16(keys.length)
+    } else {
+      u8(0xdf)
+      u32(keys.length)
+    }
+    for (const key of keys) {
+      str(key)
+      encode(obj[key])
+    }
+  }
+  function encode(v: any): void {
+    if (v === null || v === undefined) {
+      u8(0xc0)
+    } else if (v === true) {
+      u8(0xc3)
+    } else if (v === false) {
+      u8(0xc2)
+    } else if (typeof v === 'number') {
+      if (Number.isInteger(v)) {
+        if (v >= 0 && v < 128) u8(v)
+        else if (v >= -32 && v < 0) u8(0xe0 | (v + 32))
+        else if (v >= 0 && v < 256) { u8(0xcc); u8(v) }
+        else if (v >= 0 && v < 65536) { u8(0xcd); u16(v) }
+        else if (v >= 0 && v < 4294967296) { u8(0xce); u32(v) }
+        else if (v < 0 && v >= -128) { u8(0xd0); u8(v) }
+        else if (v < 0 && v >= -32768) { u8(0xd1); u16(v) }
+        else if (v < 0 && v >= -2147483648) { u8(0xd2); u32(v) }
+        else { u8(0xcb); f64(v) }
+      } else {
+        u8(0xcb)
+        f64(v)
+      }
+    } else if (typeof v === 'string') {
+      str(v)
+    } else if (Array.isArray(v)) {
+      array(v)
+    } else if (typeof v === 'object') {
+      map(v as Record<string, any>)
+    } else {
+      throw new Error(`Unsupported type: ${typeof v}`)
+    }
+  }
+
+  encode(value)
+  return new Uint8Array(bytes).buffer
+}
+
 describe('MessagePack decoder', () => {
   it('decodes positive fixints (0x00-0x7f)', () => {
-    const buffer = msgpack.pack(42)
+    const buffer = pack(42)
     const result = testUnpack(buffer as ArrayBuffer)
     expect(result).toBe(42)
   })
 
   it('decodes negative fixints (0xe0-0xff)', () => {
-    const buffer = msgpack.pack(-5)
+    const buffer = pack(-5)
     const result = testUnpack(buffer as ArrayBuffer)
     expect(result).toBe(-5)
   })
 
   it('decodes null, false, true', () => {
-    expect(testUnpack(msgpack.pack(null) as ArrayBuffer)).toBeNull()
-    expect(testUnpack(msgpack.pack(false) as ArrayBuffer)).toBe(false)
-    expect(testUnpack(msgpack.pack(true) as ArrayBuffer)).toBe(true)
+    expect(testUnpack(pack(null) as ArrayBuffer)).toBeNull()
+    expect(testUnpack(pack(false) as ArrayBuffer)).toBe(false)
+    expect(testUnpack(pack(true) as ArrayBuffer)).toBe(true)
   })
 
   it('decodes uint8 (0xcc)', () => {
-    const buffer = msgpack.pack(200)
+    const buffer = pack(200)
     const result = testUnpack(buffer as ArrayBuffer)
     expect(result).toBe(200)
   })
 
   it('decodes uint16 (0xcd) — critical for fixing offset bug', () => {
-    const buffer = msgpack.pack(40000)
+    const buffer = pack(40000)
     const result = testUnpack(buffer as ArrayBuffer)
     expect(result).toBe(40000)
   })
 
   it('decodes uint32 (0xce)', () => {
-    const buffer = msgpack.pack(100000000)
+    const buffer = pack(100000000)
     const result = testUnpack(buffer as ArrayBuffer)
     expect(result).toBe(100000000)
   })
 
   it('decodes float32 (0xca)', () => {
-    const buffer = msgpack.pack(3.14)
+    const buffer = pack(3.14)
     const result = testUnpack(buffer as ArrayBuffer)
     expect(Math.abs(result - 3.14) < 0.01).toBe(true)
   })
 
   it('decodes float64 (0xcb) — the critical case (WorldFrame.timestamp_ms)', () => {
     const timestamp = 1234567890.123
-    const buffer = msgpack.pack(timestamp)
+    const buffer = pack(timestamp)
     const result = testUnpack(buffer as ArrayBuffer)
     expect(Math.abs(result - timestamp) < 0.001).toBe(true)
   })
 
   it('decodes fixstr (0xa0-0xbf)', () => {
-    const buffer = msgpack.pack('hello')
+    const buffer = pack('hello')
     const result = testUnpack(buffer as ArrayBuffer)
     expect(result).toBe('hello')
   })
 
   it('decodes str8 (0xd9)', () => {
     const longStr = 'a'.repeat(100)
-    const buffer = msgpack.pack(longStr)
+    const buffer = pack(longStr)
     const result = testUnpack(buffer as ArrayBuffer)
     expect(result).toBe(longStr)
   })
 
   it('decodes str16 (0xda)', () => {
     const longStr = 'x'.repeat(500)
-    const buffer = msgpack.pack(longStr)
+    const buffer = pack(longStr)
     const result = testUnpack(buffer as ArrayBuffer)
     expect(result).toBe(longStr)
   })
 
   it('decodes fixarray (0x90-0x9f)', () => {
-    const buffer = msgpack.pack([1, 2, 3])
+    const buffer = pack([1, 2, 3])
     const result = testUnpack(buffer as ArrayBuffer)
     expect(result).toEqual([1, 2, 3])
   })
 
   it('decodes array16 (0xdc) — was completely missing before', () => {
     const arr = Array.from({ length: 20 }, (_, i) => i)
-    const buffer = msgpack.pack(arr)
+    const buffer = pack(arr)
     const result = testUnpack(buffer as ArrayBuffer)
     expect(result).toEqual(arr)
   })
 
   it('decodes array32 (0xdd)', () => {
     const arr = Array.from({ length: 100 }, (_, i) => i)
-    const buffer = msgpack.pack(arr)
+    const buffer = pack(arr)
     const result = testUnpack(buffer as ArrayBuffer)
     expect(result).toEqual(arr)
   })
 
   it('decodes fixmap (0x80-0x8f)', () => {
     const obj = { a: 1, b: 2 }
-    const buffer = msgpack.pack(obj)
+    const buffer = pack(obj)
     const result = testUnpack(buffer as ArrayBuffer)
     expect(result).toEqual(obj)
   })
@@ -246,7 +341,7 @@ describe('MessagePack decoder', () => {
     for (let i = 0; i < 20; i++) {
       obj[`key${i}`] = i
     }
-    const buffer = msgpack.pack(obj)
+    const buffer = pack(obj)
     const result = testUnpack(buffer as ArrayBuffer)
     expect(result).toEqual(obj)
   })
@@ -263,7 +358,7 @@ describe('MessagePack decoder', () => {
       events: [],
       obstacles: [],
     }
-    const buffer = msgpack.pack(worldFrame)
+    const buffer = pack(worldFrame)
     const result = testUnpack(buffer as ArrayBuffer)
     expect(result.frame_id).toBe(42)
     expect(result.timestamp_ms).toBeCloseTo(1234567890.5, 1)
@@ -277,7 +372,7 @@ describe('MessagePack decoder', () => {
       Math.sin((i / 8192) * Math.PI * 2) * 50,
       Math.sin((i / 8192) * Math.PI) * 30,
     ])
-    const buffer = msgpack.pack(lidarCloud)
+    const buffer = pack(lidarCloud)
     const result = testUnpack(buffer as ArrayBuffer)
     expect(result).toHaveLength(8192)
     expect(result[0]).toHaveLength(3)
@@ -296,7 +391,7 @@ describe('MessagePack decoder', () => {
         tags: ['robot', 'tracked'],
       },
     }
-    const buffer = msgpack.pack(complex)
+    const buffer = pack(complex)
     const result = testUnpack(buffer as ArrayBuffer)
     expect(result.id).toBe(123)
     expect(result.position).toHaveLength(3)

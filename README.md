@@ -49,6 +49,34 @@ code blocks below as backend-service examples, not pip-package examples, until i
 
 ## Known Issues
 
+**2026-10-11 pass — frontend audited: TypeScript compile errors cleared, the
+test runner can finally run (missing `jsdom`), and a stats-panel display bug
+fixed:**
+
+- **22 TypeScript errors fixed; `npm run type-check` (`tsc --noEmit`) is
+  clean.** Most were unused imports/locals surfaced by `noUnusedLocals` /
+  `noUnusedParameters` (default `React` imports across components and tests,
+  a dead `getStateColor` helper and an unused `useMemo`, unused
+  `onDeletePreset`/`rotationRef`/`centerY`), plus two real ones: `App.tsx`
+  typed its helper ref as `THREE.Box3` but assigned a `Box3Helper` (built
+  with the wrong constructor args), and `useWebSocket.test.ts` imported a
+  `msgpack` module that is not a dependency — replaced with a self-contained
+  big-endian `pack()` helper so the wire-format tests actually exercise real
+  bytes.
+- **`jsdom` was missing from `devDependencies`** even though
+  `vitest.config.ts` sets `environment: 'jsdom'`, so no component test could
+  run. Added `jsdom@^24`; `npx vitest run` now works and the suite is green:
+  **86 passed (86)**.
+- **`StatsPanel` rendered *every* number with `toFixed(1)`**, so integer agent
+  counts showed as `"50.0"`/`"5.0"` and a `/5.0/` query matched several
+  nodes. Added a `decimals` prop (agent counts use `0`; FPS and event rates
+  keep one decimal) and now render state-distribution charts only when their
+  count is non-zero. The 3 previously-failing `StatsPanel` tests pass.
+- **Still open (unchanged from the 2026-09-20 pass):** the `lint` script
+  still references `eslint`, which is not a declared dependency and has no
+  config, so `npm run lint` still cannot run. The rest of `frontend/` has had
+  this error sweep only, not a full quality audit.
+
 **2026-09-20 pass — OSS standardization audit; re-verified every number
 below against a real local run, found and fixed a version-pin bug that was
 silently breaking 33 tests on any fresh install:**

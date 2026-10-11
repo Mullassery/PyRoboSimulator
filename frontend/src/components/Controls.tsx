@@ -1,4 +1,3 @@
-import React from 'react'
 import { PresetStorage } from '../services/presetManager'
 import PresetButtons from './PresetButtons'
 import '../styles/Controls.css'
