@@ -1,5 +1,7 @@
 # PyRoboSimulator
 
+[![Grapify](https://img.shields.io/badge/Grapify-Code%20Scan-purple)](https://grapify.ai)
+
 **A world simulation platform for autonomous systems, robotics, and AI research**
 
 A source-available simulation engine built for developers and researchers who need accurate, scalable environments for testing autonomous vehicles, robots, and multi-agent systems. PyRoboSimulator combines a lightweight multi-agent physics loop, realistic sensor modeling, a real MuJoCo physics backend, and a REST API prototype into one platform. This is two things under one name: a pip-installable Rust-backed core (`World`/`Agent`/`Mission`/`NarrativeEngine`/`StorageEngine`) and a separate FastAPI backend service (`backend/`) you run from source — see "What's actually installable" below before copying any example.
