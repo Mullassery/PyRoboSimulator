@@ -126,6 +126,17 @@ Key backend endpoints: `POST/GET/PUT/DELETE /api/v1/simulations`, `.../{id}/star
 
 See [CONTRIBUTING.md](CONTRIBUTING.md). Bug reports and feature requests: [GitHub Issues](https://github.com/Mullassery/PyRoboSimulator/issues); questions: [GitHub Discussions](https://github.com/Mullassery/PyRoboSimulator/discussions).
 
+## Related projects
+
+Part of the Mullassery open-source family:
+
+- [PyRoboSimulator](https://github.com/Mullassery/PyRoboSimulator) — large-scale world simulator for autonomous systems
+- [PyRoboVision](https://github.com/Mullassery/PyRoboVision) — perception stack (multi-object tracking, 3D fusion)
+- [PyRoboReplay](https://github.com/Mullassery/PyRoboReplay) — robotics perception and replay engine
+- [PyRoboFrames](https://github.com/Mullassery/PyRoboFrames) — high-performance robotics dataloader
+- [PyTerrainMap](https://github.com/Mullassery/PyTerrainMap) — unified terrain intelligence for multi-robot fleets
+- [Browse all projects](https://github.com/Mullassery?tab=repositories)
+
 ## License
 
 Apache License 2.0 — see [LICENSE](LICENSE).
