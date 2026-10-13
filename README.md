@@ -1,430 +1,63 @@
 # PyRoboSimulator
 
-[![Graphify](https://img.shields.io/badge/Graphify-knowledge%20graph-blue)](https://github.com/Graphify-Labs/graphify)
+AI-native world simulation engine for robotics, agents, and ROS 2 — a pip-installable Rust core for multi-agent state/physics plus a FastAPI simulation service with realistic sensors and a real MuJoCo physics backend.
 
-**A world simulation platform for autonomous systems, robotics, and AI research**
-
-A source-available simulation engine built for developers and researchers who need accurate, scalable environments for testing autonomous vehicles, robots, and multi-agent systems. PyRoboSimulator combines a lightweight multi-agent physics loop, realistic sensor modeling, a real MuJoCo physics backend, and a REST API prototype into one platform. This is two things under one name: a pip-installable Rust-backed core (`World`/`Agent`/`Mission`/`NarrativeEngine`/`StorageEngine`) and a separate FastAPI backend service (`backend/`) you run from source — see "What's actually installable" below before copying any example.
-
-> **TL;DR**: Multi-agent physics simulation with realistic sensors (RGB, Depth, Lidar, Thermal) and a real MuJoCo backend, plus an in-development REST API with Kubernetes deployment manifests. Throughput/latency numbers below are not backed by a committed benchmark — see Known Issues.
-
-[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
+[![CI](https://github.com/Mullassery/PyRoboSimulator/actions/workflows/ci-cd.yaml/badge.svg)](https://github.com/Mullassery/PyRoboSimulator/actions/workflows/ci-cd.yaml)
+[![PyPI](https://img.shields.io/pypi/v/pyrobosimulator)](https://pypi.org/project/pyrobosimulator/)
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
-[![CI/CD](https://github.com/Mullassery/PyRoboSimulator/actions/workflows/ci-cd.yaml/badge.svg)](https://github.com/Mullassery/PyRoboSimulator/actions/workflows/ci-cd.yaml)
-[![codecov](https://codecov.io/gh/Mullassery/PyRoboSimulator/branch/main/graph/badge.svg)](https://codecov.io/gh/Mullassery/PyRoboSimulator)
-[![Dependencies OSS](https://img.shields.io/badge/dependencies-100%25%20OSS-brightgreen.svg)](backend/docs/OSS_COMPLIANCE.md)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/)
 
----
+## What it is
 
+PyRoboSimulator is two separately-installed pieces under one name:
 
-## Why PyRoboSimulator?
+1. **A pip-installable Rust core** (`pip install pyrobosimulator`) exposing `World`, `Agent`, `AgentType`, `Mission`, `NarrativeEngine`, `ROS2Bridge`, and `StorageEngine`. It provides real multi-agent state, gravity, forward-Euler integration, and pairwise collision detection, plus a RocksDB-backed event log.
+2. **A FastAPI backend service** run from source in `backend/`. It provides the simulation loop (`SimulationEngine`), procedural world generation (`ScenarioBuilder`), realistic RGB/Depth/Lidar/Thermal sensors, a REST API, and the pluggable physics backends (MuJoCo, Gazebo, Isaac Sim).
 
-**Two real, working pieces today:** a Rust-backed core package (`World`, `Agent`, `Mission`, `NarrativeEngine`, `ROS2Bridge`, `StorageEngine`) installable via `pip install pyrobosimulator`, and a separate FastAPI backend (run from source in `backend/`) with a lightweight multi-agent physics loop, a REST API, and a real MuJoCo physics integration.
+The two are not interchangeable — read **What it is not** before copying any example.
 
-`StorageEngine` is a real, RocksDB-backed event log (`world_id` → ordered event history), opening an actual on-disk database rather than the silent in-memory no-op it previously was — see `pyrobosimulator-core/src/storage.rs`. `NarrativeEngine.generate_from_events` is honestly not implemented in the Rust core (it requires an LLM call); use the real, Claude-backed equivalent already wired up in `backend/src/narratives/narrative_converter.py` instead.
+## Features
 
-**Accurate sensor simulation:** RGB cameras, depth sensors, Lidar point clouds, and thermal imaging, implemented in `backend/src/sensors/` — each physically grounded and configurable per-agent.
+- **Multi-agent physics (pip core)** — `World.step(dt)` applies gravity to every agent and integrates; `Agent.apply_force()`, velocity clamping, `World.detect_collisions()` (O(n²) pairwise).
+- **RocksDB event log (pip core)** — `StorageEngine` is a real on-disk append-only store keyed by `world_id`.
+- **Simulation loop (backend)** — configurable timestep (default 16 ms @ 60 Hz), AABB collision, boundary conditions, deterministic seeding.
+- **Sensors (backend)** — RGB camera, depth, Lidar point clouds, and thermal cameras with per-agent configuration.
+- **Real MuJoCo backend** — loads real MJCF/URDF models, steps real dynamics, and extracts body/joint/contact/sensor state.
+- **World generation** — built-in parking-lot, warehouse, and urban-street scenarios; procedural obstacle placement; reproducible seeds.
+- **REST API** — simulation CRUD, status, results, and SSE streaming; JWT auth with bcrypt; OpenAPI docs at `/docs`.
+- **Agent behavior (backend)** — behavior trees, A*/NavMesh pathfinding with RVO avoidance, multi-layer agent memory, and multi-agent messaging.
+- **Narrative + learning (backend)** — Claude-backed NLP→scenario conversion, curriculum learning, and fleet learning.
 
-**Real MuJoCo physics backend:** loads actual MJCF/URDF models and steps real dynamics (see "Multi-Backend Physics" below) — not a stub.
+## Who it's for / Use cases
 
-**Dependencies are 100% OSS-licensed:** 52 audited dependencies, all permissive/OSS licenses — see [OSS Compliance Audit](backend/docs/OSS_COMPLIANCE.md). This codebase itself is Apache License 2.0 (see License below).
+- **Autonomous-vehicle algorithm testing** — scripted urban scenarios with many agents to exercise collision avoidance.
+- **Multi-robot coordination** — warehouse fleets, formation control, and communication testing.
+- **Sensor-fusion research** — synchronized RGB/depth/Lidar/thermal streams per agent.
+- **RL / imitation-learning experiments** — procedural environments with deterministic seeds.
+- **Service integration** — drive simulations over the REST API instead of embedding the engine.
 
-**Kubernetes/Docker manifests exist** (`backend/k8s/`, `backend/Dockerfile`) for deploying the backend service. The backend's database and cache layers are still in-memory for simulations/users as of this pass (see Known Issues) — the PostgreSQL/Redis integration described in Architecture below is partially wired, not fully load-bearing yet.
+## What it is not
 
----
+- **`pip install pyrobosimulator` does not include `SimulationEngine` or `ScenarioBuilder`.** Those live only in the `backend/` service; install from source to use them.
+- **`NarrativeEngine.generate_from_events` is not implemented in the Rust core** — it raises `NotImplementedError` by design. Use the Claude-backed path in `backend/src/narratives/narrative_converter.py`.
+- **Gazebo and Isaac Sim backends are not real integrations.** `initialize()` raises `EnvironmentError` immediately; only MuJoCo is a working physics backend. Using either requires infrastructure (ROS 2 / Omniverse + NVIDIA GPU) not present in a typical dev or CI environment.
+- **Backend database and cache are still in-memory** for simulations/users. The PostgreSQL/Redis integration is partially wired, not fully load-bearing.
+- **The published performance benchmarks are not backed by a committed, reproducible benchmark suite** — treat them as unverified historical claims.
+- **Not a certified or production-verified simulator.** Development status is Alpha.
 
-## What's Actually Installable
+## Project status
 
-`pip install pyrobosimulator` gets you the Rust-backed core only. As of this pass, `import pyrobosimulator`
-exposes exactly: `World`, `Agent`, `AgentType`, `Mission`, `NarrativeEngine`, `ROS2Bridge`, `StorageEngine`
-(see `python/pyrobosimulator/__init__.py`). `NarrativeEngine.generate_from_events` raises
-`NotImplementedError` by design (see above); everything else is real.
+Alpha (Development Status 3), version **0.12.1**, matching the latest PyPI release. The Rust core (`World`/`Agent`/`StorageEngine`, real gravity, integration, collision detection, RocksDB storage) and the MuJoCo backend are implemented and unit-tested; Gazebo/Isaac Sim are stubs that fail fast. The backend suite runs ~882 passing / 33 failing / 1 erroring tests at ~75% measured line coverage; remaining failures are pre-existing and unrelated to the physics/simulator work. `mypy` (strict) still reports a large backlog that is not CI-gating, and the frontend has had a TypeScript error sweep but not a full quality audit. See [ROADMAP_HONEST.md](ROADMAP_HONEST.md).
 
-**`SimulationEngine` and `ScenarioBuilder` — used throughout "Getting Started" and "Real-World Examples"
-below — are not part of the pip package.** They're defined in `backend/src/services/simulation_engine.py`
-and `backend/src/services/scenario_generator.py`, i.e. the FastAPI backend service, which you run from
-source (see step 3 of Getting Started and `backend/README.md`). `pip install pyrobosimulator` alone will
-not make `from pyrobosimulator import SimulationEngine` work. This has not yet been reconciled — treat the
-code blocks below as backend-service examples, not pip-package examples, until it is.
-
----
-
-## Known Issues
-
-**2026-10-11 pass — frontend audited: TypeScript compile errors cleared, the
-test runner can finally run (missing `jsdom`), and a stats-panel display bug
-fixed:**
-
-- **22 TypeScript errors fixed; `npm run type-check` (`tsc --noEmit`) is
-  clean.** Most were unused imports/locals surfaced by `noUnusedLocals` /
-  `noUnusedParameters` (default `React` imports across components and tests,
-  a dead `getStateColor` helper and an unused `useMemo`, unused
-  `onDeletePreset`/`rotationRef`/`centerY`), plus two real ones: `App.tsx`
-  typed its helper ref as `THREE.Box3` but assigned a `Box3Helper` (built
-  with the wrong constructor args), and `useWebSocket.test.ts` imported a
-  `msgpack` module that is not a dependency — replaced with a self-contained
-  big-endian `pack()` helper so the wire-format tests actually exercise real
-  bytes.
-- **`jsdom` was missing from `devDependencies`** even though
-  `vitest.config.ts` sets `environment: 'jsdom'`, so no component test could
-  run. Added `jsdom@^24`; `npx vitest run` now works and the suite is green:
-  **86 passed (86)**.
-- **`StatsPanel` rendered *every* number with `toFixed(1)`**, so integer agent
-  counts showed as `"50.0"`/`"5.0"` and a `/5.0/` query matched several
-  nodes. Added a `decimals` prop (agent counts use `0`; FPS and event rates
-  keep one decimal) and now render state-distribution charts only when their
-  count is non-zero. The 3 previously-failing `StatsPanel` tests pass.
-- **Still open (unchanged from the 2026-09-20 pass):** the `lint` script
-  still references `eslint`, which is not a declared dependency and has no
-  config, so `npm run lint` still cannot run. The rest of `frontend/` has had
-  this error sweep only, not a full quality audit.
-
-**2026-09-20 pass — OSS standardization audit; re-verified every number
-below against a real local run, found and fixed a version-pin bug that was
-silently breaking 33 tests on any fresh install:**
-
-- **`backend/pyproject.toml` pinned `pytest>=7.4.4` with no upper bound.**
-  A fresh `pip install -e ".[dev]"` today resolves pytest 9.1.1, which
-  removed the private `FixtureDef.unittest` attribute that pinned
-  `pytest-asyncio==0.21.1` reaches into — broke every async-fixture test
-  (auth, simulations API, health checks) with `AttributeError: 'FixtureDef'
-  object has no attribute 'unittest'`. Verified broken under both pytest
-  9.1.1 and 8.4.2, fixed by pinning `pytest>=7.4.4,<8`. This was invisible
-  in CI as long as a cached/older pytest happened to be resolved; it is not
-  a hypothetical.
-- **Backend test suite, re-run locally against real Postgres/Redis
-  containers with the pytest pin fixed: 33 failed, 1 error, 882 passed, 6
-  skipped, 3 xfailed** (`pytest --cov=src`, from `backend/`). This
-  supersedes the previous "41 failed/1 error" figure below the fold in
-  Testing & Quality, which is now stale.
-- **`black`/`isort`/`flake8` are fully clean** as of this pass (0 issues on
-  all three, re-run directly) — the previously-documented 72/134, 68/134
-  file backlog and 27 remaining flake8 E501s are gone. Whatever fixed them
-  landed between the last audit and this one.
-- **mypy: 546 errors across 58 files** (`mypy src/`, strict mode) — up
-  slightly from the previously-documented 530; still not fixed, still not
-  blocking CI (`continue-on-error: true`).
-- **`safety check --ignore 64396 --ignore 64459`: 0 vulnerabilities
-  reported** (down from the previously-documented 50 across 13 packages) —
-  the starlette CVE and others cited before appear to have been resolved by
-  dependency floats already in `pyproject.toml`. The 2 ignored `ecdsa`
-  findings (64396/64459) remain ignored for the reason already documented
-  in `backend/pyproject.toml`/CI (no patched release exists).
-- **`bandit -r src/ -ll`: 0 issues** (1 finding suppressed via `# nosec
-  B104` with justification, as before).
-- **`backend/pyproject.toml` and `backend/README.md` claimed MIT license;
-  fixed to Apache-2.0** to match the repo-wide `LICENSE` file — this was a
-  real, user-visible inconsistency, not a formatting nit.
-- **Root `pyproject.toml` was missing `[tool.maturin] include = ["LICENSE"]`**
-  — without it, `maturin sdist` omits `LICENSE`, which PyPI rejects with a
-  400. Fixed.
-- **`Cargo.lock` was gitignored and therefore never tracked**, despite this
-  being a cdylib PyO3 extension published as a binary artifact (not a
-  library other crates depend on) where pinning transitive versions for
-  reproducible builds matters. Fixed: untracked from `.gitignore`, now
-  committed.
-- **`SECURITY.md` previously claimed a "Security Team", committed
-  24h/48h/7-day/30-day response SLAs, a version-support table for 0.1.x/0.2.x
-  (predating the current 0.11.x line), and "aims to support" SOC 2/GDPR/
-  HIPAA/PCI DSS compliance.** None of that reflected reality — this is a
-  single-maintainer project with no enforcement/response infrastructure and
-  no compliance audits of any kind. Rewritten to state that honestly, and
-  the fake `security@pyrobosimulator.ai`/`info@pyrobosimulator.ai` contact
-  addresses (a domain the maintainer does not own or monitor) were replaced
-  with GitHub Security Advisories and the maintainer's real email.
-- **`frontend/package.json`'s `lint` script (`eslint src --ext ts,tsx`)
-  references a package that isn't in `dependencies`/`devDependencies`, and
-  there is no eslint config anywhere in `frontend/`.** `npm run lint` cannot
-  work as written. Not fixed this pass (needs an actual ESLint+TS config
-  decision, not a one-line patch) — see ROADMAP_HONEST.md.
-- **`.github/workflows/ci-cd.yaml` only triggers on `backend/**` path
-  changes** — the Rust core, Python bindings (`python/`), and `frontend/`
-  have zero CI coverage (no build, no test, no lint) regardless of what
-  changes. Not fixed this pass — see ROADMAP_HONEST.md.
-- **`build`/`scan`/`deploy-staging`/`smoke-test` CI jobs depend on GCP
-  Workload Identity secrets and a Slack webhook this solo-maintainer repo
-  almost certainly does not have configured, and `smoke-test` hits a literal
-  placeholder domain (`https://api-staging.example.com`) that was never
-  replaced.** Any push to `main` that passes `quality`/`security-audit`/
-  `test` will still fail at `build`, so the CI/CD badge can read red even
-  when the parts that matter are green. Bumped several stale action
-  versions and fixed a broken `steps.docker_build` reference (a step ID
-  that didn't exist) as safe, mechanical fixes; did not restructure or
-  disable the speculative deploy pipeline itself — see ROADMAP_HONEST.md.
-
-**2026-09-13 pass — CI workflow gating fixed, root causes behind most test
-failures fixed, deeper backlogs newly surfaced (not yet fixed):**
-
-- **CI workflow previously skipped `Tests`/`Security Audit` entirely whenever
-  `Code Quality` failed** (`needs: quality`), hiding whether the code actually
-  worked or had real vulnerabilities. Restructured: bandit/safety pulled into
-  their own independent `security-audit` job; `test` no longer depends on
-  `quality`; both now always run and report real status.
-- **`black`/`isort` backlog (72/134, 68/134 files) — fixed.** Reformatted to
-  CI's pinned `black==23.12.0`/`isort==5.13.2`.
-- **flake8 backlog (238 issues) — cleaned.** Mechanical unused-import/var/
-  line-length cleanup via `autoflake`, plus 4 real bugs found in the process:
-  a `NameError`-on-undefined-variable bug in `agent_interpreter.py`'s
-  fallback description, a bare `except:`, a `dataclasses.field` shadowing
-  bug, and a redundant import. 27 flake8 E501 (unsplittable long f-strings)
-  remain — cosmetic, not fixed.
-- **Real bugs found and fixed — backend test suite went from 87 failed/18
-  errors to 41 failed/1 error:**
-  - `passlib==1.7.4` + `bcrypt>=4.1` incompatibility broke **all** password
-    hashing (passlib's own internal self-test trips a `ValueError` bcrypt
-    4.1+ now raises). Pinned `bcrypt<4.1`. Alone fixed ~7 failures + 17 errors.
-  - The CLI analytics dashboard (`src/analytics/cli_dashboard.py`) was
-    silently, permanently disabled — a wrong import path
-    (`backend.src.analytics.cli_dashboard` instead of `src.analytics...`)
-    meant it always fell into its "textual not installed" fallback, even
-    when textual was installed, and its tests only ever exercised a mock.
-    Fixed the import path (also present in the test file and 3 docstrings),
-    and added `textual` as a real declared optional dependency (`dashboard`
-    extra) — it was never declared anywhere. 26/26 real dashboard tests now
-    pass against the actual implementation.
-  - 11 `SensorType` enum members (GPS, RTK_GPS, STEREO_CAMERA, TIME_OF_FLIGHT,
-    WHEEL_ENCODER, STEERING_ENCODER, FORCE_TORQUE_SENSOR, TACTILE_SENSOR,
-    WIND_SENSOR, SONAR, DVL) were referenced by the standard sensor-suite
-    builders but never registered — building a standard suite for most robot
-    platforms crashed outright. Added real specs with domain-realistic
-    parameters for all 11.
-  - `tests/test_trajectories.py` imported `Vector3` from the wrong module
-    (of 3 separate `Vector3` classes in this codebase) — fixed.
-  - `simulation_engine.py`'s `step_complete` `Event` was missing its `.id`
-    (the other 2 `Event` sites set one, this one didn't), crashing the
-    real-time visualization streamer whenever it needed to serialize one.
-  - `bandit` (Security Audit) couldn't even start — it imports `pbr` at
-    runtime but doesn't declare it as a real dependency. Added `pbr` to dev
-    deps. With bandit actually running, it flagged `main.py`'s
-    `host="0.0.0.0"` bind (correct/required — the app runs in a container)
-    — suppressed with `# nosec B104` and a justification, not by changing
-    the bind address.
-- **`src/__init__.py` was missing entirely**, making `src/` an implicit
-  namespace package — this is what caused mypy's "Source file found twice
-  under different module names" error, meaning the strict-mode mypy gate had
-  **never once completed a real check** in this repo's history. Fixed (no
-  behavior change). With that unblocked, mypy now runs to completion and
-  surfaces **530 real type errors across 58 files** — a large, previously
-  invisible backlog, not fixed in this pass.
-- **`safety check` (dependency vulnerability scan) reports 50 vulnerabilities
-  across 13 packages**, including a real starlette HTTP request smuggling CVE
-  (2026-48710) — not fixed in this pass; each needs individual upgrade-path
-  verification rather than a blind mass-upgrade. `safety check` itself is
-  also a deprecated command (unsupported since mid-2024); CI should move to
-  `safety scan` separately.
-- **Still open**: 41 test failures / 1 error (not yet individually
-  root-caused), the 530 mypy errors above, the 50 `safety` findings above,
-  27 cosmetic flake8 E501s, and the `frontend/` directory has not yet been
-  audited for JS quality.
-- **Backend database/cache are still in-memory.** The PostgreSQL/Redis
-  integration described in Architecture is partially wired, not fully
-  load-bearing for simulations/users as of this pass.
-- **`NarrativeEngine.generate_from_events` is not implemented in the Rust
-  core** — it raises `NotImplementedError` by design; use the real,
-  Claude-backed equivalent in `backend/src/narratives/narrative_converter.py`
-  instead (see "Why PyRoboSimulator?" above).
-- **Gazebo and Isaac Sim physics backends are unfinished sketches**, not real
-  integrations — see "Multi-Backend Physics" below.
-- **Performance Benchmarks below are not backed by a committed, reproducible
-  benchmark suite.** Treat them as unverified until a benchmark script lands.
-
----
-
-## Key Capabilities
-
-### Physics Engine
-- **Euler integration** with configurable timestep (default 16ms @ 60Hz)
-- **Collision detection** via AABB (axis-aligned bounding box) radius overlap
-- **Boundary conditions** with elastic bounce or clipping
-- **Velocity/acceleration** clamping for stability
-
-This lightweight custom engine (`backend/src/services/simulation_engine.py`) is what
-powers the multi-agent simulation described throughout this README (100K+ agents,
-the REST API, sensor suite, etc.).
-
-### Multi-Backend Physics (`backend/src/simulators/`)
-Separately, PyRoboSimulator defines a pluggable `SimulatorBackend` interface
-(`backend/src/simulators/backend_interface.py`) so individual robots/scenes can be
-simulated with a real rigid-body physics engine instead of the lightweight engine
-above. Backend status, honestly:
-
-| Backend | Status | Why |
-|---|---|---|
-| **MuJoCo** (`mujoco_backend.py`) | **Real, working physics.** Loads actual MJCF/URDF models via `mujoco.MjSpec`, steps real dynamics with `mujoco.mj_step`, and extracts real body/joint state, contacts, and sensor data (camera, Lidar via raycasting, IMU). Verified with kinematics-correctness tests (e.g. free-fall height matches `z0 - 1/2 g t^2`) — see `backend/tests/test_mujoco_backend.py`. Install with `pip install -e ".[physics]"` (adds `mujoco`, pip-installable, no GPU required). | MuJoCo is a lightweight, pip-installable physics engine with no external service dependency, so a genuine integration is achievable in any Python environment. |
-| **Gazebo** (`gazebo_backend.py`) | **Not available in this environment.** `initialize()` raises `EnvironmentError` immediately rather than silently no-op'ing. | Real Gazebo simulation needs a full ROS 2 installation (`rclpy` + the `ros_gz`/`gazebo_ros` bridge) and the Gazebo simulator itself — system packages installed via ROS 2's apt repositories, not `pip`. Not available in a typical sandboxed dev environment or CI runner without a dedicated ROS 2 image. |
-| **Isaac Sim** (`isaac_sim_backend.py`) | **Not available in this environment.** `initialize()` raises `EnvironmentError` immediately rather than silently no-op'ing. | Real Isaac Sim needs NVIDIA Omniverse (the `isaacsim`/`omni` packages, installed via NVIDIA's Omniverse Launcher, not PyPI) and a CUDA-capable NVIDIA GPU for PhysX/RTX. No GPU is available in a typical dev sandbox or standard CI runner. |
-
-If you need working physics today, use `MuJoCoBackend`. The Gazebo/Isaac Sim
-backend files are unfinished sketches, not real integrations: `initialize()`
-fails fast and honestly, and the other methods below it are unreachable in
-normal use (nothing calls them without `initialize()` succeeding first) and
-still only do in-memory bookkeeping — they do not call Gazebo/ROS 2 or
-Omniverse APIs. Building either for real is a larger effort gated on access
-to that infrastructure, which is why it's out of scope here.
-
-### Sensor Suite (Phase 1C: Realistic Sensor Simulation)
-- **RGB Camera**: 1920×1080 @ 30 FPS with ISO-based noise, lens distortion, motion blur, color grading presets
-- **Depth Sensor**: 512×512 float32 @ 30 FPS, 0-300m range with quantization, range-based noise, temporal filtering, edge artifacts
-- **Lidar**: 512 rays × 16 layers (8K+ points/frame), rain occlusion (20-30%), beam spread, multi-path returns, temporal jitter
-- **Thermal Camera**: 256×256 @ 30 FPS, -20°C to +60°C with material emissivity (11 types), view factor, calibration error
-- **Sensor Fusion**: Real-time multi-sensor integration with timestamp synchronization, coordinate transforms, <0.01ms latency
-
-### World Streaming & UE5 Integration (Phase 1C.8)
-- **Chunked world loading**: 500m × 500m chunks with LOD support
-- **Mesh generation**: Obstacle serialization in JSON and binary formats
-- **Dynamic streaming**: Handle 1000+ obstacles with <100ms load latency
-- **Memory efficient**: Automatic caching and cache invalidation
-
-### State Synchronization (Phase 1C.9)
-- **Bidirectional sync**: Python ↔ UE5 state reconciliation
-- **Conflict resolution**: Multiple strategies (last_write_wins, backend_wins, UE5_wins)
-- **State validation**: Pluggable validation rules framework
-- **Rollback support**: State history tracking and recovery
-- **<16ms latency**: Per-frame synchronization overhead
-
-### Sensor Data Recording (Phase 1C.10)
-- **Ring buffer**: Real-time frame buffering
-- **Multi-format storage**: HDF5, Zarr, raw binary with compression
-- **Query interface**: Search by agent, timestamp, or sensor type
-- **Automatic cleanup**: Memory management and retention policies
-
-### Behavior Trees (Phase 2.1)
-- **Composite nodes**: Sequence, Selector, Parallel with configurable policies
-- **Decorator nodes**: Inverter, Repeater, Limiter for advanced control
-- **Execution framework**: <1ms per-tree evaluation with 100+ agents
-- **YAML support**: Load trees from configuration files
-- **Telemetry**: Execution tracking and performance monitoring
-
-### Navigation & Pathfinding (Phase 2.2)
-- **A* Pathfinding**: Efficient route planning with heuristic caching
-- **Navigation Mesh**: Walkable polygon support for terrain
-- **Collision Avoidance**: RVO (Reciprocal Velocity Obstacle) for smooth movement
-- **Dynamic Obstacles**: Real-time integration into pathfinding
-- **Cache Hit Rate**: 50%+ on repeated paths
-- **Performance**: <1ms pathfinding with caching
-
-### Agent Memory & State (Phase 2.3)
-- **Multi-Layer Memory**: Episodic, semantic, procedural, emotional
-- **Memory Decay**: Configurable aging with recency bias
-- **Relationships**: Trust, familiarity, interaction tracking
-- **Emotional State**: Valence-based emotion system
-- **Advanced Queries**: Search by type, tags, strength threshold
-- **Memory Capacity**: Auto-pruning of weak memories
-
-### Multi-Agent Communication (Phase 2.4)
-- **Message Types**: Direct, broadcast, multicast communication
-- **Priority Queuing**: Critical, high, normal, low priority levels
-- **Expiration Tracking**: Automatic message cleanup
-- **Acknowledgment**: Message delivery confirmation
-- **Range-Based Broadcasting**: Proximity communication (e.g., 10m range)
-- **Network Statistics**: Comprehensive telemetry and monitoring
-
-### Narrative Simulation Engine (Phase 3)
-- **NLP-Driven Scenarios**: Convert natural language to simulation scenarios via Claude API
-- **Narrative Types**: 11 scenario types (rescue, patrol, inspection, delivery, etc.)
-- **Dynamic Story Branching**: Conditional, probabilistic, and agent-driven branching
-- **Agent Behavior Interpretation**: Automatic action conversion to simulation primitives
-- **Constraint System**: Goal tracking, violation detection, event sequencing
-- **Narrative Validation**: 30+ automated validation checks
-
-### Real-to-Sim Bridge (Phase 4)
-- **ROS Bag Parsing**: Multi-sensor playback (poses, images, point clouds, IMU, GPS)
-- **Trajectory Extraction**: Automatic waypoint detection and segmentation
-- **Sensor Replay**: Synchronized multi-sensor playback with configurable speed
-- **Sim-Real Validation**: Metric comparison (MSE, RMSE, velocity alignment)
-- **Execution Log Conversion**: Transform real robot logs into simulation scenarios
-- **Graceful Fallback**: Mock parsers for data without ROS infrastructure
-
-### Analytics Dashboard (Phase 5)
-- **CLI-Based Monitoring**: Real-time metrics via Textual terminal UI
-- **7-Panel Layout**: Metrics, Narrative, Performance, Sensors, Validation, Progress, Control
-- **Time-Series Storage**: Circular buffers for efficient metric tracking
-- **Event Callbacks**: Real-time updates for simulation, narrative, validation, sensor events
-- **Rich Formatting**: Tables, charts, and status displays
-- **Zero Dependencies**: Optional Textual—graceful fallback if unavailable
-
-### Curriculum Learning (Phase 6)
-- **Adaptive Difficulty**: 7-factor weighted model (path, obstacles, time, sensors, dynamics, precision, objectives)
-- **Learner Profiles**: Track success rates, performance metrics, progression
-- **Progressive Scenarios**: Auto-scaling difficulty with 3 scenario types (navigation, inspection, delivery)
-- **Curriculum Plans**: Multi-lesson sequences with performance-based adaptation
-- **Outcome Analysis**: Path efficiency, time efficiency, and success tracking
-
-### Multi-Agent Coordination (Phase 7)
-- **Formation Control**: 6 formation types (swarm, line, circle, grid, hierarchy, scout)
-- **Messaging System**: Targeted, broadcast, hierarchical, and consensus communication
-- **Collective Intelligence**: Team cohesion metrics and synchronized action
-- **Role-Based Teams**: Leader/follower hierarchies with dynamic role assignment
-- **Team Status Monitoring**: Aggregate metrics across fleet
-
-### Fleet Learning (Phase 8)
-- **Experience Logging**: Structured capture of agent actions and outcomes
-- **Pattern Identification**: Automatic discovery of successful strategies
-- **Knowledge Transfer**: Mentor assignment and experience sharing
-- **Team Performance Analytics**: Success rates, efficiency metrics, anomaly detection
-- **Agent Recommendations**: Personalized guidance based on peer performance
-
-### World Generation
-- **Built-in scenarios**: Parking lot (4×5 grid), warehouse (4 corners + shelves), urban street (3×3 intersections)
-- **Procedural generation**: Random obstacle placement, configurable complexity, spawn zone definition
-- **Obstacle modeling**: Static and dynamic obstacles with collision properties
-- **Deterministic seeding**: Same seed = reproducible results every time
-
-### REST API
-- **15 core endpoints** covering simulation CRUD, status, results streaming
-- **OpenAPI auto-documentation** at `/docs`
-- **Server-Sent Events (SSE)** for result streaming without polling
-- **JWT authentication** with bcrypt password hashing
-- **Pagination** for large result sets
-- **Async/await throughout** for high concurrency (1M+ concurrent connections)
-
-### Deployment
-- **Docker**: Multi-stage production image, non-root user, <50MB footprint
-- **Kubernetes**: Full HA setup (3-30 replicas, pod disruption budgets, autoscaling)
-- **Monitoring**: Prometheus metrics, Grafana dashboards, structured JSON logging
-- **CI/CD**: GitHub Actions 7-stage pipeline (lint, test, build, scan, deploy, smoke test, notify)
-- **Database**: PostgreSQL with async SQLAlchemy ORM, connection pooling
-- **Caching**: Redis with >95% hit rate targeting, TTL-based invalidation
-
----
-
-## Getting Started (5 Minutes)
-
-### 1. Install
+## Installation
 
 ```bash
-pip install pyrobosimulator==0.11.0
+pip install pyrobosimulator
 ```
 
-This gives you the Rust-backed core (`World`, `Agent`, `Mission`, `NarrativeEngine`, `ROS2Bridge`,
-`StorageEngine`). See "What's Actually Installable" above.
+This installs only the Rust core (Python 3.10+).
 
-### 2. Run Your First Simulation (backend service, run from source — see step 3)
-
-```python
-from pyrobosimulator import SimulationEngine
-
-# Create engine
-engine = SimulationEngine(
-    num_agents=100,
-    duration=60.0,
-    timestep=0.016,
-)
-
-# Run (blocks until complete)
-engine.run()
-
-# Access results
-summary = engine.get_summary()
-print(f"Collisions: {summary['collision_count']}")
-print(f"Agents reached goal: {summary['goal_reached_count']}")
-print(f"Total events: {summary['total_events']}")
-```
-
-### 3. Start the Backend API
-
-There is no `pyrobosimulator[backend]` extra — the backend is a separate FastAPI service you run from
-source:
+The backend service is run from source:
 
 ```bash
 git clone https://github.com/Mullassery/PyRoboSimulator.git
@@ -433,516 +66,66 @@ pip install -e ".[dev]"
 uvicorn src.main:app --reload
 ```
 
-(Full setup incl. PostgreSQL/Redis: see `backend/README.md`.) Then visit `http://localhost:8000/docs` to
-see interactive API documentation.
+Add the optional MuJoCo physics backend with `pip install -e ".[physics]"`.
 
-### 4. Create a Simulation via REST API
+## Quick start
+
+Rust core (from the pip package):
+
+```python
+from pyrobosimulator import World, Agent, AgentType
+
+world = World("demo")
+robot = Agent("robot-1", AgentType.Robot)
+robot.set_position(0.0, 0.0, 10.0)
+robot.set_mass(1.0)
+world.add_agent(robot)
+
+for _ in range(100):          # 1 simulated second at 10 ms
+    world.step(0.01)
+
+print(world.get_agent(robot.id()).position())
+print("collisions:", world.detect_collisions())
+```
+
+Backend service (run from source — see Installation; `SimulationEngine` is not in the pip package):
+
+```python
+from pyrobosimulator import SimulationEngine
+
+engine = SimulationEngine(num_agents=100, duration=60.0, timestep=0.016)
+engine.run()
+summary = engine.get_summary()
+print(summary["collision_count"], summary["goal_reached_count"])
+```
+
+## Usage
 
 ```bash
+# Start the API, then create a simulation
 curl -X POST http://localhost:8000/api/v1/simulations \
   -H "Content-Type: application/json" \
-  -d '{
-    "scenario": "parking_lot",
-    "num_agents": 50,
-    "duration": 30.0
-  }'
+  -d '{"scenario": "parking_lot", "num_agents": 50, "duration": 30.0}'
 ```
 
----
-
-## Real-World Examples
-
-*The examples below use `SimulationEngine`/`ScenarioBuilder` from the backend service (run from source —
-see "What's Actually Installable" above), not the pip-installed `pyrobosimulator` package.*
-
-### Autonomous Vehicles
-```python
-from pyrobosimulator import SimulationEngine, ScenarioBuilder
-
-# Generate urban street scenario
-builder = ScenarioBuilder()
-world = builder.urban_street(
-    width=300,
-    depth=300,
-    intersections=3,
-    obstacle_density=0.2
-)
-
-# Simulate with sensors
-engine = SimulationEngine(
-    world_config=world,
-    num_agents=50,  # 50 vehicles
-    duration=120.0,
-)
-engine.run()
-
-# Analyze collision patterns
-results = engine.get_summary()
-if results['collision_count'] > 0:
-    print("Algorithm failed collision avoidance")
-```
-
-### Multi-Robot Coordination
-```python
-# Simulate warehouse robots
-builder = ScenarioBuilder()
-world = builder.warehouse(num_shelves=10, shelf_height=3)
-
-engine = SimulationEngine(
-    world_config=world,
-    num_agents=20,  # 20 robots
-    duration=300.0,  # 5 minutes
-)
-
-# Listen for events
-for event in engine.event_stream():
-    if event['type'] == 'collision':
-        print(f"Collision between agents {event['agent1']} and {event['agent2']}")
-    elif event['type'] == 'goal_reached':
-        print(f"Agent {event['agent_id']} reached goal")
-```
-
-### Sensor Fusion Research
-```python
-# Test sensor fusion algorithm
-engine = SimulationEngine(num_agents=10, duration=60.0)
-
-for agent in engine.agents:
-    # Add multiple sensor types
-    agent.add_rgb_sensor(resolution=(1920, 1080))
-    agent.add_depth_sensor(resolution=(512, 512))
-    agent.add_lidar_sensor(num_rays=512, num_layers=16)
-
-engine.run()
-
-# Extract synchronized sensor data
-for frame in engine.get_sensor_frames(agent_id=0):
-    rgb = frame['rgb']        # JPEG bytes
-    depth = frame['depth']    # float32 array
-    lidar = frame['lidar']    # 8192 point cloud
-```
-
----
-
-## Architecture
-
-```
-┌────────────────────────────────────────────┐
-│   Client Application (Python/REST)         │
-└────────────────────┬───────────────────────┘
-                     │
-                     │ HTTP/gRPC
-                     ▼
-┌────────────────────────────────────────────┐
-│   PyRoboSimulator Backend (FastAPI)        │
-│  - Simulation Engine (physics loop)        │
-│  - World Generation (procedural)           │
-│  - Sensor Simulation (realistic)           │
-│  - Event Processing (async)                │
-└────────┬──────────────────────┬────────────┘
-         │                      │
-         ▼                      ▼
-    ┌─────────┐           ┌──────────┐
-    │PostgreSQL│           │  Redis   │
-    │Database  │           │  Cache   │
-    └─────────┘           └──────────┘
-         ▲                      ▲
-         │                      │
-    Optional: Kubernetes Deployment
-    - 3-30 replicas (autoscaling)
-    - Pod disruption budgets
-    - Network policies
-    - Prometheus monitoring
-```
-
-**Core Components:**
-- **SimulationEngine**: Physics loop, collision detection, event emission
-- **ScenarioBuilder**: Procedural world generation, built-in templates
-- **SensorManager**: Per-agent sensor coordination (RGB, Depth, Lidar, Thermal)
-- **REST API**: FastAPI async endpoints, OpenAPI documentation
-- **Database Layer**: SQLAlchemy async ORM, connection pooling
-- **Caching Layer**: Redis with pattern-based invalidation
-
----
-
-## vs PyBullet
-
-PyBullet (the standard OSS robotics/physics simulator) is the closest real
-comparison.
-
-**FIXED (2026-09-28): the pip-installable core now has real physics.**
-Previously `pyrobosimulator-core/src/world.rs` and `agent.rs` exposed only
-`add_agent`/`remove_agent`/`agent_count` and plain data fields — no
-`step()`, no way to apply a force, no way to even read an agent's state
-back out of a `World` once added. Added, all real and unit-tested against
-closed-form kinematics (not just "doesn't crash"):
-
-- `Agent::apply_force()` / `Agent::step(dt)` — real explicit (forward)
-  Euler integration (position advances using the pre-step velocity, then
-  velocity updates from this step's accumulated force/mass, matching the
-  same scheme the separate `backend/` service already used), with real
-  velocity clamping.
-- `World::step(dt)` — applies the world's real gravity (`[0,0,-9.81]` by
-  default, configurable) as a force to every agent, then integrates each
-  one.
-- `World::get_agent(id)` / `World::agents()` — previously **there was no
-  way at all** to read an agent's state back out of a `World` (PyO3
-  clones `Agent` by value into `add_agent`, so a caller's own original
-  Python object never saw internal updates) — without this, `step()`
-  would have been real but practically unobservable.
-- `World::detect_collisions()` — real pairwise distance/radius overlap
-  checks (O(n²); a spatial-partitioning broad phase for true 100K+-agent
-  collision is real, separate future work — the honest gap before this
-  fix was that there was no collision detection at all, real or
-  otherwise).
-
-**Verified live against the actual installed `pip` package** (not just
-`cargo test`), this machine (Apple Silicon, 2026-09-28):
-
-| | Real, measured |
-|---|---|
-| A real agent under real gravity, 1 simulated second (100 steps × 10ms) | falls to z = **-4.86m** (closed-form: -4.905m; the ~1% gap is expected explicit-Euler discretization error at this timestep, not a bug) |
-| One real physics step (gravity + integration), 100,000 real agents | **0.4ms** (~273M agent-steps/sec) |
-| `detect_collisions()` over 10,000 real agents | 69ms (confirms the documented O(n²) cost at scale) |
-
-**PyBullet itself still could not be installed in this environment** —
-`pip install pybullet` fails building from source against this machine's
-macOS 26 SDK (a real, reproducible `clang` compile error in bullet3's
-bundled zlib sources), so a direct side-by-side run isn't possible on this
-machine; the numbers above are real and independently verified, just not
-head-to-head against PyBullet's own throughput on the same hardware.
-
-Regression tests: `pyrobosimulator-core/src/agent.rs` and `world.rs`,
-verifying real kinematics (constant velocity, closed-form free-fall,
-velocity clamping, force reset, collision geometry), not just "runs
-without crashing."
-
-## Performance Benchmarks
-
-All benchmarks run on a 2023 MacBook Pro (Apple Silicon M2, 8GB RAM):
-
-**Unverified this pass:** this table has no reproduction script, date, or
-commit reference, and — per the finding directly above — "100K+
-agents/sec, full physics" cannot currently be true of the pip-installable
-core (which has no physics loop at all); if it's true of anything, it
-would be a `backend/` benchmark that needs its own citation. Treat every
-row below as an unverified historical claim, not a re-confirmed number,
-until someone re-runs it against the actual `backend/` service with a
-committed script.
-
-| Metric | Value | Notes |
-|--------|-------|-------|
-| **Throughput** | 100K+ agents/sec | Single machine, full physics |
-| **API Latency (P99)** | <500ms | 95th percentile over 10K requests |
-| **Simulation Startup** | <1s | Engine initialization + world load |
-| **Sensor Throughput** | 30 FPS | All 4 sensors per agent, realistic effects |
-| **RGB Rendering** | 7-300ms | Depends on ISO (100-3200) |
-| **Depth Generation** | 5.5ms | Vectorized quantization + noise + filtering |
-| **Lidar Cloud** | 21.9ms | With rain occlusion, beam spread, multi-path |
-| **Thermal Imaging** | 2.1ms | Material emissivity + calibration |
-| **Sensor Fusion** | 0.01ms | Real-time multi-sensor sync + transforms |
-| **Cache Hit Rate** | >95% | Scenario/results caching |
-| **Memory per Agent** | ~2KB | State + sensor buffers |
-| **Database Queries/sec** | 1000+ | Async connection pool (5-20 min/max) |
-
-**Scaling:** Database connection pool scales to 20 connections. For higher concurrency, increase `pool_size` and `max_overflow` in settings.
-
----
-
-## API Overview
-
-### Core Endpoints
-
-**Simulations Management**
-- `POST /api/v1/simulations` — Create simulation
-- `GET /api/v1/simulations` — List (paginated)
-- `GET /api/v1/simulations/{id}` — Get details
-- `PUT /api/v1/simulations/{id}` — Update
-- `DELETE /api/v1/simulations/{id}` — Delete
-- `POST /api/v1/simulations/{id}/start` — Start execution
-- `POST /api/v1/simulations/{id}/stop` — Stop execution
-- `GET /api/v1/simulations/{id}/status` — Poll status
-
-**Results & Analytics**
-- `GET /api/v1/simulations/{id}/results` — Paginated results
-- `GET /api/v1/simulations/{id}/agents` — Agent states
-- `GET /api/v1/simulations/{id}/summary` — Aggregate stats
-- `GET /api/v1/simulations/{id}/stream` — SSE result stream
-
-**Health & Monitoring**
-- `GET /health` — Simple health check
-- `GET /ready` — Kubernetes readiness probe
-- `GET /metrics` — Prometheus metrics
-
-See [API Documentation](backend/docs/API.md) for full reference.
-
----
-
-## Testing & Quality
-
-**Test Suite**
-- Test functions across 44 files (`backend/tests/`), covering unit, integration, and performance scenarios
-- **75% measured line coverage** (`pytest --cov=src`, run from `backend/`, verified 2026-09-20 against real
-  Postgres/Redis containers): 882 passing, 33 failing, 1 erroring, 6 skipped, 3 xfailed as of this pass.
-  This number required a fix first — `backend/pyproject.toml` had an unbounded `pytest` floor that resolved
-  pytest 9.x and broke 33 tests via a `pytest-asyncio==0.21.1` incompatibility (see Known Issues); with that
-  pinned, the real remaining failure count is 33, not the 41 previously reported. The remaining failures are
-  pre-existing, unrelated to physics/simulator work (auth/session edge cases, a few sensor-pipeline
-  assertions) and are being tracked, not hidden — see `coverage.xml`/`htmlcov/` for the full per-file
-  breakdown. Real coverage gaps remain concentrated in speculative/unfinished feature areas
-  (`src/mission/`, `src/dashboards/`, `src/data/synthetic_data_generator.py`, `src/services/sensors.py`
-  are all still at or near 0%) rather than in core simulation code.
-- Performance benchmarks for common operations (`pytest --benchmark-...`, disabled by default in CI for speed)
-- Security scanning (bandit, safety)
-
-**Quality Gates**
-- Black (code formatting)
-- isort (import organization)
-- flake8 (linting)
-- mypy (type checking)
-- pytest (testing)
-- Bandit (security)
-
-Run tests locally:
-```bash
-pip install -e .[dev]
-pytest -v --cov=src
-```
-
----
-
-## Deployment
-
-### Docker
-
-```bash
-cd backend
-docker build -t pyrobosimulator:0.11.0 .
-docker run -p 8000:8000 pyrobosimulator:0.11.0
-```
-
-### Kubernetes
-
-```bash
-cd backend/k8s
-kubectl apply -k .
-kubectl port-forward svc/pyrobosimulator 8000:8000
-```
-
-### Production Checklist
-- [ ] Set `DEBUG=false` in environment
-- [ ] Use strong JWT secret in `JWT_SECRET_KEY`
-- [ ] Configure PostgreSQL with persistent volume
-- [ ] Configure Redis with persistent volume
-- [ ] Enable CORS only for trusted origins
-- [ ] Set up Prometheus scraping
-- [ ] Configure alert rules
-- [ ] Set up log aggregation
-- [ ] Enable network policies
-- [ ] Configure pod disruption budgets
-
-See [Deployment Guide](backend/docs/DEPLOYMENT.md) for detailed instructions.
-
----
-
-## Technology Stack
-
-**Language & Framework**
-- Python 3.10+
-- FastAPI (async web framework)
-- Pydantic (data validation)
-
-**Database & Cache**
-- PostgreSQL (relational data)
-- SQLAlchemy (async ORM)
-- Redis (caching, sessions)
-
-**Scientific Computing**
-- NumPy (numerical operations)
-- SciPy (scientific algorithms)
-
-**Deployment & Orchestration**
-- Docker (containerization)
-- Kubernetes (orchestration)
-- GitHub Actions (CI/CD)
-
-**Monitoring & Observability**
-- Prometheus (metrics)
-- Grafana (visualization)
-- Structured JSON logging
-
-**Testing & Quality**
-- pytest (testing framework)
-- pytest-asyncio (async support)
-- pytest-cov (coverage)
-- black, isort, flake8, mypy (code quality)
-- bandit, safety (security scanning)
-
-**100% Open Source:** All 52 dependencies use MIT, BSD, or Apache 2.0 licenses. See [OSS Compliance Audit](backend/docs/OSS_COMPLIANCE.md).
-
----
-
-## Comparison with Alternatives
-
-**Corrected 2026-09-27:** this table used to present "PyRoboSimulator" as
-one undifferentiated column against CARLA/Gazebo/AirSim. In reality it's
-two separately-installed pieces with very different real capabilities —
-see "vs PyBullet" above for how this was verified. Split accordingly:
-
-| Feature | PyRoboSimulator (pip core) | PyRoboSimulator (`backend/` service) | CARLA | Gazebo | AirSim |
-|---------|---|---|---|---|---|
-| **Language** | Python (Rust core) | Python | C++ | C++ | C++ |
-| **Physics Engine** | Real forward-Euler (gravity, force, velocity clamping) — see "vs PyBullet" above | Custom forward-Euler, or real MuJoCo (both verified in source) | PhysX | ODE/Bullet | PhysX |
-| **Agents/Frame** | 100,000 real agents/step verified, 0.4ms (see "vs PyBullet" above) | Not independently re-verified this pass — see "Performance Benchmarks" honesty note below | 100s | 1000s | 100s |
-| **REST API** | No | Native | No | No | Limited |
-| **Kubernetes Ready** | N/A | Manifests exist (`backend/k8s/`); DB/cache layers still in-memory as of this pass, see Known Issues | No | No | No |
-| **Database Integration** | No | Yes (PostgreSQL) | No | No | No |
-| **Caching Layer** | No | Yes (Redis) | No | No | No |
-| **Multi-Modal Sensors** | No | RGB, Depth, Lidar, Thermal (real, in `backend/src/sensors/`) | RGB, Depth, Lidar | Camera, IMU, GPS | RGB, Depth, Lidar |
-| **License** | Apache 2.0 | Apache 2.0 | MIT | Apache 2.0 | MIT |
-| **Production Monitoring** | No | Prometheus/Grafana | No | No | No |
-| **Open Source** | Yes | Yes | Partial | Yes | Partial |
-
----
+Key backend endpoints: `POST/GET/PUT/DELETE /api/v1/simulations`, `.../{id}/start|stop|status|results|agents|summary|stream` (SSE), plus `GET /health`, `/ready`, `/metrics`. Full list in `backend/docs/`.
 
 ## Documentation
 
-- **[Full API Reference](backend/docs/API.md)** — REST endpoints, request/response schemas
-- **[Deployment Guide](backend/docs/DEPLOYMENT.md)** — Docker, Kubernetes, local development
-- **[Database Schema](backend/docs/SCHEMA.md)** — Tables, indexes, query patterns
-- **[UE5 Integration](backend/docs/UE5_INTEGRATION.md)** — Rendering engine integration (Phase 1)
-- **[OSS Compliance](backend/docs/OSS_COMPLIANCE.md)** — Complete license audit
-- **[Performance Tuning](backend/docs/PERFORMANCE.md)** — Optimization strategies
-
-## Cross-repo compatibility
-
-This repo is one of several independently-published robotics packages by
-the same author (`pyroboreplay`, `PyRoboFrames`, `PyRoboVision`,
-`PyTerrainMap`). Verified by reading every `Cargo.toml`/`pyproject.toml` in
-that group: **none of them have a Cargo or pip dependency on this repo, or
-on each other, except one purely conceptual (non-code) reference** —
-`pyroboreplay`'s README mentions a "PyTerrainMap Integration" phase that
-turned out to be self-contained internal modeling, not real code-level
-interop (see `pyroboreplay`'s own README for the corrected framing). This
-repo does not import or link against any of those siblings.
-
----
-
-## Roadmap
-
-### Phase 0-2 (Complete - v0.1-v0.5.0)
-- [x] Core simulation engine with physics
-- [x] Multi-modal sensor suite (RGB, Depth, Lidar, Thermal)
-- [x] Production REST API with 15+ endpoints
-- [x] PostgreSQL database + Redis caching
-- [x] Kubernetes deployment manifests
-- [x] Behavior trees with YAML support
-- [x] Navigation & pathfinding (A*, RVO, NavMesh)
-- [x] Agent memory system (episodic, semantic, procedural, emotional)
-- [x] Multi-agent communication framework
-- [x] 44 test files, 75% measured coverage (see Testing & Quality above)
-
-### Phase 3-8 (Complete - v0.8.0)
-- [x] Narrative Simulation Engine (NLP→scenario conversion via Claude API)
-- [x] Real-to-Sim Bridge (ROS bag parsing, trajectory extraction, validation)
-- [x] Analytics Dashboard (CLI-based with Textual, 7-panel layout)
-- [x] Curriculum Learning (7-factor difficulty model, adaptive progression)
-- [x] Multi-Agent Coordination (6 formation types, team messaging)
-- [x] Fleet Learning (experience logging, pattern identification, knowledge transfer)
-
-### Phase 9 (Complete - v0.10.0): Real Physics + Honesty Pass
-- [x] Real MuJoCo physics backend (real MJCF/URDF loading, real `mj_step` dynamics,
-      contacts, camera/Lidar/IMU sensors) — replaces a prior pure-stub implementation
-- [x] Gazebo/Isaac Sim backends now fail fast with a clear, honest `EnvironmentError`
-      instead of silently pretending to simulate
-- [x] Rust core's ROS2/Gazebo world export now generates a real SDF document from
-      actual `World`/`Agent` data, replacing a hardcoded `"ROS 2 world export stub"` string
-- [x] Fixed a packaging bug where `pip install pyrobosimulator` shipped a wheel with
-      no `__init__.py`, silently omitting the entire documented Python API
-- [x] Fixed several bugs found while getting `pytest` to run clean: a missing
-      `SensorType` enum member, an unreachable `ScenarioClass.NOMINAL` bucket that
-      caused an unbounded test loop, and a `DATABASE_URL` scheme mismatch that broke
-      every test touching the FastAPI app
-
-### Phase 9.1 (Complete - v0.11.0): Real StorageEngine
-- [x] `StorageEngine` is now a real, RocksDB-backed event log (`pyrobosimulator-core/src/storage.rs`) —
-      replaces the prior silent in-memory no-op
-- [x] Deleted the dead Rust `world_gen.rs` stub (unused, superseded by the Python-side world generation
-      described above)
-
-### Phase 10+ (Planned - v1.0.0+)
-- [ ] UE5 rendering engine integration with AAA visuals
-- [ ] Real-time 3D visualization
-- [ ] Domain randomization for ML training
-- [ ] Digital twin capabilities for real robot monitoring
-- [ ] Advanced causal inference and decision tree analysis
-- [ ] Distributed simulation across multiple machines
-- [ ] Performance optimization (GPU acceleration for physics)
-
----
+- [backend/README.md](backend/README.md) — backend service setup
+- [VISION.md](VISION.md) — product vision
+- [ROADMAP_HONEST.md](ROADMAP_HONEST.md) — implemented vs planned, honest caveats
+- [backend/docs/DEPLOYMENT.md](backend/docs/DEPLOYMENT.md) — Docker / Kubernetes / local dev
+- [backend/docs/SCHEMA.md](backend/docs/SCHEMA.md) — database schema
+- [backend/docs/UE5_INTEGRATION.md](backend/docs/UE5_INTEGRATION.md) — rendering integration
+- [backend/docs/OSS_COMPLIANCE.md](backend/docs/OSS_COMPLIANCE.md) — dependency license audit
+- [examples/](examples/) — example scripts
+- [CHANGELOG.md](CHANGELOG.md) — notable changes
 
 ## Contributing
 
-We welcome contributions! Check out our [Contributing Guide](CONTRIBUTING.md).
-
-**How to contribute:**
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-**Development setup:**
-```bash
-git clone https://github.com/Mullassery/PyRoboSimulator.git
-cd PyRoboSimulator
-pip install -e .[dev]
-pytest  # Run tests
-```
-
----
-
-## Support & Community
-
-**Get Help**
-- [Documentation](backend/docs/) — Comprehensive guides
-- [GitHub Discussions](https://github.com/Mullassery/PyRoboSimulator/discussions) — Q&A and ideas
-- [GitHub Issues](https://github.com/Mullassery/PyRoboSimulator/issues) — Bug reports and feature requests
-- [Email](mailto:mullassery@gmail.com) — the maintainer's real address; `info@pyrobosimulator.ai` (previously listed here) is not a real, monitored address
-
-**Stay Updated**
-- Star this repository for updates
-- Watch for releases
-- Follow development on GitHub
-
----
+See [CONTRIBUTING.md](CONTRIBUTING.md). Bug reports and feature requests: [GitHub Issues](https://github.com/Mullassery/PyRoboSimulator/issues); questions: [GitHub Discussions](https://github.com/Mullassery/PyRoboSimulator/discussions).
 
 ## License
 
-This project is licensed under the [Apache License 2.0](LICENSE).
-
----
-
-## Citation
-
-If you use PyRoboSimulator in your research, please cite:
-
-```bibtex
-@software{pyrobosimulator2024,
-  author = {Mullassery, Georgi},
-  title = {PyRoboSimulator: Production-Grade World Simulation for Autonomous Systems},
-  year = {2024},
-  url = {https://github.com/Mullassery/PyRoboSimulator},
-  license = {Apache-2.0}
-}
-```
-
----
-
-## Acknowledgments
-
-Built with Python, FastAPI, PostgreSQL, Redis, Kubernetes, and the open source community.
-
----
-
-**PyRoboSimulator v0.11.0** | [GitHub](https://github.com/Mullassery/PyRoboSimulator) | [PyPI](https://pypi.org/project/pyrobosimulator/) | [Issues](https://github.com/Mullassery/PyRoboSimulator/issues)
+Apache License 2.0 — see [LICENSE](LICENSE).
