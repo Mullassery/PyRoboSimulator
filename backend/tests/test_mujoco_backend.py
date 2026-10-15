@@ -11,16 +11,8 @@ installed (`pip install mujoco`, or `pip install -e ".[physics]"`).
 """
 
 import os
-import sys
 
 import pytest
-
-# MuJoCo reads MUJOCO_GL when its GL backend is first imported. On headless
-# Linux (CI) the default GLFW backend cannot create a window ("X11: The
-# DISPLAY environment variable is missing"), so prefer EGL there. On macOS
-# the default CGL backend works without a display, so leave it untouched.
-if sys.platform.startswith("linux") and not os.environ.get("DISPLAY"):
-    os.environ.setdefault("MUJOCO_GL", "egl")
 
 mujoco = pytest.importorskip("mujoco")
 
