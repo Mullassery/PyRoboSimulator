@@ -64,6 +64,7 @@ class Agent:
     def __post_init__(self):
         """Initialize agent after dataclass creation."""
         self._rgb_frame_count = 0
+        self._lidar_frame_count = 0  # For reproducible per-frame lidar randomness
         self.trajectory: list = []  # List of (x, y) positions over time
         self._prev_reached_goal: bool = False  # Track previous goal state for edge detection
         self._prev_depth_map: Optional[np.ndarray] = None  # For temporal filtering
@@ -91,6 +92,22 @@ class Agent:
         num_layers = 16
         max_range = 300  # meters
 
+        # Use a local, deterministically-seeded RNG instead of the global
+        # numpy random state. Seeding from the agent's position and an
+        # internal frame counter means two agents at the same location
+        # produce identical clouds for the same frame (reproducible), while
+        # successive frames of one agent still vary (temporal realism).
+        # The global np.random made output depend on call order, so clouds
+        # were irreproducible even when every stochastic effect was off.
+        seed = (
+            int(round(self.position.x * 1000)),
+            int(round(self.position.y * 1000)),
+            int(round(self.position.z * 1000)),
+            self._lidar_frame_count,
+        )
+        rng = np.random.default_rng(seed)
+        self._lidar_frame_count += 1
+
         points = []
 
         for layer_idx in range(num_layers):
@@ -106,23 +123,23 @@ class Agent:
                     # Rain causes point loss: probability increases with intensity
                     # At 1.0 intensity, ~80% of points are lost
                     rain_drop_prob = rain_intensity * 0.8
-                    if np.random.rand() < rain_drop_prob:
+                    if rng.random() < rain_drop_prob:
                         continue  # Skip this ray (rain occlusion)
 
                 # Base distance with agent position influence
-                distance = np.random.uniform(5, max_range)
+                distance = rng.uniform(5, max_range)
                 distance_mod = 20 + (self.position.x / 1000) * 30
                 distance = np.clip(distance + distance_mod, 5, max_range)
 
                 # Apply beam spread (angular noise)
                 if beam_spread > 0:
                     # Add small random angle to each ray
-                    spread_angle = np.random.normal(0, beam_spread)
+                    spread_angle = rng.normal(0, beam_spread)
                     horizontal_angle += spread_angle
 
                 # Add temporal jitter (frame-to-frame noise)
                 if add_temporal_jitter:
-                    distance += np.random.normal(0, 0.01 * distance)  # 1% jitter
+                    distance += rng.normal(0, 0.01 * distance)  # 1% jitter
 
                 # Convert spherical to cartesian coordinates
                 vert_rad = np.radians(vertical_angle)
@@ -135,11 +152,11 @@ class Agent:
                 points.append([float(x), float(y), float(z)])
 
                 # Multi-path returns (secondary reflections from ground)
-                if multipath_probability > 0 and np.random.rand() < multipath_probability:
+                if multipath_probability > 0 and rng.random() < multipath_probability:
                     # Secondary return from ground (~80% of primary distance)
                     secondary_distance = distance * 0.8
                     # Slightly different angle (simulating ground reflection)
-                    reflect_angle = horizontal_angle + np.random.normal(0, 2)
+                    reflect_angle = horizontal_angle + rng.normal(0, 2)
                     reflect_vert = -vertical_angle  # Bounce from ground
 
                     x2 = (
@@ -377,9 +394,17 @@ class Agent:
         dy = (yy - cy) / height
         distance = np.sqrt(dx**2 + dy**2)
 
-        # Generate temperature map based on distance and agent position
+        # Generate temperature map based on distance and agent position.
+        # On-axis (image center) pixels subtend the largest solid angle, so
+        # they receive the most thermal radiation and read hottest; the
+        # off-axis falloff toward the edges is the "view factor". The radial
+        # term must therefore *decrease* with distance from the center --
+        # the previous `distance * range` did the opposite, making the center
+        # the coolest point and contradicting both the view-factor physics
+        # and the effect applied in `_apply_thermal_effects`.
         base_temp = 20.0  # Baseline room temperature
-        distance_effect = distance * (max_temp - min_temp) / 2
+        max_distance = np.sqrt(0.5**2 + 0.5**2)  # Normalized corner distance
+        distance_effect = (max_distance - distance) * (max_temp - min_temp) / 2
         thermal_map = base_temp + distance_effect + (self.position.x / 1000) * 10
 
         # Apply material-based emissivity variation

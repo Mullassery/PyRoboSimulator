@@ -89,12 +89,23 @@ jobs:
 
       - name: Dependency check (safety)
         working-directory: backend
-        # 64396/64459: ecdsa has no patched release for either -- the
-        # maintainers' own position is that pure-Python can't guarantee
-        # side-channel resistance, so no version bump fixes this. Everything
-        # else safety flagged is handled by floating the affected pins in
-        # pyproject.toml instead of silently ignoring it here.
-        run: safety check --ignore 64396 --ignore 64459
+        # Ignored findings are limited to packages with no patched release:
+        # 64396/64459: ecdsa (via python-jose) has no patched release for
+        # either -- the maintainers' own position is that pure-Python can't
+        # guarantee side-channel resistance, so no version bump fixes this.
+        # SFTY-20260903-64758: python-jose itself; latest release (3.5.0)
+        # is still in the affected range, so the >=3.3.0 float can't pick
+        # up a fix. SFTY-20260902-58666: nltk, pulled in transitively by
+        # `safety` itself (not a runtime/app dependency); latest release
+        # (3.10.3) is still in the affected range. Everything with a fixed
+        # release is handled by floating the affected pins in pyproject.toml
+        # instead of ignoring it here.
+        run: >-
+          safety check
+          --ignore 64396
+          --ignore 64459
+          --ignore SFTY-20260903-64758
+          --ignore SFTY-20260902-58666
 
   # Unit and integration tests - independent of Code Quality/Security so a
   # lint or dependency-audit failure never hides whether the tests actually
