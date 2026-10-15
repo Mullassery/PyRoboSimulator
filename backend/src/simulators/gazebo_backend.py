@@ -118,7 +118,16 @@ class GazeboBackend(SimulatorBackend):
 
     def spawn_robot(self, robot_config: RobotConfig) -> str:
         logger.info(f"Spawning robot in Gazebo: {robot_config.name}")
-        self._robots[robot_config.name] = {"config": robot_config}
+        self._robots[robot_config.name] = {
+            "config": robot_config,
+            "position": (0.0, 0.0, 0.0),
+            "rotation": (0.0, 0.0, 0.0, 1.0),
+            "linear_velocity": (0.0, 0.0, 0.0),
+            "angular_velocity": (0.0, 0.0, 0.0),
+            "joint_positions": {},
+            "joint_velocities": {},
+            "joint_forces": {},
+        }
         return robot_config.name
 
     def remove_robot(self, robot_name: str) -> None:
@@ -126,21 +135,30 @@ class GazeboBackend(SimulatorBackend):
             del self._robots[robot_name]
 
     def reset_robot(self, robot_name: str) -> None:
-        pass
+        if robot_name in self._robots:
+            r = self._robots[robot_name]
+            r["position"] = (0.0, 0.0, 0.0)
+            r["rotation"] = (0.0, 0.0, 0.0, 1.0)
+            r["linear_velocity"] = (0.0, 0.0, 0.0)
+            r["angular_velocity"] = (0.0, 0.0, 0.0)
+            r["joint_positions"].clear()
+            r["joint_velocities"].clear()
+            r["joint_forces"].clear()
 
     def get_robot_state(self, robot_name: str) -> RobotState:
         if robot_name not in self._robots:
             raise KeyError(f"Robot not found: {robot_name}")
+        r = self._robots[robot_name]
         return RobotState(
             robot_name=robot_name,
-            position=(0.0, 0.0, 0.0),
-            rotation=(0.0, 0.0, 0.0, 1.0),
-            linear_velocity=(0.0, 0.0, 0.0),
-            angular_velocity=(0.0, 0.0, 0.0),
-            joint_positions={},
-            joint_velocities={},
-            joint_forces={},
-            timestamp=0.0,
+            position=r.get("position", (0.0, 0.0, 0.0)),
+            rotation=r.get("rotation", (0.0, 0.0, 0.0, 1.0)),
+            linear_velocity=r.get("linear_velocity", (0.0, 0.0, 0.0)),
+            angular_velocity=r.get("angular_velocity", (0.0, 0.0, 0.0)),
+            joint_positions=dict(r.get("joint_positions", {})),
+            joint_velocities=dict(r.get("joint_velocities", {})),
+            joint_forces=dict(r.get("joint_forces", {})),
+            timestamp=time.time(),
         )
 
     def set_robot_pose(
@@ -149,7 +167,9 @@ class GazeboBackend(SimulatorBackend):
         position: Tuple[float, float, float],
         rotation: Tuple[float, float, float, float],
     ) -> None:
-        pass
+        if robot_name in self._robots:
+            self._robots[robot_name]["position"] = position
+            self._robots[robot_name]["rotation"] = rotation
 
     def set_joint_target(
         self,
@@ -159,12 +179,24 @@ class GazeboBackend(SimulatorBackend):
         velocity: float = 0.0,
         force: float = 1000.0,
     ) -> None:
-        pass
+        if robot_name in self._robots:
+            r = self._robots[robot_name]
+            r["joint_positions"][joint_name] = target_value
+            r["joint_velocities"][joint_name] = velocity
+            r["joint_forces"][joint_name] = force
 
     def apply_joint_force(self, robot_name: str, joint_name: str, force: float) -> None:
-        pass
+        if robot_name in self._robots:
+            self._robots[robot_name]["joint_forces"][joint_name] = force
 
     def get_joint_state(self, robot_name: str, joint_name: str) -> Dict[str, float]:
+        if robot_name in self._robots:
+            r = self._robots[robot_name]
+            return {
+                "position": r.get("joint_positions", {}).get(joint_name, 0.0),
+                "velocity": r.get("joint_velocities", {}).get(joint_name, 0.0),
+                "force": r.get("joint_forces", {}).get(joint_name, 0.0),
+            }
         return {"position": 0.0, "velocity": 0.0, "force": 0.0}
 
     def spawn_object(
@@ -176,7 +208,12 @@ class GazeboBackend(SimulatorBackend):
         scale: float = 1.0,
         metadata: Optional[Dict[str, Any]] = None,
     ) -> str:
-        self._objects[name] = {"path": model_path}
+        self._objects[name] = {
+            "path": model_path,
+            "position": position,
+            "rotation": rotation,
+            "scale": scale,
+        }
         return name
 
     def remove_object(self, object_name: str) -> None:
@@ -186,13 +223,14 @@ class GazeboBackend(SimulatorBackend):
     def get_object_state(self, object_name: str) -> ObjectState:
         if object_name not in self._objects:
             raise KeyError(f"Object not found: {object_name}")
+        obj = self._objects[object_name]
         return ObjectState(
             object_name=object_name,
-            position=(0.0, 0.0, 0.0),
-            rotation=(0.0, 0.0, 0.0, 1.0),
+            position=obj.get("position", (0.0, 0.0, 0.0)),
+            rotation=obj.get("rotation", (0.0, 0.0, 0.0, 1.0)),
             linear_velocity=(0.0, 0.0, 0.0),
             angular_velocity=(0.0, 0.0, 0.0),
-            timestamp=0.0,
+            timestamp=time.time(),
         )
 
     def set_object_pose(
@@ -201,7 +239,9 @@ class GazeboBackend(SimulatorBackend):
         position: Tuple[float, float, float],
         rotation: Tuple[float, float, float, float],
     ) -> None:
-        pass
+        if object_name in self._objects:
+            self._objects[object_name]["position"] = position
+            self._objects[object_name]["rotation"] = rotation
 
     def attach_sensor(self, robot_name: str, sensor_config: SensorConfig) -> str:
         sensor_id = f"{robot_name}_{sensor_config.name}"
@@ -240,13 +280,13 @@ class GazeboBackend(SimulatorBackend):
         return {"accel": (0.0, 0.0, -9.81), "gyro": (0.0, 0.0, 0.0), "quat": (0.0, 0.0, 0.0, 1.0)}
 
     def set_gravity(self, gravity: Tuple[float, float, float]) -> None:
-        pass
+        self._gravity = gravity
 
     def get_gravity(self) -> Tuple[float, float, float]:
-        return (0.0, 0.0, -9.81)
+        return getattr(self, "_gravity", (0.0, 0.0, -9.81))
 
     def set_timestep(self, timestep_ms: float) -> None:
-        pass
+        self._timestep_ms = timestep_ms
 
     def get_contacts(self) -> List[ContactInfo]:
         return []
@@ -261,12 +301,14 @@ class GazeboBackend(SimulatorBackend):
 
     def step(self, num_steps: int = 1) -> SimulationStep:
         self._step_count += num_steps
+        robot_states = {name: self.get_robot_state(name) for name in self._robots}
+        object_states = {name: self.get_object_state(name) for name in self._objects}
         return SimulationStep(
             step_count=self._step_count,
-            elapsed_time_sec=0.0,
-            timestep_ms=1.0,
-            robot_states={},
-            object_states={},
+            elapsed_time_sec=self._step_count * (getattr(self, "_timestep_ms", 1.0) / 1000.0),
+            timestep_ms=getattr(self, "_timestep_ms", 1.0),
+            robot_states=robot_states,
+            object_states=object_states,
             contacts=[],
             sensor_data={},
         )
@@ -279,15 +321,17 @@ class GazeboBackend(SimulatorBackend):
 
     def reset(self) -> None:
         self._step_count = 0
+        for name in list(self._robots.keys()):
+            self.reset_robot(name)
 
     def is_paused(self) -> bool:
         return self._paused
 
     def enable_rendering(self) -> None:
-        pass
+        self._rendering_enabled = True
 
     def disable_rendering(self) -> None:
-        pass
+        self._rendering_enabled = False
 
     def set_camera_view(
         self,
@@ -295,7 +339,7 @@ class GazeboBackend(SimulatorBackend):
         target: Tuple[float, float, float],
         up: Tuple[float, float, float] = (0.0, 0.0, 1.0),
     ) -> None:
-        pass
+        self._camera_view = {"position": position, "target": target, "up": up}
 
     def render_frame(self) -> Optional[bytes]:
         return None
@@ -305,13 +349,15 @@ class GazeboBackend(SimulatorBackend):
         intensity_range: Tuple[float, float],
         color_range: Optional[Tuple[Tuple[float, float, float], Tuple[float, float, float]]] = None,
     ) -> None:
-        pass
+        self._lighting = {"intensity_range": intensity_range, "color_range": color_range}
 
     def randomize_friction(self, object_name: str, friction_range: Tuple[float, float]) -> None:
-        pass
+        if object_name in self._objects:
+            self._objects[object_name]["friction"] = (friction_range[0] + friction_range[1]) / 2.0
 
     def randomize_mass(self, object_name: str, mass_range: Tuple[float, float]) -> None:
-        pass
+        if object_name in self._objects:
+            self._objects[object_name]["mass"] = (mass_range[0] + mass_range[1]) / 2.0
 
     def get_simulator_type(self) -> SimulatorType:
         return SimulatorType.GAZEBO
