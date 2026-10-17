@@ -1,9 +1,15 @@
 """Pytest configuration and shared fixtures."""
 
 import asyncio
+import os
 from typing import AsyncGenerator
 
 import pytest
+
+# Settings now refuses to load with the shipped weak SECRET_KEY default (see
+# src/config/settings.py), so supply a test-only value before anything imports
+# the app below. setdefault leaves any real value (e.g. from CI) untouched.
+os.environ.setdefault("SECRET_KEY", "test-only-secret-key-for-pytest")
 
 # Try to import app dependencies, but allow tests to run without them
 try:
