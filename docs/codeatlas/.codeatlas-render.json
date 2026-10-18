@@ -1,0 +1,33 @@
+{
+  "version": 1,
+  "outputs": {
+    "md": [
+      "alembic.1.1.md",
+      "backend.1.md",
+      "docs.2.md",
+      "frontend.4.md",
+      "overview.md",
+      "pyrobosimulator.6.1.md",
+      "pyrobosimulator_core.5.md",
+      "python.6.md",
+      "src.1.4.md",
+      "src.4.1.md",
+      "tests.1.5.md",
+      "tools.9.md"
+    ],
+    "html": [
+      "alembic.1.1.html",
+      "backend.1.html",
+      "docs.2.html",
+      "frontend.4.html",
+      "overview.html",
+      "pyrobosimulator.6.1.html",
+      "pyrobosimulator_core.5.html",
+      "python.6.html",
+      "src.1.4.html",
+      "src.4.1.html",
+      "tests.1.5.html",
+      "tools.9.html"
+    ]
+  }
+}

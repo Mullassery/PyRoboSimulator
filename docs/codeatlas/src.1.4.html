@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>CodeAtlas</title>
+<script src="https://unpkg.com/cytoscape@3.23.0/dist/cytoscape.min.js"></script>
+<script src="https://unpkg.com/dagre@0.8.5/dist/dagre.min.js"></script>
+<script src="https://unpkg.com/cytoscape-dagre@2.4.0/cytoscape-dagre.js"></script>
+<style>
+  body { margin: 0; font-family: -apple-system, sans-serif; }
+  #cy { width: 100vw; height: 100vh; }
+  header { padding: 12px 16px; border-bottom: 1px solid #eee; }
+</style>
+</head>
+<body>
+<header>
+  <strong>CodeAtlas</strong>
+  <p>Owns 5 symbols across 2 file(s).</p>
+</header>
+<div id="cy"></div>
+<script>
+const data = {"nodes": [{"data": {"id": "analytics", "label": "analytics", "description": "Owns 73 symbols across 4 file(s)."}}, {"data": {"id": "ari", "label": "ari", "description": "Owns 50 symbols across 4 file(s)."}}, {"data": {"id": "config", "label": "config", "description": "Owns 3 symbols across 2 file(s)."}}, {"data": {"id": "curriculum", "label": "curriculum", "description": "Owns 23 symbols across 3 file(s)."}}, {"data": {"id": "dashboards", "label": "dashboards", "description": "Owns 24 symbols across 2 file(s)."}}, {"data": {"id": "data", "label": "data", "description": "Owns 16 symbols across 2 file(s)."}}, {"data": {"id": "db", "label": "db", "description": "Owns 14 symbols across 3 file(s)."}}, {"data": {"id": "mission", "label": "mission", "description": "Owns 27 symbols across 2 file(s)."}}, {"data": {"id": "models", "label": "models", "description": "Owns 38 symbols across 6 file(s)."}}, {"data": {"id": "multiagent", "label": "multiagent", "description": "Owns 31 symbols across 3 file(s)."}}, {"data": {"id": "narratives", "label": "narratives", "description": "Owns 103 symbols across 7 file(s)."}}, {"data": {"id": "realtoism", "label": "realtoism", "description": "Owns 73 symbols across 6 file(s)."}}, {"data": {"id": "routers", "label": "routers", "description": "Owns 26 symbols across 6 file(s)."}}, {"data": {"id": "sensors", "label": "sensors", "description": "Owns 107 symbols across 6 file(s)."}}, {"data": {"id": "services", "label": "services", "description": "Owns 523 symbols across 24 file(s)."}}, {"data": {"id": "simulators", "label": "simulators", "description": "Owns 305 symbols across 7 file(s)."}}], "edges": [{"data": {"id": "edge_0", "source": "src", "target": "services", "label": "calls"}}, {"data": {"id": "edge_1", "source": "analytics", "target": "services", "label": "calls"}}, {"data": {"id": "edge_2", "source": "narratives", "target": "services", "label": "calls"}}, {"data": {"id": "edge_3", "source": "realtoism", "target": "narratives", "label": "calls"}}, {"data": {"id": "edge_4", "source": "routers", "target": "services", "label": "calls"}}, {"data": {"id": "edge_5", "source": "routers", "target": "models", "label": "calls"}}, {"data": {"id": "edge_6", "source": "simulators", "target": "services", "label": "calls"}}, {"data": {"id": "edge_7", "source": "curriculum", "target": "narratives", "label": "calls"}}, {"data": {"id": "edge_8", "source": "dashboards", "target": "services", "label": "calls"}}]};
+const cy = cytoscape({
+  container: document.getElementById('cy'),
+  elements: data,
+  style: [
+    { selector: 'node', style: {
+      'label': 'data(label)',
+      'shape': 'round-rectangle',
+      'background-color': '#eef2ff',
+      'border-color': '#6366f1',
+      'border-width': 1,
+      'width': 'label',
+      'padding': '10px',
+      'text-valign': 'center',
+      'text-halign': 'center',
+      'font-size': '12px',
+    }},
+    { selector: 'edge', style: {
+      'label': 'data(label)',
+      'curve-style': 'bezier',
+      'target-arrow-shape': 'triangle',
+      'font-size': '10px',
+      'text-rotation': 'autorotate',
+    }}
+  ],
+  layout: { name: 'dagre', rankDir: 'LR' }
+});
+cy.on('tap', 'node', evt => {
+  const node = evt.target;
+  if (node.data('linkUrl')) { window.location.href = node.data('linkUrl'); }
+});
+</script>
+</body>
+</html>
