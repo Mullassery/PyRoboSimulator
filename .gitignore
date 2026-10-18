@@ -66,4 +66,4 @@ htmlcov/
 .benchmarks/
 .deepeval/
 
-graphify-out/
+codeatlas-out/

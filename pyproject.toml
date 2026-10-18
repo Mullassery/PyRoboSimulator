@@ -40,3 +40,7 @@ python-source = "python"
 # reject the upload with a 400 for license-file-not-found. Known recurring
 # bug pattern across this org's maturin-based repos.
 include = ["LICENSE"]
+
+[project.optional-dependencies]
+# Embedded architecture/knowledge-graph engine behind tools/codeatlas.
+architecture = ["codeatlas-rs>=0.3.0"]
