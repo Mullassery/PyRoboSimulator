@@ -5,6 +5,11 @@ All notable changes to PyRoboSimulator will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.12.4] - 2026-10-18
+
+### Added
+- Poisson (shot / photon-counting) sensor noise model — `backend/src/sensors/noise_models.py` `PoissonNoiseGenerator` plus `SensorNoiseFactory.get_poisson_noise_generator`. Models low-light imagery where noise variance scales with signal (`var = signal / gain`), complementing the existing Gaussian model which assumes signal-independent noise (RECHECK-044).
+
 ## [0.12.3] - 2026-10-18
 
 ### Security

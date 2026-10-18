@@ -362,3 +362,57 @@ class TestSensorNoiseIntegration:
         for material, temp in zip(materials, temperatures):
             apparent = thermal.apparent_temperature(temp, material)
             assert 10 < apparent < 60  # Reasonable temperature range
+
+
+class TestPoissonNoiseGenerator:
+    """Test Poisson (shot / photon-counting) noise."""
+
+    def test_requires_positive_gain(self):
+        from src.sensors.noise_models import PoissonNoiseGenerator
+
+        with pytest.raises(ValueError):
+            PoissonNoiseGenerator(gain=0.0)
+        with pytest.raises(ValueError):
+            PoissonNoiseGenerator(gain=-1.0)
+
+    def test_generate_shape_and_non_negative(self):
+        from src.sensors.noise_models import PoissonNoiseGenerator
+
+        gen = PoissonNoiseGenerator(gain=1.0)
+        lam = np.full((10, 20), 50.0)
+        noisy = gen.generate(lam)
+        assert noisy.shape == lam.shape
+        assert np.all(noisy >= 0)
+
+    def test_variance_scales_with_signal(self):
+        from src.sensors.noise_models import PoissonNoiseGenerator
+
+        gen = PoissonNoiseGenerator(gain=1.0)
+        signal = 100.0
+        samples = gen.generate(np.full(200_000, signal))
+        # Poisson: var == mean, so with gain=1 var == signal.
+        assert abs(samples.mean() - signal) < 1.0
+        assert abs(samples.var() - signal) < 2.0
+
+    def test_higher_gain_less_relative_noise(self):
+        from src.sensors.noise_models import PoissonNoiseGenerator
+
+        signal = 64.0
+        low = PoissonNoiseGenerator(gain=1.0).generate(np.full(100_000, signal)).std()
+        high = PoissonNoiseGenerator(gain=16.0).generate(np.full(100_000, signal)).std()
+        assert high < low
+
+    def test_apply_clip_preserves_dtype_and_range(self):
+        from src.sensors.noise_models import PoissonNoiseGenerator
+
+        img = np.full((8, 8), 200, dtype=np.uint8)
+        noisy = PoissonNoiseGenerator(gain=4.0).apply(img, clip=True)
+        assert noisy.dtype == np.uint8
+        assert np.all(noisy <= 255)
+
+    def test_factory_returns_poisson_generator(self):
+        from src.sensors.noise_models import PoissonNoiseGenerator
+
+        gen = SensorNoiseFactory.get_poisson_noise_generator(gain=2.0)
+        assert isinstance(gen, PoissonNoiseGenerator)
+        assert gen.gain == 2.0

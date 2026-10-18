@@ -64,6 +64,67 @@ class GaussianNoiseGenerator:
         return noisy
 
 
+class PoissonNoiseGenerator:
+    """Generate Poisson (shot / photon-counting) noise.
+
+    Models the quantum nature of light: a sensor counts a finite number of
+    photons per pixel, so the measured value follows a Poisson distribution
+    whose variance equals its mean. Unlike :class:`GaussianNoiseGenerator`,
+    the noise here scales with signal strength (variance = signal / gain),
+    which is what dominates low-light RGB/depth imagery and short-exposure
+    cameras. ``gain`` is the conversion factor between incident signal and
+    detected counts (electrons per unit); higher gain means less relative
+    noise.
+    """
+
+    def __init__(self, gain: float = 1.0):
+        """Initialize the Poisson noise generator.
+
+        Args:
+            gain: Signal-to-count conversion factor (must be positive)
+
+        Raises:
+            ValueError: If ``gain`` is not strictly positive
+        """
+        if gain <= 0:
+            raise ValueError("gain must be positive")
+        self.gain = gain
+
+    def generate(self, lam: np.ndarray) -> np.ndarray:
+        """Sample Poisson noise for the given signal.
+
+        Args:
+            lam: Expected signal per element (non-negative)
+
+        Returns:
+            Sampled noisy signal, same shape as ``lam``
+        """
+        lam = np.clip(np.asarray(lam, dtype=np.float64), 0, None) * self.gain
+        return np.random.poisson(lam) / self.gain
+
+    def apply(
+        self,
+        data: np.ndarray,
+        clip: bool = False,
+        max_val: float = 255.0,
+    ) -> np.ndarray:
+        """Apply Poisson shot noise to data.
+
+        Args:
+            data: Input signal
+            clip: Whether to clip to [0, max_val] and cast back to the input
+                dtype (matches :class:`GaussianNoiseGenerator`'s image usage)
+            max_val: Upper clip bound used when ``clip`` is True
+
+        Returns:
+            Noisy data
+        """
+        noisy = self.generate(data)
+        if clip:
+            noisy = np.clip(noisy, 0, max_val).astype(data.dtype)
+        return noisy
+
+
 class LensDistortionModel:
     """Model lens distortion effects in camera images."""
 
@@ -364,6 +425,18 @@ class SensorNoiseFactory:
             Noise generator
         """
         return GaussianNoiseGenerator(mean=0, std_dev=gaussian_std)
+
+    @staticmethod
+    def get_poisson_noise_generator(gain: float = 1.0) -> PoissonNoiseGenerator:
+        """Get a Poisson (shot / low-light) noise generator.
+
+        Args:
+            gain: Signal-to-count conversion factor (higher = less noise)
+
+        Returns:
+            Poisson noise generator
+        """
+        return PoissonNoiseGenerator(gain)
 
     @staticmethod
     def get_depth_noise_model(
