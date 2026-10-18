@@ -109,13 +109,7 @@ spec:
   selector:
     app: postgres
 
----
-# PostgreSQL Secret
-apiVersion: v1
-kind: Secret
-metadata:
-  name: postgres-secret
-  namespace: pyrobosim
-type: Opaque
-stringData:
-  password: "change-me-in-production"
+# NOTE (RECHECK-003): The `postgres-secret` Secret must be provisioned out-of-band
+# before applying this manifest (never commit a default plaintext password):
+#   kubectl create secret generic postgres-secret -n pyrobosim \
+#     --from-literal=password="$(openssl rand -base64 32)"

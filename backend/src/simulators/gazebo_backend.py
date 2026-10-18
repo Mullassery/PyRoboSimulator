@@ -22,6 +22,7 @@ real (see `backend/tests/test_mujoco_backend.py`).
 """
 
 import logging
+import time
 from typing import Any, Dict, List, Optional, Tuple
 
 from src.simulators.backend_interface import (

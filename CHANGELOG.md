@@ -5,6 +5,14 @@ All notable changes to PyRoboSimulator will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.12.3] - 2026-10-18
+
+### Security
+- Remove hardcoded default password (`change-me-in-production`) from `backend/k8s/postgres.yaml` so the cluster requires an explicitly provisioned `postgres-secret` (RECHECK-003).
+
+### Fixed
+- Add missing `import time` in `backend/src/simulators/gazebo_backend.py` (`F821` undefined name, RECHECK-036).
+
 ## [0.12.2] - 2026-10-17
 
 ### Fixed
