@@ -68,6 +68,27 @@ uvicorn src.main:app --reload
 
 Add the optional MuJoCo physics backend with `pip install -e ".[physics]"`.
 
+## Gymnasium / PettingZoo adapters
+
+Use the simulator from standard RL loops:
+
+```bash
+pip install "pyrobosimulator[rl]"
+```
+
+```python
+from pyrobosimulator import RobotGymEnv
+
+env = RobotGymEnv(engine, agent_id=0)
+obs, info = env.reset(seed=42)
+obs, reward, terminated, truncated, info = env.step([goal_x, goal_y])
+```
+
+`RobotGymEnv` exposes one agent (action = absolute 2D goal target) and
+`RobotParallelEnv` exposes all agents through the PettingZoo `ParallelEnv`
+protocol. Physics/step semantics stay in the existing backend; the adapters
+only translate observations/actions/rewards.
+
 ## Quick start
 
 Rust core (from the pip package):

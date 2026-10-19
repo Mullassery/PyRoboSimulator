@@ -3,7 +3,7 @@
 This file records what was shipped, what is blocked/failed, and what is rejected for this repository. It complements `AUDIT_FINDINGS.md`.
 
 ## Shipped
-- No code changes; audit/bundle docs added.
+- Optional Gymnasium/PettingZoo adapters (`pyrobosimulator[rl]`): `RobotGymEnv` and `RobotParallelEnv`.
 
 ## Blocked / failed
 - Ship core in the wheel; fix failing tests; reproducible benchmark.
