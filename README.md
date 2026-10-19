@@ -132,11 +132,6 @@ Key backend endpoints: `POST/GET/PUT/DELETE /api/v1/simulations`, `.../{id}/star
 
 Full shipped/blocked/rejected detail: [`QUEUE_STATUS.md`](QUEUE_STATUS.md).
 
-## Queue status
-
-Shipped, blocked/failed, and rejected work for this repository is documented in
-[`QUEUE_STATUS.md`](QUEUE_STATUS.md).
-
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md). Bug reports and feature requests: [GitHub Issues](https://github.com/Mullassery/PyRoboSimulator/issues); questions: [GitHub Discussions](https://github.com/Mullassery/PyRoboSimulator/discussions).
