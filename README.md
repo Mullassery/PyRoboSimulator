@@ -122,6 +122,16 @@ Key backend endpoints: `POST/GET/PUT/DELETE /api/v1/simulations`, `.../{id}/star
 - [examples/](examples/) — example scripts
 - [CHANGELOG.md](CHANGELOG.md) — notable changes
 
+## Known issues and deferred work
+
+**Blocked / failed:**
+- Ship core in the wheel; fix failing tests; reproducible benchmark.
+
+**Rejected / deferred:**
+- Gazebo/Isaac integration.
+
+Full shipped/blocked/rejected detail: [`QUEUE_STATUS.md`](QUEUE_STATUS.md).
+
 ## Queue status
 
 Shipped, blocked/failed, and rejected work for this repository is documented in
