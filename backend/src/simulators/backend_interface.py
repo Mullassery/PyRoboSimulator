@@ -81,6 +81,9 @@ class SimulatorConfig:
     timestep_ms: float = 1.0  # milliseconds
     max_substeps: int = 5
     additional_config: Dict[str, Any] = field(default_factory=dict)
+    #: Seed for all stochastic backend output (domain randomization, mock
+    #: sensor data). ``None`` selects a deterministic backend default.
+    seed: Optional[int] = None
 
 
 @dataclass
@@ -153,6 +156,9 @@ class WorldConfig:
     default_physics: PhysicsEngineType = PhysicsEngineType.PHYSX
     lighting_config: Dict[str, Any] = field(default_factory=dict)
     metadata: Dict[str, Any] = field(default_factory=dict)
+    #: Optional per-world override for the simulator seed. When set it takes
+    #: precedence over ``SimulatorConfig.seed`` for this world.
+    seed: Optional[int] = None
 
 
 @dataclass

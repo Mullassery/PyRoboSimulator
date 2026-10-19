@@ -51,6 +51,7 @@ from src.simulators.backend_interface import (
     SimulatorType,
     WorldConfig,
 )
+from src.simulators.rng import make_rng
 
 logger = logging.getLogger(__name__)
 
@@ -114,7 +115,7 @@ class MuJoCoBackend(SimulatorBackend):
     _DEFAULT_KP = 200.0
     _DEFAULT_KV = 20.0
 
-    def __init__(self):
+    def __init__(self, seed: Optional[int] = None):
         if not MUJOCO_AVAILABLE:
             raise ImportError(
                 "The 'mujoco' package is required to use MuJoCoBackend. "
@@ -123,6 +124,8 @@ class MuJoCoBackend(SimulatorBackend):
             )
 
         self._config: Optional[SimulatorConfig] = None
+        self._seed = seed
+        self._rng = make_rng(seed)
         self._initialized = False
         self._paused = False
         self._rendering_enabled = True
@@ -150,6 +153,8 @@ class MuJoCoBackend(SimulatorBackend):
     def initialize(self, config: SimulatorConfig) -> None:
         logger.info("Initializing MuJoCo backend")
         self._config = config
+        if config.seed is not None:
+            self._seed = config.seed
         self._new_world(gravity=config.gravity, timestep_ms=config.timestep_ms)
         self._initialized = True
 
@@ -165,6 +170,9 @@ class MuJoCoBackend(SimulatorBackend):
 
     def _new_world(self, gravity: Tuple[float, float, float], timestep_ms: float) -> None:
         """Build a fresh, empty MuJoCo world spec with a ground plane."""
+        # A new world restarts the stochastic stream so recreating a world
+        # with the same seed reproduces the same domain randomization.
+        self._rng = make_rng(self._seed)
         spec = mujoco.MjSpec()
         spec.option.gravity = list(gravity)
         spec.option.timestep = max(timestep_ms, 1e-4) / 1000.0
@@ -238,6 +246,8 @@ class MuJoCoBackend(SimulatorBackend):
     def create_world(self, config: WorldConfig) -> str:
         logger.info(f"Creating MuJoCo world: {config.name}")
         timestep_ms = self._config.timestep_ms if self._config else 1.0
+        if config.seed is not None:
+            self._seed = config.seed
         self._new_world(gravity=config.gravity, timestep_ms=timestep_ms)
         self._world_id = config.name
         return config.name
@@ -264,6 +274,7 @@ class MuJoCoBackend(SimulatorBackend):
         self._sensors.clear()
         self._prev_body_lin_vel.clear()
         self._step_count = 0
+        self._rng = make_rng(self._seed)
         self._recompile()
 
         self._world_id = os.path.splitext(os.path.basename(world_path))[0]
@@ -993,12 +1004,11 @@ class MuJoCoBackend(SimulatorBackend):
     ) -> None:
         if self._model is None or self._model.nlight == 0:
             return
-        rng = np.random.default_rng()
         for i in range(self._model.nlight):
-            intensity = rng.uniform(intensity_range[0], intensity_range[1])
+            intensity = self._rng.uniform(intensity_range[0], intensity_range[1])
             if color_range is not None:
                 lo, hi = np.array(color_range[0]), np.array(color_range[1])
-                color = rng.uniform(lo, hi)
+                color = self._rng.uniform(lo, hi)
             else:
                 color = np.array([intensity, intensity, intensity])
             self._model.light_diffuse[i] = color
@@ -1010,10 +1020,9 @@ class MuJoCoBackend(SimulatorBackend):
         if entry is None:
             raise KeyError(f"Object/robot not found: {object_name}")
         bid = mujoco.mj_name2id(self._model, mujoco.mjtObj.mjOBJ_BODY, entry.body_name)
-        rng = np.random.default_rng()
         for gid in range(self._model.ngeom):
             if self._model.geom_bodyid[gid] == bid:
-                mu = rng.uniform(friction_range[0], friction_range[1])
+                mu = self._rng.uniform(friction_range[0], friction_range[1])
                 self._model.geom_friction[gid, 0] = mu
 
     def randomize_mass(self, object_name: str, mass_range: Tuple[float, float]) -> None:
@@ -1023,8 +1032,7 @@ class MuJoCoBackend(SimulatorBackend):
         if entry is None:
             raise KeyError(f"Object/robot not found: {object_name}")
         bid = mujoco.mj_name2id(self._model, mujoco.mjtObj.mjOBJ_BODY, entry.body_name)
-        rng = np.random.default_rng()
-        new_mass = rng.uniform(mass_range[0], mass_range[1])
+        new_mass = self._rng.uniform(mass_range[0], mass_range[1])
         old_mass = self._model.body_mass[bid]
         if old_mass > 0:
             ratio = new_mass / old_mass

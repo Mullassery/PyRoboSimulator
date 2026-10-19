@@ -23,6 +23,7 @@ from src.simulators.backend_interface import (
     SimulatorType,
     WorldConfig,
 )
+from src.simulators.rng import make_rng
 
 logger = logging.getLogger(__name__)
 
@@ -33,9 +34,11 @@ class MockBackend(SimulatorBackend):
     Simulates physics, sensors, and world without external dependencies.
     """
 
-    def __init__(self):
+    def __init__(self, seed: Optional[int] = None):
         """Initialize mock backend."""
         self._config: Optional[SimulatorConfig] = None
+        self._seed = seed
+        self._rng = make_rng(seed)
         self._initialized = False
         self._paused = False
         self._step_count = 0
@@ -57,6 +60,9 @@ class MockBackend(SimulatorBackend):
         """Initialize mock backend."""
         logger.info("Initializing MockBackend")
         self._config = config
+        if config.seed is not None:
+            self._seed = config.seed
+        self._rng = make_rng(self._seed)
         self._gravity = config.gravity
         self._timestep_ms = config.timestep_ms
         self._initialized = True
@@ -77,6 +83,9 @@ class MockBackend(SimulatorBackend):
 
     def create_world(self, config: WorldConfig) -> str:
         """Create a new world."""
+        if config.seed is not None:
+            self._seed = config.seed
+        self._rng = make_rng(self._seed)
         self._world_id = config.name
         logger.info(f"Created world: {self._world_id}")
         return self._world_id
@@ -307,15 +316,15 @@ class MockBackend(SimulatorBackend):
         """Get camera image."""
         # Create dummy image data
         result = {
-            "rgb": np.random.randint(0, 256, (480, 640, 3), dtype=np.uint8),
+            "rgb": self._rng.integers(0, 256, (480, 640, 3), dtype=np.uint8),
             "timestamp": time.time(),
         }
 
         if include_depth:
-            result["depth"] = np.random.rand(480, 640).astype(np.float32) * 100
+            result["depth"] = self._rng.random((480, 640), dtype=np.float32) * 100
 
         if include_segmentation:
-            result["segmentation"] = np.random.randint(0, 10, (480, 640), dtype=np.int32)
+            result["segmentation"] = self._rng.integers(0, 10, (480, 640), dtype=np.int32)
 
         return result
 
@@ -323,11 +332,11 @@ class MockBackend(SimulatorBackend):
         """Get Lidar scan."""
         # Create dummy point cloud
         num_points = 1024
-        points = np.random.randn(num_points, 3).astype(np.float32) * 10
+        points = self._rng.standard_normal((num_points, 3)).astype(np.float32) * 10
 
         return {
             "points": points,
-            "intensities": np.random.rand(num_points).astype(np.float32),
+            "intensities": self._rng.random(num_points, dtype=np.float32),
             "timestamps": np.zeros(num_points),
             "num_points": num_points,
         }
@@ -367,8 +376,8 @@ class MockBackend(SimulatorBackend):
     ) -> Optional[Dict[str, Any]]:
         """Raycast."""
         # Mock: 50% chance of hit
-        if np.random.random() > 0.5:
-            distance = np.random.random() * max_distance
+        if self._rng.random() > 0.5:
+            distance = self._rng.random() * max_distance
 
             return {
                 "body_name": "mock_object",

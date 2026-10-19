@@ -24,6 +24,10 @@ class WorldConfig(BaseModel):
     )
     weather: str = Field(default="sunny", description="Weather condition")
     time_of_day: str = Field(default="noon", description="Time of day")
+    seed: Optional[int] = Field(
+        default=None,
+        description="Seed for reproducible scenario/simulator randomness",
+    )
 
 
 class ScenarioCreate(BaseModel):

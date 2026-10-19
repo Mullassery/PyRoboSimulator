@@ -23,6 +23,7 @@ The two are not interchangeable — read **What it is not** before copying any e
 - **Simulation loop (backend)** — configurable timestep (default 16 ms @ 60 Hz), AABB collision, boundary conditions, deterministic seeding.
 - **Sensors (backend)** — RGB camera, depth, Lidar point clouds, and thermal cameras with per-agent configuration.
 - **Real MuJoCo backend** — loads real MJCF/URDF models, steps real dynamics, and extracts body/joint/contact/sensor state.
+- **Deterministic visual/domain randomization** — lighting, friction, and mass draws use one generator seeded from `SimulatorConfig.seed` (or a per-world `WorldConfig.seed`); mock camera/Lidar/raycast data follows the same seeded pattern.
 - **World generation** — built-in parking-lot, warehouse, and urban-street scenarios; procedural obstacle placement; reproducible seeds.
 - **REST API** — simulation CRUD, status, results, and SSE streaming; JWT auth with bcrypt; OpenAPI docs at `/docs`.
 - **Agent behavior (backend)** — behavior trees, A*/NavMesh pathfinding with RVO avoidance, multi-layer agent memory, and multi-agent messaging.
@@ -44,6 +45,7 @@ The two are not interchangeable — read **What it is not** before copying any e
 - **Backend database and cache are still in-memory** for simulations/users. The PostgreSQL/Redis integration is partially wired, not fully load-bearing.
 - **The published performance benchmarks are not backed by a committed, reproducible benchmark suite** — treat them as unverified historical claims.
 - **Not a certified or production-verified simulator.** Development status is Alpha.
+- **Physics determinism is only partially verified.** Seeded RNG makes domain-randomization values and visual metadata reproducible, but bit-exact MuJoCo trajectories across different OSes, CPUs, or MuJoCo versions are not verified.
 
 ## Project status
 

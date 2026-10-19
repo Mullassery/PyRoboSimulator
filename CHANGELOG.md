@@ -5,6 +5,26 @@ All notable changes to PyRoboSimulator will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+- Deterministic simulator randomness: added `seed` to `SimulatorConfig` and
+  `WorldConfig` (plus scenario `WorldConfig`), a shared
+  `src/simulators/rng.py::make_rng` helper with a deterministic default, and
+  threaded one seeded generator through MuJoCo `randomize_lighting`,
+  `randomize_friction`, and `randomize_mass` plus MockBackend camera/Lidar/
+  raycast output. Previously these called unseeded `np.random.default_rng()`
+  or the global `np.random` state, so visual/domain-randomization metadata
+  changed between runs even when a scenario seed was supplied. Added
+  `tests/test_simulator_determinism.py`; the RNG-helper and MockBackend tests
+  run without optional dependencies, while MuJoCo tests skip when the engine
+  is unavailable.
+
+### Documented, not fixed
+- MuJoCo physics trajectories are not verified bit-for-bit across different
+  OSes, CPUs, or MuJoCo versions. This change covers stochastic visual and
+  domain-randomization state, not cross-platform physics determinism.
+
 ## [0.12.4] - 2026-10-18
 
 ### Added
