@@ -210,15 +210,18 @@ jobs:
         uses: docker/setup-buildx-action@v3
 
       - name: Authenticate to Google Cloud
+        if: ${{ env.GOOGLE_APPLICATION_CREDENTIALS != '' || secrets.WIF_PROVIDER != '' }}
         uses: google-github-actions/auth@v2
         with:
           workload_identity_provider: ${{ secrets.WIF_PROVIDER }}
           service_account: ${{ secrets.WIF_SERVICE_ACCOUNT }}
 
       - name: Set up Cloud SDK
+        if: ${{ env.GOOGLE_APPLICATION_CREDENTIALS != '' || secrets.WIF_PROVIDER != '' }}
         uses: google-github-actions/setup-gcloud@v2
 
       - name: Configure Docker for GCR
+        if: ${{ env.GOOGLE_APPLICATION_CREDENTIALS != '' || secrets.WIF_PROVIDER != '' }}
         run: gcloud auth configure-docker gcr.io
 
       - name: Get commit hash
@@ -280,15 +283,18 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Authenticate to Google Cloud
+        if: ${{ env.GOOGLE_APPLICATION_CREDENTIALS != '' || secrets.WIF_PROVIDER != '' }}
         uses: google-github-actions/auth@v2
         with:
           workload_identity_provider: ${{ secrets.WIF_PROVIDER }}
           service_account: ${{ secrets.WIF_SERVICE_ACCOUNT }}
 
       - name: Set up Cloud SDK
+        if: ${{ env.GOOGLE_APPLICATION_CREDENTIALS != '' || secrets.WIF_PROVIDER != '' }}
         uses: google-github-actions/setup-gcloud@v2
 
-      - name: Get GKE cluster credentials
+      - name: Get GKE credentials
+        if: ${{ env.GOOGLE_APPLICATION_CREDENTIALS != '' || secrets.WIF_PROVIDER != '' }}
         run: |
           gcloud container clusters get-credentials staging-cluster \
             --zone us-central1-a \
