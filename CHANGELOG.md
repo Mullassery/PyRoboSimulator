@@ -25,6 +25,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   OSes, CPUs, or MuJoCo versions. This change covers stochastic visual and
   domain-randomization state, not cross-platform physics determinism.
 
+## [0.12.5] - 2026-10-23
+
+### Fixed
+- Upgraded PyO3 to 0.29 for Python 3.12 compatibility.
+
 ## [0.12.4] - 2026-10-18
 
 ### Added
