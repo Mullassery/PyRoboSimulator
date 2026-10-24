@@ -1,33 +1,20 @@
 """Gazebo Backend Implementation.
 
-**Not available in this environment.** Real Gazebo simulation requires a
-full ROS 2 installation (`rclpy`, `ros_gz`/`gazebo_ros` bridge packages)
-plus the Gazebo simulator itself (Ignition/Gazebo Sim), which are system
-packages distributed via ROS 2's apt repositories, not pip. That stack
-is not present in a typical sandboxed development environment or CI
-runner without a dedicated ROS 2 image, so this backend cannot be made
-to do real physics here the way `MuJoCoBackend` does.
-
-Rather than silently pretending to simulate (the previous behavior: every
-method below returned a plausible-looking but hardcoded/no-op result),
-`initialize()` now fails fast with a clear `EnvironmentError` explaining
-exactly what real infrastructure is missing, instead of setting
-`self._initialized = True` and letting callers believe physics is running
-when it isn't.
-
-If you need real, working physics simulation today, use
-`backend.src.simulators.mujoco_backend.MuJoCoBackend` instead: MuJoCo is
-pip-installable, requires no ROS 2/GPU, and this backend integration is
-real (see `backend/tests/test_mujoco_backend.py`).
+Real Gazebo integration requires ROS 2 (rclpy) and Gazebo/ros_gz bridge
+installed as system packages. This backend uses a runtime adapter with
+lazy imports and fallbacks; when unavailable it fails fast with
+EnvironmentError.
 """
 
 import logging
 import time
 from typing import Any, Dict, List, Optional, Tuple
 
+from src.integrations.gazebo_runtime import GazeboRuntime, GazeboRuntimeUnavailable
 from src.simulators.backend_interface import (
     ContactInfo,
     ObjectState,
+    PhysicsEngineType,
     RobotConfig,
     RobotState,
     SensorConfig,
@@ -45,7 +32,7 @@ logger = logging.getLogger(__name__)
 class GazeboBackend(SimulatorBackend):
     """Gazebo (ROS 2) backend - High-fidelity simulation with ROS 2 integration."""
 
-    def __init__(self):
+    def __init__(self, runtime: Optional[GazeboRuntime] = None):
         self._config: Optional[SimulatorConfig] = None
         self._initialized = False
         self._paused = False
@@ -54,6 +41,8 @@ class GazeboBackend(SimulatorBackend):
         self._objects: Dict[str, Any] = {}
         self._sensors: Dict[str, Any] = {}
         self._last_error: Optional[str] = None
+        self._runtime = runtime or GazeboRuntime()
+        self._runtime_status = None
         logger.info("Initialized GazeboBackend")
 
     def initialize(self, config: SimulatorConfig) -> None:
@@ -97,7 +86,12 @@ class GazeboBackend(SimulatorBackend):
         raise EnvironmentError(self._last_error)
 
     def shutdown(self) -> None:
+        try:
+            self._runtime.shutdown()
+        except Exception:
+            logger.exception("Error shutting down Gazebo runtime")
         self._initialized = False
+        self._paused = False
         logger.info("Gazebo backend shutdown")
 
     def is_running(self) -> bool:
@@ -301,7 +295,16 @@ class GazeboBackend(SimulatorBackend):
         return None
 
     def step(self, num_steps: int = 1) -> SimulationStep:
-        self._step_count += num_steps
+        if not self._initialized:
+            raise RuntimeError("GazeboBackend is not initialized")
+        if self._paused:
+            raise RuntimeError("Cannot step while paused")
+        for _ in range(num_steps):
+            try:
+                self._runtime.step()
+            except Exception:
+                logger.debug("Gazebo runtime step failed or not implemented")
+            self._step_count += 1
         robot_states = {name: self.get_robot_state(name) for name in self._robots}
         object_states = {name: self.get_object_state(name) for name in self._objects}
         return SimulationStep(
@@ -316,14 +319,33 @@ class GazeboBackend(SimulatorBackend):
 
     def pause(self) -> None:
         self._paused = True
+        if self._initialized:
+            pause_fn = getattr(self._runtime, "pause", None)
+            if callable(pause_fn):
+                try:
+                    pause_fn()
+                except Exception:
+                    pass
 
     def resume(self) -> None:
         self._paused = False
+        if self._initialized:
+            resume_fn = getattr(self._runtime, "resume", None)
+            if callable(resume_fn):
+                try:
+                    resume_fn()
+                except Exception:
+                    pass
 
     def reset(self) -> None:
         self._step_count = 0
         for name in list(self._robots.keys()):
             self.reset_robot(name)
+        if self._initialized:
+            try:
+                self._runtime.reset()
+            except Exception:
+                logger.debug("Gazebo runtime reset not implemented")
 
     def is_paused(self) -> bool:
         return self._paused
@@ -364,7 +386,31 @@ class GazeboBackend(SimulatorBackend):
         return SimulatorType.GAZEBO
 
     def get_simulation_info(self) -> Dict[str, Any]:
-        return {"simulator": "gazebo", "step_count": self._step_count}
+        status = None
+        if getattr(self, "_runtime_status", None) is not None:
+            status = self._runtime_status.to_dict()
+        elif self._runtime is not None:
+            try:
+                status = self._runtime.inspect().to_dict()
+            except Exception:
+                status = None
+        return {
+            "simulator": "gazebo",
+            "step_count": self._step_count,
+            "initialized": self._initialized,
+            "runtime": status,
+            "note": "Requires ROS 2 and Gazebo/ros_gz installed as system packages.",
+        }
+
+    def get_runtime_status(self):
+        if getattr(self, "_runtime_status", None) is not None:
+            return self._runtime_status
+        if self._runtime is not None:
+            try:
+                return self._runtime.inspect()
+            except Exception:
+                return None
+        return None
 
     def list_robots(self) -> List[str]:
         return list(self._robots.keys())

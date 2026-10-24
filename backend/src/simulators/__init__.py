@@ -2,15 +2,6 @@
 
 This package provides a unified interface for different robotics simulators.
 Supports Isaac Sim, Gazebo, MuJoCo, PyBullet, and custom backends.
-
-Example:
-    >>> from src.simulators import BackendManager, SimulatorConfig, SimulatorType
-    >>> config = SimulatorConfig(simulator_type=SimulatorType.ISAAC_SIM, ...)
-    >>> manager = BackendManager()
-    >>> backend = manager.initialize(config)
-    >>> robot_id = backend.spawn_robot(robot_config)
-    >>> backend.step(num_steps=100)
-    >>> manager.shutdown()
 """
 
 from src.simulators.backend_interface import (
@@ -34,7 +25,10 @@ from src.simulators.backend_interface import (
     WorldConfig,
 )
 from src.simulators.backend_manager import BackendContext, BackendFactory, BackendManager
+from src.simulators.gazebo_backend import GazeboBackend
+from src.simulators.isaac_sim_backend import IsaacSimBackend
 from src.simulators.mock_backend import MockBackend
+from src.simulators.mujoco_backend import MuJoCoBackend
 
 __all__ = [
     # Enums
@@ -62,8 +56,11 @@ __all__ = [
     "BackendFactory",
     "BackendManager",
     "BackendContext",
-    # Mock backend
+    # Backends
     "MockBackend",
+    "MuJoCoBackend",
+    "GazeboBackend",
+    "IsaacSimBackend",
 ]
 
 __version__ = "0.10.0"

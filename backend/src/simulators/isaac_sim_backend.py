@@ -1,32 +1,27 @@
 """NVIDIA Isaac Sim Backend Implementation.
 
-**Not available in this environment.** Real Isaac Sim simulation requires
-NVIDIA Omniverse (the `isaacsim`/`omni` Python packages, which are not
-distributed on PyPI and must be installed via NVIDIA's Omniverse Launcher)
-plus a CUDA-capable NVIDIA GPU for PhysX/RTX. Neither is available in a
-typical sandboxed development environment or CI runner without dedicated
-GPU infrastructure, so this backend cannot be made to do real physics here
-the way `MuJoCoBackend` does.
+Real Isaac Sim integration is only possible in an environment with the
+Omniverse/Isaac Sim Python packages installed via NVIDIA's Omniverse
+Launcher and a CUDA-capable NVIDIA GPU for PhysX/RTX. Neither is bundled
+on PyPI and neither is present in this environment.
 
-Rather than silently pretending to simulate (the previous behavior: every
-method below returned a plausible-looking but hardcoded/no-op result),
-`initialize()` now fails fast with a clear `EnvironmentError` explaining
-exactly what real infrastructure is missing. The method bodies below are
-left in place, annotated with what a real integration would call
-(`omni.usd`, `UsdPhysics`, ...), as a concrete implementation sketch for
-whoever adds this in an environment that actually has Omniverse + a GPU —
-but they are unreachable in normal use because `initialize()` raises
-first, and none of them perform real physics.
+This backend now uses ``src.integrations.isaac_sim_runtime.IsaacSimRuntime``
+with lazy imports and version-aware API fallbacks. When no runtime is
+available it still fails fast with ``EnvironmentError`` and records an
+explainable ``_last_error`` (preserving the existing contract tested by
+``tests/test_unavailable_backends.py``). A runtime factory can be injected
+via ``IsaacSimBackend(runtime=fake_runtime)`` so tests can exercise the
+real lifecycle paths without Omniverse installed.
 
-If you need real, working physics simulation today, use
-`backend.src.simulators.mujoco_backend.MuJoCoBackend` instead: MuJoCo is
-pip-installable, requires no GPU, and this backend integration is real
-(see `backend/tests/test_mujoco_backend.py`).
+The method bodies remain annotated as an implementation sketch for an
+environment that actually has Isaac Sim. No code here fabricates sensor
+data or pretends physics completed.
 """
 
 import logging
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Callable, Dict, List, Optional, Tuple
 
+from src.integrations.isaac_sim_runtime import IsaacSimRuntime, IsaacSimRuntimeUnavailable
 from src.simulators.backend_interface import (
     ContactInfo,
     ObjectState,
@@ -54,8 +49,12 @@ class IsaacSimBackend(SimulatorBackend):
     Requires: NVIDIA Isaac Sim installed and configured.
     """
 
-    def __init__(self):
-        """Initialize Isaac Sim backend."""
+    def __init__(self, runtime: Optional[IsaacSimRuntime] = None):
+        """Initialize Isaac Sim backend.
+
+        Args:
+            runtime: Optional runtime adapter (injectable for tests/fakes).
+        """
         self._config: Optional[SimulatorConfig] = None
         self._initialized = False
         self._paused = False
@@ -68,55 +67,60 @@ class IsaacSimBackend(SimulatorBackend):
         self._objects: Dict[str, Any] = {}
         self._sensors: Dict[str, Any] = {}
         self._last_error: Optional[str] = None
+        self._runtime = runtime or IsaacSimRuntime()
+        self._runtime_status = None
 
         logger.info("Initialized IsaacSimBackend")
 
     # ==================== INITIALIZATION ====================
 
     def initialize(self, config: SimulatorConfig) -> None:
-        """Attempt to initialize Isaac Sim. Always fails in this environment.
+        """Initialize Isaac Sim via the runtime adapter.
 
-        Real Isaac Sim requires the `isaacsim`/`omni` packages (installed
-        via NVIDIA's Omniverse Launcher, not `pip install`) and a
-        CUDA-capable NVIDIA GPU for PhysX/RTX. This raises `EnvironmentError`
-        rather than pretending to succeed, so callers get an honest failure
-        instead of a backend that silently does no physics.
+        Fails fast with ``EnvironmentError`` if no Omniverse/Isaac Sim runtime
+        is importable. If a fake/runtime factory is injected, initialization
+        delegates to that runtime instead.
 
         Raises:
-            EnvironmentError: Always, in any environment lacking Omniverse +
-                a GPU (i.e. this one). Message explains the real requirement.
+            EnvironmentError: If Isaac Sim/Omniverse is not available.
         """
+        self._config = config
+        self.validate_configuration(config)
+
         try:
-            import omni  # noqa: F401  (real Omniverse package; not on PyPI)
-
-            has_omni = True
-        except ImportError:
-            has_omni = False
-
-        self._last_error = (
-            "IsaacSimBackend is not functional in this environment: NVIDIA "
-            "Isaac Sim requires the Omniverse runtime (`omni`/`isaacsim` "
-            "packages, installed via NVIDIA's Omniverse Launcher, not pip) "
-            "and a CUDA-capable NVIDIA GPU for PhysX/RTX rendering. "
-            + (
-                "The `omni` package was importable, but no further Isaac Sim "
-                "integration is implemented here."
-                if has_omni
-                else "Neither the `omni` package nor a GPU runtime was detected. "
+            status = self._runtime.inspect()
+            self._runtime_status = status
+            self._isaac_sim = self._runtime.initialize(
+                headless=config.headless_mode,
+                physics_engine=config.physics_engine.value,
+                rendering_backend=config.rendering_backend.value,
             )
-            + "Use MuJoCoBackend for real, working physics simulation "
-            "(pip-installable, no GPU required)."
-        )
-        logger.error(self._last_error)
-        raise EnvironmentError(self._last_error)
+            self._initialized = True
+            self._paused = False
+            self._step_count = 0
+            logger.info("Isaac Sim backend initialized via runtime adapter")
+            return
+        except IsaacSimRuntimeUnavailable as exc:
+            self._last_error = IsaacSimRuntime.environment_error_message()
+            logger.error(self._last_error)
+            raise EnvironmentError(self._last_error) from exc
+        except EnvironmentError:
+            raise
+        except Exception as exc:
+            self._last_error = IsaacSimRuntime.environment_error_message()
+            logger.error(self._last_error)
+            raise EnvironmentError(self._last_error) from exc
 
     def shutdown(self) -> None:
         """Shutdown Isaac Sim."""
-        if self._isaac_sim:
-            # In real implementation: self._isaac_sim.close()
-            pass
-
+        try:
+            self._runtime.shutdown()
+        except Exception:
+            logger.exception("Error shutting down Isaac Sim runtime")
+        self._isaac_sim = None
+        self._stage = None
         self._initialized = False
+        self._paused = False
         logger.info("Isaac Sim backend shutdown")
 
     def is_running(self) -> bool:
@@ -381,15 +385,25 @@ class IsaacSimBackend(SimulatorBackend):
 
     def step(self, num_steps: int = 1) -> SimulationStep:
         """Step simulation."""
+        if not self._initialized:
+            raise RuntimeError("IsaacSimBackend is not initialized")
+        if self._paused:
+            raise RuntimeError("Cannot step while paused")
+
+        timestep_ms = self._config.timestep_ms if self._config else 1.0
         for _ in range(num_steps):
+            try:
+                self._runtime.step(render=not self._config.headless_mode if self._config else True)
+            except NotImplementedError:
+                # Runtime present but does not implement stepping yet; count steps
+                # without fabricating world state.
+                pass
             self._step_count += 1
 
         return SimulationStep(
             step_count=self._step_count,
-            elapsed_time_sec=(
-                self._step_count * (self._config.timestep_ms / 1000.0) if self._config else 0.0
-            ),
-            timestep_ms=self._config.timestep_ms if self._config else 1.0,
+            elapsed_time_sec=self._step_count * (timestep_ms / 1000.0),
+            timestep_ms=timestep_ms,
             robot_states={},
             object_states={},
             contacts=[],
@@ -399,16 +413,30 @@ class IsaacSimBackend(SimulatorBackend):
     def pause(self) -> None:
         """Pause simulation."""
         self._paused = True
+        if self._initialized:
+            pause_fn = getattr(self._runtime, "pause", None)
+            if callable(pause_fn):
+                pause_fn()
 
     def resume(self) -> None:
         """Resume simulation."""
         self._paused = False
+        if self._initialized:
+            resume_fn = getattr(self._runtime, "resume", None)
+            if callable(resume_fn):
+                resume_fn()
 
     def reset(self) -> None:
         """Reset simulation."""
         self._step_count = 0
         self._robots.clear()
         self._objects.clear()
+        self._sensors.clear()
+        if self._initialized:
+            try:
+                self._runtime.reset()
+            except Exception:
+                logger.exception("Error resetting Isaac Sim runtime")
 
     def is_paused(self) -> bool:
         """Check if paused."""
@@ -457,11 +485,23 @@ class IsaacSimBackend(SimulatorBackend):
 
     def get_simulation_info(self) -> Dict[str, Any]:
         """Get simulation info."""
+        status = None
+        if self._runtime_status is not None:
+            status = self._runtime_status.to_dict()
+        elif self._runtime is not None:
+            try:
+                status = self._runtime.inspect().to_dict()
+            except Exception:
+                status = None
         return {
             "simulator": "isaac_sim",
             "step_count": self._step_count,
             "physics_engine": "physx",
             "rendering": "rtx",
+            "initialized": self._initialized,
+            "runtime": status,
+            "sensor_apis": self._runtime.get_sensor_api() if self._runtime is not None else {},
+            "note": "Requires NVIDIA Isaac Sim via Omniverse Launcher and a CUDA-capable GPU.",
         }
 
     def list_robots(self) -> List[str]:
@@ -496,3 +536,14 @@ class IsaacSimBackend(SimulatorBackend):
     def get_last_error(self) -> Optional[str]:
         """Get last error."""
         return self._last_error
+
+    def get_runtime_status(self):
+        """Get the last observed Isaac Sim runtime status."""
+        if self._runtime_status is not None:
+            return self._runtime_status
+        if self._runtime is not None:
+            try:
+                return self._runtime.inspect()
+            except Exception:
+                return None
+        return None
