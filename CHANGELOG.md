@@ -80,7 +80,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   distribution charts are now skipped). `npx vitest run` passes 86/86.
 - Backend test suite: re-verified the previously-documented 33 failed/1
   error and root-caused/fixed 28 of them (individual failures listed in
-  `ROADMAP_HONEST.md`), spanning genuine logic bugs and outdated test
+  `docs/internal/ROADMAP_HONEST.md`), spanning genuine logic bugs and outdated test
   expectations across pathfinding, agent memory, world streaming,
   validation/reporting, Prometheus metrics double-registration, ARI
   confidence tracking, physics integration, RGB/lidar/thermal/depth sensor
@@ -117,7 +117,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   "Image digest" step referenced `steps.docker_build.outputs.digest`, which
   was always undefined because no step had that id).
 
-### Documented, not fixed (see ROADMAP_HONEST.md)
+### Documented, not fixed (see docs/internal/ROADMAP_HONEST.md)
 - 5 failed / 0 error / 911 passed / 6 skipped / 3 xfailed in
   `backend/tests/` as of this pass (down from 33 failed/1 error/882 passed
   at the last audit): `test_lidar_rain.py`'s two determinism tests and

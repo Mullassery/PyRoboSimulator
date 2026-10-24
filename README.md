@@ -146,7 +146,7 @@ flowchart LR
 
 ## Project status
 
-Alpha (Development Status 3), source version **0.12.5**. The Rust core (`World`/`Agent`/`StorageEngine`, real gravity, integration, collision detection, RocksDB storage) and the MuJoCo backend are implemented and unit-tested; Gazebo/Isaac Sim are stubs that fail fast. The backend suite is large (900+ tests) and currently has known pre-existing failures; `mypy` (strict) still reports a large backlog that is not CI-gating, and the frontend has had a TypeScript error sweep but not a full quality audit. See [ROADMAP_HONEST.md](ROADMAP_HONEST.md).
+Alpha (Development Status 3), source version **0.12.5**. The Rust core (`World`/`Agent`/`StorageEngine`, real gravity, integration, collision detection, RocksDB storage) and the MuJoCo backend are implemented and unit-tested; Gazebo/Isaac Sim are stubs that fail fast. The backend suite is large (900+ tests) and currently has known pre-existing failures; `mypy` (strict) still reports a large backlog that is not CI-gating, and the frontend has had a TypeScript error sweep but not a full quality audit. See [docs/internal/ROADMAP_HONEST.md](docs/internal/ROADMAP_HONEST.md).
 
 ## Installation
 
@@ -222,13 +222,13 @@ Canonical facts for automated tooling and coding agents:
 | SANA-WM | **Not integrated** |
 | Version | `0.12.5` |
 
-Agent-friendly docs: [ROADMAP_HONEST.md](ROADMAP_HONEST.md), [backend/README.md](backend/README.md), [VISION.md](VISION.md), [backend/docs/](backend/docs/).
+Agent-friendly docs: [docs/internal/ROADMAP_HONEST.md](docs/internal/ROADMAP_HONEST.md), [backend/README.md](backend/README.md), [VISION.md](VISION.md), [backend/docs/](backend/docs/).
 
 ## Documentation
 
 - [backend/README.md](backend/README.md) — backend service setup
 - [VISION.md](VISION.md) — product vision
-- [ROADMAP_HONEST.md](ROADMAP_HONEST.md) — implemented vs planned, honest caveats
+- [docs/internal/ROADMAP_HONEST.md](docs/internal/ROADMAP_HONEST.md) — implemented vs planned, honest caveats
 - [backend/docs/DEPLOYMENT.md](backend/docs/DEPLOYMENT.md) — Docker / Kubernetes / local dev
 - [backend/docs/SCHEMA.md](backend/docs/SCHEMA.md) — database schema
 - [backend/docs/UE5_INTEGRATION.md](backend/docs/UE5_INTEGRATION.md) — rendering integration
@@ -247,7 +247,7 @@ Agent-friendly docs: [ROADMAP_HONEST.md](ROADMAP_HONEST.md), [backend/README.md]
 - Gazebo/Isaac integration as a near-term deliverable.
 - Unverified 100K-agent performance claims.
 
-Full shipped/blocked/rejected detail: [`QUEUE_STATUS.md`](QUEUE_STATUS.md).
+Full shipped/blocked/rejected detail: [`docs/internal/QUEUE_STATUS.md`](docs/internal/QUEUE_STATUS.md).
 
 ## Contributing
 
