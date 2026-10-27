@@ -60,7 +60,7 @@ We accept pull requests for:
 
 ```bash
 # Clone repository
-git clone https://github.com/Mullassery/PyRoboSimulator.git
+git clone ../PyRoboSimulator
 cd PyRoboSimulator
 
 # Install in development mode

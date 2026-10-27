@@ -7,7 +7,7 @@ person (mullassery@gmail.com / [@Mullassery](https://github.com/Mullassery)
 on GitHub). If you discover a security vulnerability, please report it
 privately rather than using the public issue tracker, via either:
 
-- [GitHub Security Advisories](https://github.com/Mullassery/PyRoboSimulator/security/advisories/new)
+- [GitHub Security Advisories](../PyRoboSimulator/security/advisories/new)
   for this repo (preferred — keeps the report private until a fix ships), or
 - Email to mullassery@gmail.com.
 
@@ -262,9 +262,9 @@ Before deploying PyRoboSimulator to production:
 
 ## Contact
 
-- **Security reports**: [GitHub Security Advisories](https://github.com/Mullassery/PyRoboSimulator/security/advisories/new)
+- **Security reports**: [GitHub Security Advisories](../PyRoboSimulator/security/advisories/new)
   or mullassery@gmail.com
-- **General questions**: [GitHub Discussions](https://github.com/Mullassery/PyRoboSimulator/discussions)
+- **General questions**: [GitHub Discussions](../PyRoboSimulator/discussions)
 - **GitHub Issues**: Public, non-security bugs only (use issue templates)
 
 ---

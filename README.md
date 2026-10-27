@@ -2,7 +2,7 @@
 
 **Simulate the fleet. Generate the scenario. Inspect the sensor stream.** An AI-native multi-agent simulator with a pip-installable Rust core, a FastAPI simulation service, synthetic RGB/depth/LiDAR/thermal sensors, and real MuJoCo physics.
 
-[![CI](https://github.com/Mullassery/PyRoboSimulator/actions/workflows/ci-cd.yaml/badge.svg)](https://github.com/Mullassery/PyRoboSimulator/actions/workflows/ci-cd.yaml)
+[![CI](../PyRoboSimulator/actions/workflows/ci-cd.yaml/badge.svg)](../PyRoboSimulator/actions/workflows/ci-cd.yaml)
 [![PyPI](https://img.shields.io/pypi/v/pyrobosimulator)](https://pypi.org/project/pyrobosimulator/)
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/)
@@ -44,7 +44,7 @@ print("collisions:", world.detect_collisions())
 Backend service (from source):
 
 ```bash
-git clone https://github.com/Mullassery/PyRoboSimulator.git
+git clone ../PyRoboSimulator
 cd PyRoboSimulator/backend
 pip install -e ".[dev]"
 uvicorn src.main:app --reload
@@ -159,7 +159,7 @@ This installs only the Rust core (Python 3.10+).
 The backend service is run from source:
 
 ```bash
-git clone https://github.com/Mullassery/PyRoboSimulator.git
+git clone ../PyRoboSimulator
 cd PyRoboSimulator/backend
 pip install -e ".[dev]"
 uvicorn src.main:app --reload
@@ -251,7 +251,7 @@ Full shipped/blocked/rejected detail: [`docs/internal/QUEUE_STATUS.md`](docs/int
 
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md). Bug reports and feature requests: [GitHub Issues](https://github.com/Mullassery/PyRoboSimulator/issues); questions: [GitHub Discussions](https://github.com/Mullassery/PyRoboSimulator/discussions).
+See [CONTRIBUTING.md](CONTRIBUTING.md). Bug reports and feature requests: [GitHub Issues](../PyRoboSimulator/issues); questions: [GitHub Discussions](../PyRoboSimulator/discussions).
 
 ## Part of the robotics & autonomy family
 
@@ -259,14 +259,14 @@ PyRoboSimulator is one of six complementary, composable tools in the Mullassery 
 
 | Tool | Role | What it does |
 |---|---|---|
-| [PyRoboVision](https://github.com/Mullassery/PyRoboVision) | Perception | Multi-object tracker (Kalman filter + Hungarian algorithm) and trajectory predictor for robot perception. |
-| [PyTerrainMap](https://github.com/Mullassery/PyTerrainMap) | Mapping / SLAM | Fuses multi-robot terrain observations into a spatial-temporal store, with H3 spatial indexing and SLAM. |
-| [PyRoboSimulator](https://github.com/Mullassery/PyRoboSimulator) | Simulation | **This project** — world simulator for autonomous systems, with a FastAPI backend. |
-| [PyRoboFrames](https://github.com/Mullassery/PyRoboFrames) | Learning data | Rust-backed ML dataloader for robot-learning datasets (native LeRobot format, Apple Silicon hardware video decode). |
-| [PyRoboReplay](https://github.com/Mullassery/PyRoboReplay) | Mission forensics | Forensic-debugging and causal-analysis engine for autonomous robot mission replay. |
-| [SyncFleet](https://github.com/Mullassery/SyncFleet) | Fleet coordination | Rust + SQLite, peer-to-peer state sync for robotics fleets — mutual-TLS 1.3, version-vector replication, mDNS discovery; conflict resolution on the roadmap. |
+| [PyRoboVision](../PyRoboVision) | Perception | Multi-object tracker (Kalman filter + Hungarian algorithm) and trajectory predictor for robot perception. |
+| [PyTerrainMap](../PyTerrainMap) | Mapping / SLAM | Fuses multi-robot terrain observations into a spatial-temporal store, with H3 spatial indexing and SLAM. |
+| [PyRoboSimulator](../PyRoboSimulator) | Simulation | **This project** — world simulator for autonomous systems, with a FastAPI backend. |
+| [PyRoboFrames](../PyRoboFrames) | Learning data | Rust-backed ML dataloader for robot-learning datasets (native LeRobot format, Apple Silicon hardware video decode). |
+| [PyRoboReplay](../PyRoboReplay) | Mission forensics | Forensic-debugging and causal-analysis engine for autonomous robot mission replay. |
+| [SyncFleet](../SyncFleet) | Fleet coordination | Rust + SQLite, peer-to-peer state sync for robotics fleets — mutual-TLS 1.3, version-vector replication, mDNS discovery; conflict resolution on the roadmap. |
 
-Each works standalone, but they're complementary by design. [Browse all projects →](https://github.com/Mullassery?tab=repositories)
+Each works standalone, but they're complementary by design. [Browse all projects →](../Mullassery-profile)
 
 ## License
 
