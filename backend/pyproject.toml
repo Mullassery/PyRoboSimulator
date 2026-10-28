@@ -31,7 +31,7 @@ dependencies = [
     "redis==5.0.1",
 
     # WebSocket & Real-time
-    "websockets==12.0",
+    "websockets==16.1.1",
     "msgpack>=1.0.8",
 
     # Validation & Serialization
