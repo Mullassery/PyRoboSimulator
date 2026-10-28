@@ -56,7 +56,7 @@ dependencies = [
     "python-json-logger==2.0.7",
 
     # Utilities
-    "numpy==1.24.3",
+    "numpy==2.2.6",
     "scipy==1.11.4",
     "pillow>=10.3.0",
 
