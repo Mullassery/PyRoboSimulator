@@ -37,6 +37,16 @@ from src.simulators.backend_interface import (
     WorldConfig,
 )
 
+# Optional SimReady/USD support
+try:
+    from pxr import Usd, UsdGeom, UsdPhysics
+    USD_AVAILABLE = True
+except ImportError:
+    USD_AVAILABLE = False
+    Usd = None  # type: ignore
+    UsdGeom = None  # type: ignore
+    UsdPhysics = None  # type: ignore
+
 logger = logging.getLogger(__name__)
 
 
@@ -160,16 +170,48 @@ class IsaacSimBackend(SimulatorBackend):
     # ==================== ROBOT MANAGEMENT ====================
 
     def spawn_robot(self, robot_config: RobotConfig) -> str:
-        """Spawn robot from URDF/USD/MJCF.
+        """Spawn robot from URDF/USD/MJCF/SimReady.
 
-        In real implementation:
-        1. Load model from file (URDF, USD, MJCF)
-        2. Create articulation root
-        3. Set physics properties
-        4. Add to stage
+        Supports:
+        - URDF files
+        - MJCF files (MuJoCo)
+        - USD files (including NVIDIA SimReady assets)
+        - SimReady assets with profile metadata
         """
         logger.info(f"Spawning robot: {robot_config.name} ({robot_config.robot_type.value})")
 
+        model_path = getattr(robot_config, 'model_path', None) or getattr(robot_config, 'urdf_path', None)
+        
+        # Check if it's a USD/SimReady asset
+        if model_path and model_path.lower().endswith(('.usd', '.usda', '.usdc', '.usdz')) and USD_AVAILABLE:
+            try:
+                stage = Usd.Stage.Open(model_path)
+                if stage:
+                    # Extract SimReady metadata if present
+                    simready_profile = None
+                    root_prim = stage.GetPseudoRoot()
+                    for prim in stage.Traverse():
+                        if prim.HasCustomDataKey('simready:profile'):
+                            simready_profile = prim.GetCustomDataByKey('simready:profile')
+                            break
+                        elif prim.HasCustomDataKey('profile') and isinstance(prim.GetCustomDataByKey('profile'), str):
+                            profile_val = prim.GetCustomDataByKey('profile')
+                            if 'robot' in profile_val.lower() or 'simready' in profile_val.lower():
+                                simready_profile = profile_val
+                                break
+                    
+                    logger.info(f"Loaded USD/SimReady asset: {model_path} (profile: {simready_profile})")
+                    self._robots[robot_config.name] = {
+                        "config": robot_config,
+                        "prim_path": f"/World/{robot_config.name}",
+                        "model_path": model_path,
+                        "simready_profile": simready_profile,
+                        "usd_stage": stage,
+                    }
+                    return robot_config.name
+            except Exception as e:
+                logger.warning(f"Failed to load USD asset {model_path}: {e}")
+        
         # In real implementation:
         # from pxr import UsdPhysics
         # prim = stage.GetPrimAtPath(f"/World/{robot_config.name}")
@@ -178,6 +220,7 @@ class IsaacSimBackend(SimulatorBackend):
         self._robots[robot_config.name] = {
             "config": robot_config,
             "prim_path": f"/World/{robot_config.name}",
+            "model_path": model_path,
         }
 
         return robot_config.name

@@ -43,3 +43,6 @@ include = ["LICENSE"]
 
 [project.optional-dependencies]
 rl = ["gymnasium>=0.29", "pettingzoo>=1.24"]
+simready = ["usd-core>=23.11"]
+usd = ["usd-core>=23.11"]
+omniverse = ["usd-core>=23.11"]
